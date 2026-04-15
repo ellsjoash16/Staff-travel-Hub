@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 96%;
+    --foreground: 228 39% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 228 39% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 39% 14%;
+
+    --primary: 181 94% 31%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 93%;
+    --secondary-foreground: 228 39% 14%;
+
+    --muted: 210 40% 93%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 198 69% 59%;
+    --accent-foreground: 228 39% 14%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 160 84% 39%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 181 94% 31%;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+.font-outfit {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Leaflet z-index fix inside dialogs */
+.leaflet-pane { z-index: 10 !important; }
+.leaflet-top, .leaflet-bottom { z-index: 20 !important; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }

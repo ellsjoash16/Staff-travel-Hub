@@ -17,6 +17,8 @@ import { hexToHsl, extractStoragePath } from '@/lib/utils'
 
 const BUCKET = 'post-images'
 
+export interface MapTarget { lat: number; lng: number; label: string }
+
 interface AppState {
   posts: Post[]
   courses: Course[]
@@ -26,6 +28,7 @@ interface AppState {
   activeView: View
   activeFilter: string | null
   loading: boolean
+  mapTarget: MapTarget | null
 }
 
 type Action =
@@ -43,6 +46,7 @@ type Action =
   | { type: 'ADD_SUBMISSION'; submission: Submission }
   | { type: 'DELETE_SUBMISSION'; id: string }
   | { type: 'UPDATE_SETTINGS'; settings: Settings }
+  | { type: 'SET_MAP_TARGET'; target: MapTarget | null }
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -61,6 +65,7 @@ function reducer(state: AppState, action: Action): AppState {
     case 'ADD_SUBMISSION': return { ...state, submissions: [action.submission, ...state.submissions] }
     case 'DELETE_SUBMISSION': return { ...state, submissions: state.submissions.filter((s) => s.id !== action.id) }
     case 'UPDATE_SETTINGS': return { ...state, settings: action.settings }
+    case 'SET_MAP_TARGET': return { ...state, mapTarget: action.target }
     default: return state
   }
 }
@@ -86,7 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, {
     posts: [], courses: [], submissions: [],
     settings: DEFAULT_SETTINGS,
-    isAdmin: false, activeView: 'home', activeFilter: null, loading: true,
+    isAdmin: false, activeView: 'home', activeFilter: null, loading: true, mapTarget: null,
   })
 
   useEffect(() => {

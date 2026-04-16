@@ -1,23 +1,15 @@
 import { useState } from 'react'
-import { MapPin, BookOpen, Camera, Settings, Shield, CalendarDays, Send } from 'lucide-react'
+import { Settings, Shield } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
-import type { View } from '@/lib/types'
 import { AdminLoginDialog } from './AdminLoginDialog'
 import { AdminPanel } from './AdminPanel'
+import { DestinationSearch } from './DestinationSearch'
 
 export function Header() {
   const { state, dispatch } = useApp()
-  const { activeView, settings, isAdmin } = state
+  const { settings, isAdmin } = state
   const [loginOpen, setLoginOpen] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
-
-  const navItems: { id: View; label: string; icon: React.ReactNode }[] = [
-    { id: 'feed', label: 'Feed', icon: <Camera className="h-4 w-4" /> },
-    { id: 'map', label: 'World Map', icon: <MapPin className="h-4 w-4" /> },
-    { id: 'courses', label: 'Courses', icon: <BookOpen className="h-4 w-4" /> },
-    { id: 'years', label: 'By Year', icon: <CalendarDays className="h-4 w-4" /> },
-    { id: 'submit', label: 'Submit', icon: <Send className="h-4 w-4" /> },
-  ]
 
   function handleAdminClick() {
     if (isAdmin) { setAdminOpen(true) } else { setLoginOpen(true) }
@@ -52,28 +44,8 @@ export function Header() {
             </span>
           </button>
 
-          {/* Nav */}
-          <nav className="flex gap-0.5">
-            {navItems.map(({ id, label, icon }) => (
-              <button
-                key={id}
-                onClick={() => dispatch({ type: 'SET_VIEW', view: id })}
-                className={`
-                  relative flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium text-white/90 transition-all duration-200
-                  ${activeView === id
-                    ? 'bg-white/20 text-white shadow-inner'
-                    : 'hover:bg-white/15 hover:text-white'
-                  }
-                `}
-              >
-                {icon}
-                <span className="hidden sm:inline">{label}</span>
-                {activeView === id && (
-                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-white/80" />
-                )}
-              </button>
-            ))}
-          </nav>
+          {/* Destination search */}
+          <DestinationSearch />
 
           {/* Admin */}
           <div className="flex items-center gap-2 flex-shrink-0">

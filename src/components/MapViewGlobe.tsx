@@ -105,7 +105,7 @@ interface PopupState {
 // ── Main ───────────────────────────────────────────────────────────────────
 
 export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => void }) {
-  const { state } = useApp()
+  const { state, dispatch } = useApp()
   const { posts, courses, settings } = state
   const pinColor = settings.color || '#05979a'
   const globeRef = useRef<GlobeMethods | undefined>(undefined)
@@ -132,6 +132,14 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
     g.controls().autoRotate = !popup
     g.controls().autoRotateSpeed = 0.4
   }, [popup])
+
+  // Fly to location when a search result is selected
+  useEffect(() => {
+    const target = state.mapTarget
+    if (!target || !globeRef.current) return
+    globeRef.current.pointOfView({ lat: target.lat, lng: target.lng, altitude: 1.2 }, 1200)
+    dispatch({ type: 'SET_MAP_TARGET', target: null })
+  }, [state.mapTarget])
 
   const departure = {
     lat: settings.departureAirport?.lat ?? 51.5074,

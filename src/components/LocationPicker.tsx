@@ -46,14 +46,20 @@ export function LocationPicker({ lat, lng, onPick }: Props) {
   )
 
   const buildPinEl = useCallback((_d: object) => {
+    // Circle (28px) + stem (14px) = 42px total.
+    // translate(-50%,-100%) anchors bottom-centre to the coordinate — tip is exactly where you clicked.
     const el = document.createElement('div')
     el.style.cssText = 'transform:translate(-50%,-100%);pointer-events:none'
     el.innerHTML = `
-      <div style="position:relative;width:26px;height:36px;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.6))">
-        <svg viewBox="0 0 26 26" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="13" cy="13" r="11" fill="hsl(181,94%,31%)" stroke="white" stroke-width="2.5"/>
-        </svg>
-        <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;height:12px;background:hsl(181,94%,31%);border-radius:0 0 3px 3px"></div>
+      <div style="position:relative;width:28px;height:42px;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.7))">
+        <div style="
+          width:28px;height:28px;border-radius:50%;
+          background:hsl(181,94%,31%);border:2.5px solid white;
+        "></div>
+        <div style="
+          position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+          width:3px;height:16px;background:hsl(181,94%,31%);border-radius:0 0 3px 3px;
+        "></div>
       </div>`
     return el
   }, [])

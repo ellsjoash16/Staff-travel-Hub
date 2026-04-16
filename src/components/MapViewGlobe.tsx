@@ -84,6 +84,7 @@ interface PinPoint {
   posts?: Post[]
   course?: Course
   color: string
+  pinImage?: string | null  // photo shown inside the pin circle
 }
 
 interface ArcData {
@@ -164,6 +165,8 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
       type: 'post' as const,
       posts: ps,
       color: pinColor,
+      // Single post: prefer staff photo, fall back to first trip image
+      pinImage: ps.length === 1 ? (ps[0].staffImage || ps[0].images[0] || null) : null,
     })),
     ...pinnedCourses.map(c => ({
       key: `course-${c.id}`,
@@ -172,6 +175,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
       type: 'course' as const,
       course: c,
       color: '#10b981',
+      pinImage: c.image || null,
     })),
   ], [postsByLocation, pinnedCourses, pinColor])
 
@@ -195,20 +199,31 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
   const buildHtmlEl = useCallback((d: object) => {
     const pin = d as PinPoint
     const count = pin.posts && pin.posts.length > 1 ? pin.posts.length : null
+    const img = !count ? pin.pinImage : null  // only show image on single-location pins
+
+    // Dimensions: circle sits on top, stem hangs below.
+    // Container bottom = stem tip = exact globe coordinate (via translate(-50%,-100%)).
+    const circleSize = img ? 38 : 28
+    const stemH = 14
+    const totalH = circleSize + stemH
+
+    const circleInner = img
+      ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;" />`
+      : `<span style="font-size:${count ? '12' : '14'}px;font-weight:700;color:white;font-family:system-ui,sans-serif;line-height:1">${count ?? (pin.type === 'course' ? '📖' : '')}</span>`
+
     const el = document.createElement('div')
+    // translate(-50%,-100%) anchors the element's bottom-centre to the coordinate
     el.style.cssText = 'cursor:pointer;transform:translate(-50%,-100%)'
     el.innerHTML = `
-      <div style="position:relative;width:28px;height:38px;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.6))">
+      <div style="position:relative;width:${circleSize}px;height:${totalH}px;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.7))">
         <div style="
-          width:28px;height:28px;border-radius:50%;
-          background:${pin.color};border:2.5px solid white;
+          width:${circleSize}px;height:${circleSize}px;border-radius:50%;
+          background:${pin.color};border:2.5px solid white;overflow:hidden;
           display:flex;align-items:center;justify-content:center;
-          font-size:${count ? '11' : '14'}px;font-weight:700;color:white;
-          font-family:system-ui,sans-serif;
-        ">${count ? count : (pin.type === 'course' ? '📖' : '')}</div>
+        ">${circleInner}</div>
         <div style="
           position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-          width:3px;height:12px;background:${pin.color};border-radius:0 0 3px 3px;
+          width:3px;height:${stemH + 2}px;background:${pin.color};border-radius:0 0 3px 3px;
         "></div>
       </div>`
 

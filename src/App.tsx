@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { AppProvider, useApp } from '@/context/AppContext'
 import { Header } from '@/components/Header'
+import { HomeView } from '@/components/HomeView'
 import { FeedView } from '@/components/FeedView'
 import { MapView } from '@/components/MapView'
 import { CoursesView } from '@/components/CoursesView'
@@ -30,6 +31,7 @@ function AppShell() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="mx-auto max-w-[1440px] px-4 sm:px-6 py-6">
+        {state.activeView === 'home' && <HomeView />}
         {state.activeView === 'feed' && <FeedView />}
         {state.activeView === 'map' && (
           <>

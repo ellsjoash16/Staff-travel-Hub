@@ -36,6 +36,14 @@ export interface Submission {
   images: string[]
 }
 
+export interface PanelImages {
+  feed: string | null
+  map: string | null
+  courses: string | null
+  years: string | null
+  submit: string | null
+}
+
 export interface Settings {
   title: string
   heading: string
@@ -43,6 +51,7 @@ export interface Settings {
   password: string
   welcome: string
   departureAirport: { name: string; lat: number; lng: number }
+  panelImages: PanelImages
 }
 
-export type View = 'feed' | 'map' | 'courses' | 'years' | 'submit'
+export type View = 'home' | 'feed' | 'map' | 'courses' | 'years' | 'submit'

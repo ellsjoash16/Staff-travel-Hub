@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Trash2, Pencil, Upload, Loader2, BookOpen, CheckCircle2, Map, Plane } from 'lucide-react'
+import { Trash2, Pencil, Upload, Loader2, BookOpen, CheckCircle2, Map, Plane, LayoutGrid } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,7 @@ import { LocationPicker } from './LocationPicker'
 import { DatePicker } from './DatePicker'
 import { useApp } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
-import type { Post, Course } from '@/lib/types'
+import type { Post, Course, PanelImages } from '@/lib/types'
 
 const PALETTE = ['#0077b6', '#6366f1', '#ec4899', '#f97316', '#10b981', '#dc2626', '#7c3aed', '#0f766e']
 
@@ -44,7 +44,7 @@ const emptyCourseForm = (): CourseForm => ({
 interface Props { open: boolean; onOpenChange: (open: boolean) => void }
 
 export function AdminPanel({ open, onOpenChange }: Props) {
-  const { state, addPost, editPost, deletePost, addCourse, editCourse, deleteCourse, deleteSubmission, saveSettings } = useApp()
+  const { state, addPost, editPost, deletePost, addCourse, editCourse, deleteCourse, deleteSubmission, saveSettings, savePageImages } = useApp()
   const { posts, courses, submissions, settings } = state
 
   const [tab, setTab] = useState('post')
@@ -64,6 +64,12 @@ export function AdminPanel({ open, onOpenChange }: Props) {
   const [sAirportLat, setSAirportLat] = useState(String(settings.departureAirport?.lat ?? 51.5074))
   const [sAirportLng, setSAirportLng] = useState(String(settings.departureAirport?.lng ?? -0.1278))
 
+  const [pFeed, setPFeed] = useState<string | null>(settings.panelImages?.feed ?? null)
+  const [pMap, setPMap] = useState<string | null>(settings.panelImages?.map ?? null)
+  const [pCourses, setPCourses] = useState<string | null>(settings.panelImages?.courses ?? null)
+  const [pYears, setPYears] = useState<string | null>(settings.panelImages?.years ?? null)
+  const [pSubmit, setPSubmit] = useState<string | null>(settings.panelImages?.submit ?? null)
+
   useEffect(() => {
     if (open) {
       setSTitle(settings.title); setSHeading(settings.heading)
@@ -72,6 +78,11 @@ export function AdminPanel({ open, onOpenChange }: Props) {
       setSAirportName(settings.departureAirport?.name ?? 'LHR')
       setSAirportLat(String(settings.departureAirport?.lat ?? 51.5074))
       setSAirportLng(String(settings.departureAirport?.lng ?? -0.1278))
+      setPFeed(settings.panelImages?.feed ?? null)
+      setPMap(settings.panelImages?.map ?? null)
+      setPCourses(settings.panelImages?.courses ?? null)
+      setPYears(settings.panelImages?.years ?? null)
+      setPSubmit(settings.panelImages?.submit ?? null)
     }
   }, [open, settings])
 
@@ -228,6 +239,29 @@ export function AdminPanel({ open, onOpenChange }: Props) {
     } catch (err: any) { toast.error(err?.message ?? 'Failed to save settings') }
   }
 
+  async function handleSavePages() {
+    try {
+      const currentImages: PanelImages = {
+        feed: pFeed?.startsWith('https:') ? pFeed : settings.panelImages?.feed ?? null,
+        map: pMap?.startsWith('https:') ? pMap : settings.panelImages?.map ?? null,
+        courses: pCourses?.startsWith('https:') ? pCourses : settings.panelImages?.courses ?? null,
+        years: pYears?.startsWith('https:') ? pYears : settings.panelImages?.years ?? null,
+        submit: pSubmit?.startsWith('https:') ? pSubmit : settings.panelImages?.submit ?? null,
+      }
+      const dataUrls: Partial<Record<keyof PanelImages, string | null>> = {
+        ...(pFeed?.startsWith('data:') ? { feed: pFeed } : {}),
+        ...(pMap?.startsWith('data:') ? { map: pMap } : {}),
+        ...(pCourses?.startsWith('data:') ? { courses: pCourses } : {}),
+        ...(pYears?.startsWith('data:') ? { years: pYears } : {}),
+        ...(pSubmit?.startsWith('data:') ? { submit: pSubmit } : {}),
+      }
+      await savePageImages(currentImages, dataUrls)
+      toast.success('Page backgrounds saved!')
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Failed to save pages')
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg">
@@ -254,6 +288,10 @@ export function AdminPanel({ open, onOpenChange }: Props) {
                 )}
               </TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="pages">
+                <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
+                Pages
+              </TabsTrigger>
             </TabsList>
 
             {/* ── UPLOAD POST ── */}
@@ -600,6 +638,41 @@ export function AdminPanel({ open, onOpenChange }: Props) {
 
               <div className="flex justify-end">
                 <Button onClick={handleSaveSettings}>Save Settings</Button>
+              </div>
+            </TabsContent>
+
+            {/* ── PAGES ── */}
+            <TabsContent value="pages" className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-sm">Page Backgrounds</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Upload background images for each section on the home page</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Feed</Label>
+                  <ImageUpload value={pFeed} onChange={setPFeed} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>World Map</Label>
+                  <ImageUpload value={pMap} onChange={setPMap} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Training Courses</Label>
+                  <ImageUpload value={pCourses} onChange={setPCourses} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>By Year</Label>
+                  <ImageUpload value={pYears} onChange={setPYears} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Submit Trip</Label>
+                  <ImageUpload value={pSubmit} onChange={setPSubmit} />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handleSavePages}>Save Pages</Button>
               </div>
             </TabsContent>
           </Tabs>

@@ -41,12 +41,16 @@ export function Header() {
         <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-4 sm:px-6">
 
           {/* Logo + Title */}
-          <div className="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            onClick={() => dispatch({ type: 'SET_VIEW', view: 'home' })}
+            className="flex min-w-0 items-center gap-3 hover:opacity-85 transition-opacity"
+          >
             <img src="/daf-bird.png" alt="DAF" className="h-9 w-auto flex-shrink-0 drop-shadow-sm" />
             <span className="hidden sm:block font-outfit font-bold italic text-white text-2xl tracking-wide leading-none drop-shadow-sm">
               {settings.title}
             </span>
-          </div>
+          </button>
 
           {/* Nav */}
           <nav className="flex gap-0.5">

@@ -5,7 +5,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import type { Post, Course, Submission, Settings, View } from '@/lib/types'
+import type { Post, Course, Submission, Settings, View, PanelImages } from '@/lib/types'
 import {
   fetchPosts, fetchCourses, fetchSettings, fetchSubmissions,
   insertPost, updatePost, removePost,
@@ -77,6 +77,7 @@ interface AppContextValue {
   submitReview: (submission: Submission, imageDataUrls: string[]) => Promise<void>
   deleteSubmission: (id: string) => Promise<void>
   saveSettings: (settings: Settings) => Promise<void>
+  savePageImages: (images: PanelImages, dataUrls: Partial<Record<keyof PanelImages, string | null>>) => Promise<void>
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -85,7 +86,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, {
     posts: [], courses: [], submissions: [],
     settings: DEFAULT_SETTINGS,
-    isAdmin: false, activeView: 'feed', activeFilter: null, loading: true,
+    isAdmin: false, activeView: 'home', activeFilter: null, loading: true,
   })
 
   useEffect(() => {
@@ -196,13 +197,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await upsertSettings(settings)
   }
 
+  async function savePageImages(images: PanelImages, dataUrls: Partial<Record<keyof PanelImages, string | null>>): Promise<void> {
+    const uploaded = { ...images }
+    for (const key of ['feed', 'map', 'courses', 'years', 'submit'] as const) {
+      const dataUrl = dataUrls[key]
+      if (dataUrl?.startsWith('data:')) {
+        const result = await uploadImage(dataUrl, `panel-${key}`)
+        uploaded[key] = result.url
+      }
+    }
+    const newSettings = { ...state.settings, panelImages: uploaded }
+    dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
+    await upsertSettings(newSettings)
+  }
+
   return (
     <AppContext.Provider value={{
       state, dispatch,
       addPost, editPost, deletePost,
       addCourse, editCourse, deleteCourse,
       submitReview, deleteSubmission,
-      saveSettings,
+      saveSettings, savePageImages,
     }}>
       {children}
     </AppContext.Provider>

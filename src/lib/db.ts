@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS: Settings = {
   password: 'admin123',
   welcome: '',
   departureAirport: { name: 'LHR', lat: 51.5074, lng: -0.1278 },
+  panelImages: { feed: null, map: null, courses: null, years: null, submit: null },
 }
 
 // ── Row mappers ───────────────────────────────────────────────────────────
@@ -251,6 +252,7 @@ export async function fetchSettings(): Promise<Settings> {
       lat: data.departure_lat ?? 51.5074,
       lng: data.departure_lng ?? -0.1278,
     },
+    panelImages: { feed: null, map: null, courses: null, years: null, submit: null, ...(data.panel_images ?? {}) },
   }
 }
 
@@ -272,6 +274,9 @@ export async function upsertSettings(settings: Settings): Promise<void> {
     departure_lat: settings.departureAirport?.lat ?? 51.5074,
     departure_lng: settings.departureAirport?.lng ?? -0.1278,
   }).eq('id', 1)
+
+  // Save panel images — silently skip if the migration hasn't been run yet
+  await supabase.from('settings').update({ panel_images: settings.panelImages }).eq('id', 1)
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────

@@ -1,17 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps'
-import { geoEqualEarth } from 'd3-geo'
-
-const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json'
-const SVG_W = 800
-const SVG_H = 600
-const SCALE = 147
-
-// Must match react-simple-maps default projection exactly
-const projection = geoEqualEarth()
-  .scale(SCALE)
-  .translate([SVG_W / 2, SVG_H / 2])
-  .center([0, 0])
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import Globe, { GlobeMethods } from 'react-globe.gl'
 
 interface Props {
   lat: number | null
@@ -20,110 +8,81 @@ interface Props {
 }
 
 export function LocationPicker({ lat, lng, onPick }: Props) {
+  const globeRef = useRef<GlobeMethods | undefined>(undefined)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState({
-    coordinates: [0, 0] as [number, number],
-    zoom: 1,
-  })
+  const [dims, setDims] = useState({ w: 400, h: 300 })
 
-  // Prevent the parent dialog from scrolling when the user scrolls over the map.
-  // d3-zoom v2 doesn't set {passive:false} on its wheel listener, so we need
-  // a native non-passive listener to reliably call preventDefault().
+  // Measure container width
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const stop = (e: WheelEvent) => e.preventDefault()
-    el.addEventListener('wheel', stop, { passive: false })
-    return () => el.removeEventListener('wheel', stop)
+    const ro = new ResizeObserver(entries => {
+      const { width } = entries[0].contentRect
+      setDims({ w: width, h: 300 })
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [])
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      const target = e.target as SVGElement
-      const svg = target.closest('svg') as SVGSVGElement | null
-      if (!svg) return
+  // Disable auto-rotation; set a nice starting tilt
+  useEffect(() => {
+    const g = globeRef.current
+    if (!g) return
+    g.controls().autoRotate = false
+    g.controls().enableZoom = true
+    g.pointOfView({ lat: 20, lng: 0, altitude: 2 }, 0)
+  }, [])
 
-      // Must use the INNER zoom group (.rsm-zoomable-group), not the outer <g>.
-      // ZoomableGroup nests two <g> elements; only the inner one carries the
-      // d3 zoom transform — getScreenCTM on that gives accurate coords at any zoom.
-      const g = svg.querySelector('.rsm-zoomable-group') as SVGGElement | null
-      const ctm = (g ?? svg).getScreenCTM()
-      if (!ctm) return
+  // If a pin already exists, focus the globe on it
+  useEffect(() => {
+    if (lat != null && lng != null && globeRef.current) {
+      globeRef.current.pointOfView({ lat, lng, altitude: 1.8 }, 600)
+    }
+  }, []) // only on mount
 
-      const pt = svg.createSVGPoint()
-      pt.x = e.clientX
-      pt.y = e.clientY
-      const { x, y } = pt.matrixTransform(ctm.inverse())
-
-      const coords = projection.invert?.([x, y])
-      if (!coords) return
-      const [pLng, pLat] = coords
-      if (Math.abs(pLat) > 90 || Math.abs(pLng) > 180) return
-      onPick(parseFloat(pLat.toFixed(5)), parseFloat(pLng.toFixed(5)))
-    },
-    [onPick]
+  const pins = useMemo(
+    () => (lat != null && lng != null ? [{ lat, lng }] : []),
+    [lat, lng]
   )
+
+  const buildPinEl = useCallback((_d: object) => {
+    const el = document.createElement('div')
+    el.style.cssText = 'transform:translate(-50%,-100%);pointer-events:none'
+    el.innerHTML = `
+      <div style="position:relative;width:26px;height:36px;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.6))">
+        <svg viewBox="0 0 26 26" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="13" cy="13" r="11" fill="hsl(181,94%,31%)" stroke="white" stroke-width="2.5"/>
+        </svg>
+        <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;height:12px;background:hsl(181,94%,31%);border-radius:0 0 3px 3px"></div>
+      </div>`
+    return el
+  }, [])
+
+  function handleGlobeClick({ lat: clickLat, lng: clickLng }: { lat: number; lng: number }) {
+    onPick(parseFloat(clickLat.toFixed(5)), parseFloat(clickLng.toFixed(5)))
+  }
 
   return (
     <div
       ref={containerRef}
-      className="relative rounded-xl overflow-hidden border border-border cursor-crosshair select-none"
-      style={{ height: 340, background: '#dde9f0' }}
-      onClick={handleClick}
+      className="relative rounded-xl overflow-hidden border border-border"
+      style={{ height: 300, background: '#060c1a', cursor: 'crosshair' }}
     >
-      <ComposableMap
-        style={{ width: '100%', height: '100%' }}
-        projectionConfig={{ scale: SCALE }}
-      >
-        <ZoomableGroup
-          zoom={position.zoom}
-          center={position.coordinates}
-          minZoom={1}
-          maxZoom={20}
-          onMoveEnd={(pos: { zoom: number; coordinates: [number, number] }) =>
-            setPosition({ zoom: pos.zoom, coordinates: pos.coordinates })
-          }
-        >
-          <Geographies geography={GEO_URL}>
-            {({ geographies }: { geographies: any[] }) =>
-              geographies.map((geo: any) => (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
-                  fill="#c8d8e4"
-                  stroke="#fff"
-                  strokeWidth={0.5}
-                  style={{ outline: 'none', pointerEvents: 'none' }}
-                />
-              ))
-            }
-          </Geographies>
-
-          {lat != null && lng != null && (
-            <Marker coordinates={[lng, lat]}>
-              {/* tip at y=0 so the point lands exactly where you clicked */}
-              <circle
-                r={5}
-                cy={-9}
-                fill="hsl(var(--primary))"
-                stroke="#fff"
-                strokeWidth={2}
-                style={{ pointerEvents: 'none' }}
-              />
-              <line
-                x1={0} y1={-6} x2={0} y2={0}
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                strokeLinecap="round"
-                style={{ pointerEvents: 'none' }}
-              />
-            </Marker>
-          )}
-        </ZoomableGroup>
-      </ComposableMap>
-
-      <div className="absolute bottom-1 right-2 text-[9px] text-gray-400 pointer-events-none select-none">
-        Scroll to zoom · Click to pin
+      <Globe
+        ref={globeRef}
+        width={dims.w}
+        height={300}
+        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
+        showAtmosphere={true}
+        atmosphereColor="hsl(181, 94%, 31%)"
+        atmosphereAltitude={0.15}
+        onGlobeClick={handleGlobeClick}
+        htmlElementsData={pins}
+        htmlElement={buildPinEl}
+      />
+      <div className="absolute bottom-2 right-2 text-[9px] text-white/40 bg-black/30 rounded-lg px-2 py-1 pointer-events-none select-none backdrop-blur-sm z-10">
+        Click globe to pin · Drag to rotate · Scroll to zoom
       </div>
     </div>
   )

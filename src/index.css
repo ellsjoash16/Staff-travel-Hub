@@ -57,6 +57,20 @@
 .leaflet-pane { z-index: 10 !important; }
 .leaflet-top, .leaflet-bottom { z-index: 20 !important; }
 
+/* Clean Leaflet popup — remove default chrome, let React content own the styling */
+.leaflet-custom-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+}
+.leaflet-custom-popup .leaflet-popup-content { margin: 12px; min-width: 0; }
+.leaflet-custom-popup .leaflet-popup-tip-container { display: none; }
+.leaflet-custom-popup .leaflet-popup-close-button {
+  top: 6px; right: 8px; font-size: 18px; color: #9ca3af;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }

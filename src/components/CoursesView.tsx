@@ -1,4 +1,4 @@
-import { BookOpen, ExternalLink, MapPin } from 'lucide-react'
+import { BookOpen, MapPin } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 
 export function CoursesView() {
@@ -43,10 +43,7 @@ export function CoursesView() {
             </div>
 
             <div className="p-4 flex flex-col gap-2 flex-1">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-bold text-base leading-snug flex-1">{course.title}</h3>
-                <ExternalLink className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+              <h3 className="font-bold text-base leading-snug">{course.title}</h3>
               {course.description && (
                 <p className="text-sm text-muted-foreground leading-relaxed flex-1 line-clamp-2">{course.description}</p>
               )}
@@ -57,11 +54,11 @@ export function CoursesView() {
                 </p>
               )}
               <button
-                className="mt-2 w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 transition-colors text-white text-sm font-semibold py-2 flex items-center justify-center gap-1.5"
+                className="mt-2 w-full rounded-xl text-white text-sm font-semibold py-2 flex items-center justify-center transition-opacity hover:opacity-90"
+                style={{ background: 'linear-gradient(90deg, #064e5a 0%, #05979a 60%, #07c5b0 100%)' }}
                 onClick={(e) => { e.stopPropagation(); window.open(course.riseUrl, '_blank') }}
               >
                 Open Course
-                <ExternalLink className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>

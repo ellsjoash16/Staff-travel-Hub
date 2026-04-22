@@ -1,4 +1,4 @@
-import { MapPin, Images } from 'lucide-react'
+import { MapPin, Images, Pin, Globe } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { fmtDate, initials } from '@/lib/utils'
@@ -25,13 +25,20 @@ export function PostCard({ post, onClick }: Props) {
             loading="lazy"
           />
         ) : (
-          <div className="w-full aspect-[4/3] bg-gradient-to-br from-primary/25 via-primary/10 to-transparent flex items-center justify-center text-6xl">
-            🌍
+          <div className="w-full aspect-[4/3] bg-gradient-to-br from-primary/25 via-primary/10 to-transparent flex items-center justify-center">
+            <Globe className="h-12 w-12 text-primary/30" />
           </div>
         )}
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+        {/* Pinned badge */}
+        {post.pinned && (
+          <span className="absolute top-3 left-3 flex items-center gap-1 bg-primary backdrop-blur-sm text-primary-foreground text-xs font-semibold rounded-full px-2.5 py-1">
+            <Pin className="h-3 w-3" /> Featured
+          </span>
+        )}
 
         {/* Multi-image badge */}
         {post.images.length > 1 && (
@@ -65,7 +72,7 @@ export function PostCard({ post, onClick }: Props) {
       {/* Body */}
       <div className="px-4 pt-3 pb-2">
         <h3 className="font-bold text-base mb-1.5 leading-snug">{post.title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{post.review}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">{post.review}</p>
       </div>
 
       {post.tags.length > 0 && (

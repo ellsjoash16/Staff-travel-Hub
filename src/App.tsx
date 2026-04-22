@@ -3,18 +3,25 @@ import { Toaster } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { AppProvider, useApp } from '@/context/AppContext'
 import { Header } from '@/components/Header'
+import { Sidebar } from '@/components/Sidebar'
 import { HomeView } from '@/components/HomeView'
 import { FeedView } from '@/components/FeedView'
 import { MapView } from '@/components/MapView'
 import { CoursesView } from '@/components/CoursesView'
 import { YearsView } from '@/components/YearsView'
 import { SubmitView } from '@/components/SubmitView'
+import { PendingView } from '@/components/PendingView'
+import { SettingsView } from '@/components/SettingsView'
 import { PostDetailDialog } from '@/components/PostDetailDialog'
 import type { Post } from '@/lib/types'
 
 function AppShell() {
   const { state } = useApp()
   const [mapPost, setMapPost] = useState<Post | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)       // mobile drawer
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false) // desktop collapsed
+
+  const showSidebar = state.activeView !== 'home'
 
   if (state.loading) {
     return (
@@ -29,23 +36,49 @@ function AppShell() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      <main className="mx-auto max-w-[1440px] px-4 sm:px-6 py-6">
-        {state.activeView === 'home' && <HomeView />}
-        {state.activeView === 'feed' && <FeedView />}
-        {state.activeView === 'map' && (
-          <>
-            <MapView onSelectPost={setMapPost} />
-            <PostDetailDialog
-              post={mapPost}
-              onOpenChange={(open) => !open && setMapPost(null)}
-            />
-          </>
-        )}
-        {state.activeView === 'courses' && <CoursesView />}
-        {state.activeView === 'years' && <YearsView />}
-        {state.activeView === 'submit' && <SubmitView />}
+      <Header
+        showMenuButton={showSidebar}
+        onMenuClick={() => setSidebarOpen(o => !o)}
+      />
+
+      {showSidebar && (
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onCollapsedChange={setSidebarCollapsed}
+          mobileOpen={sidebarOpen}
+          onMobileClose={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <main
+        className={`py-6 px-4 sm:px-6 transition-all duration-300 ${
+          showSidebar
+            ? sidebarCollapsed
+              ? 'lg:ml-16'
+              : 'lg:ml-60'
+            : 'max-w-[1440px] mx-auto'
+        }`}
+      >
+        <div key={state.activeView} className="view-enter">
+          {state.activeView === 'home' && <HomeView />}
+          {state.activeView === 'feed' && <FeedView />}
+          {state.activeView === 'map' && (
+            <>
+              <MapView onSelectPost={setMapPost} />
+              <PostDetailDialog
+                post={mapPost}
+                onOpenChange={(open) => !open && setMapPost(null)}
+              />
+            </>
+          )}
+          {state.activeView === 'courses' && <CoursesView />}
+          {state.activeView === 'years' && <YearsView />}
+          {state.activeView === 'submit' && <SubmitView />}
+{state.activeView === 'settings' && <SettingsView />}
+          {state.activeView === 'pending' && state.isAdmin && <PendingView />}
+        </div>
       </main>
+
       <Toaster position="bottom-right" richColors />
     </div>
   )

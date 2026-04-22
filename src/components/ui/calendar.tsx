@@ -5,11 +5,12 @@ import { cn } from '@/lib/utils'
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
-export function Calendar({ className, classNames, showOutsideDays = false, ...props }: CalendarProps) {
+export function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn('p-4', className)}
+      fixedWeeks
+      className={cn('p-3 w-[280px]', className)}
       classNames={{
         months: 'flex flex-col',
         month: 'space-y-3',
@@ -23,15 +24,15 @@ export function Calendar({ className, classNames, showOutsideDays = false, ...pr
         nav_button_next: '',
         table: 'w-full border-collapse',
         head_row: 'flex mb-1',
-        head_cell: 'text-muted-foreground w-9 font-medium text-[0.75rem] text-center uppercase tracking-wide',
+        head_cell: 'text-muted-foreground flex-1 font-medium text-[0.75rem] text-center uppercase tracking-wide',
         row: 'flex w-full gap-0',
         cell: cn(
-          'h-9 w-9 text-center p-0 relative',
+          'flex-1 h-9 text-center p-0 relative',
           'focus-within:relative focus-within:z-20'
         ),
         day: cn(
-          'h-9 w-9 p-0 font-normal rounded-lg transition-colors text-sm',
-          'hover:bg-muted inline-flex items-center justify-center w-full',
+          'h-9 w-full p-0 font-normal rounded-lg transition-colors text-sm',
+          'hover:bg-muted inline-flex items-center justify-center',
           'aria-selected:opacity-100'
         ),
         day_range_end: 'day-range-end',

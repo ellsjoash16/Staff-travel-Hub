@@ -1,4 +1,5 @@
 import { useMemo, useEffect } from 'react'
+import { MapPin, Globe, User } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -86,8 +87,9 @@ function PostPopup({ post, onViewDetails }: { post: Post; onViewDetails: (p: Pos
         <img src={post.images[0]} alt="" className="w-full h-24 object-cover rounded-lg mb-2" />
       )}
       <h4 className="font-bold text-sm mb-1 leading-snug">{post.title}</h4>
-      <p className="text-xs text-gray-500 mb-2">
-        📍 {post.location.name}<br />👤 {post.staff}
+      <p className="text-xs text-gray-500 mb-2 flex flex-col gap-0.5">
+        <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{post.location.name}</span>
+        <span className="flex items-center gap-1"><User className="h-3 w-3 flex-shrink-0" />{post.staff}</span>
       </p>
       <button
         onClick={() => onViewDetails(post)}
@@ -114,7 +116,7 @@ function MultiPostPopup({ posts, onViewDetails }: { posts: Post[]; onViewDetails
           >
             {post.images[0]
               ? <img src={post.images[0]} alt="" className="w-full h-[72px] object-cover" />
-              : <div className="w-full h-[72px] bg-gray-100 flex items-center justify-center text-xl">🌍</div>
+              : <div className="w-full h-[72px] bg-gray-100 flex items-center justify-center"><Globe className="h-6 w-6 text-gray-400" /></div>
             }
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-1.5 py-1">
@@ -181,16 +183,16 @@ export function MapViewLeaflet({ onSelectPost, dark = true }: Props) {
   }, [posts])
 
   const pinnedCourses = useMemo(
-    () => courses.filter(c => c.showOnMap && c.location.lat != null && c.location.lng != null),
+    () => courses.filter(c => c.location.lat != null && c.location.lng != null),
     [courses]
   )
 
-  // Flight path destinations — all posts with showFlightPath enabled
+  // Flight path destinations — all posts with coordinates
   const flightDests = useMemo<[number, number][]>(() => {
     const seen = new Set<string>()
     const dests: [number, number][] = []
     posts.forEach(p => {
-      if (p.showFlightPath && p.location.lat != null && p.location.lng != null) {
+      if (p.location.lat != null && p.location.lng != null) {
         const k = `${p.location.lat},${p.location.lng}`
         if (!seen.has(k)) { seen.add(k); dests.push([p.location.lat!, p.location.lng!]) }
       }

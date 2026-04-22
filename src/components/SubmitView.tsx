@@ -7,22 +7,28 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { MultiImageUpload } from './MultiImageUpload'
 import { DatePicker } from './DatePicker'
+import { ReviewExtras } from './ReviewExtras'
 import { useApp } from '@/context/AppContext'
 import { today } from '@/lib/utils'
+import type { PostExtras } from '@/lib/types'
+
+const EMPTY_EXTRAS: PostExtras = { hotels: [], airlines: [], cruises: [], activities: [] }
 
 export function SubmitView() {
   const { submitReview } = useApp()
-  const [name, setName] = useState('')
+
+  const [title, setTitle] = useState('')
   const [location, setLocation] = useState('')
   const [date, setDate] = useState(today())
   const [review, setReview] = useState('')
   const [images, setImages] = useState<string[]>([])
+  const [extras, setExtras] = useState<PostExtras>(EMPTY_EXTRAS)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   async function handleSubmit() {
-    if (!name.trim() || !review.trim()) {
-      toast.error('Please enter your name and a review')
+    if (!review.trim()) {
+      toast.error('Please write a review before submitting')
       return
     }
 
@@ -33,18 +39,21 @@ export function SubmitView() {
       await submitReview(
         {
           id: crypto.randomUUID(),
-          name: name.trim(),
+          name: title.trim() || location.trim() || 'Trip',
           location: { name: location.trim(), lat: null, lng: null },
           date,
           review: review.trim(),
           images: [],
+          showOnMap: false,
+          extras,
         },
         newDataUrls
       )
       setSubmitted(true)
-    } catch (err) {
-      console.error(err)
-      toast.error('Something went wrong. Please try again.')
+    } catch (err: any) {
+      console.error('Submit error:', err)
+      const msg = err?.message ?? 'Something went wrong'
+      toast.error(msg)
     } finally {
       setSubmitting(false)
     }
@@ -58,13 +67,13 @@ export function SubmitView() {
         </div>
         <h2 className="font-outfit font-bold text-3xl mb-2">Thanks for sharing!</h2>
         <p className="text-muted-foreground mb-6">
-          Your review has been submitted and will be posted by an admin shortly.
+          Your trip has been submitted for approval!
         </p>
         <Button
           variant="secondary"
           onClick={() => {
-            setName(''); setLocation(''); setDate(today())
-            setReview(''); setImages([]); setSubmitted(false)
+            setTitle(''); setLocation(''); setDate(today())
+            setReview(''); setImages([]); setExtras(EMPTY_EXTRAS); setSubmitted(false)
           }}
         >
           Submit another
@@ -84,7 +93,7 @@ export function SubmitView() {
           </div>
           <h2 className="font-outfit font-bold text-3xl mb-1">Share Your Trip</h2>
           <p className="text-sm text-muted-foreground">
-            Submit your travel photos and review — an admin will post it on your behalf.
+            Submit your travel photos and review — an admin will approve it shortly.
           </p>
         </div>
 
@@ -94,13 +103,13 @@ export function SubmitView() {
             <MultiImageUpload values={images} onChange={setImages} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+<div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Your Name <span className="text-destructive">*</span></Label>
+              <Label>Trip Title <span className="text-destructive">*</span></Label>
               <Input
-                placeholder="e.g. Sarah Johnson"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Bali 2026"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
@@ -126,6 +135,11 @@ export function SubmitView() {
               onChange={(e) => setReview(e.target.value)}
               className="min-h-[120px]"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Rate Hotels, Airlines, Cruises & Activities <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <ReviewExtras value={extras} onChange={setExtras} />
           </div>
 
           <Button onClick={handleSubmit} disabled={submitting} className="w-full gap-2">

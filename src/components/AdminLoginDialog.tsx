@@ -14,12 +14,12 @@ interface Props {
 
 export function AdminLoginDialog({ open, onOpenChange, onSuccess }: Props) {
   const { state } = useApp()
-  const [pwd, setPwd] = useState('')
+  const [pin, setPin] = useState('')
   const [error, setError] = useState(false)
 
   function handleLogin() {
-    if (pwd === state.settings.password) {
-      setPwd('')
+    if (pin === state.settings.password) {
+      setPin('')
       setError(false)
       onSuccess()
     } else {
@@ -38,25 +38,23 @@ export function AdminLoginDialog({ open, onOpenChange, onSuccess }: Props) {
         </DialogHeader>
         <DialogBody className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="login-pwd">Password</Label>
+            <Label htmlFor="login-pin">Admin PIN</Label>
             <Input
-              id="login-pwd"
+              id="login-pin"
               type="password"
-              placeholder="Enter admin password"
-              value={pwd}
-              onChange={(e) => { setPwd(e.target.value); setError(false) }}
+              placeholder="Enter PIN"
+              value={pin}
+              onChange={(e) => { setPin(e.target.value); setError(false) }}
               onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              autoFocus
             />
             {error && (
-              <p className="text-xs text-destructive">Incorrect password. Try again.</p>
+              <p className="text-xs text-destructive">Incorrect PIN. Try again.</p>
             )}
           </div>
           <Button className="w-full" onClick={handleLogin}>
             Login
           </Button>
-          <p className="text-xs text-muted-foreground">
-            Default password: <strong>admin123</strong>
-          </p>
         </DialogBody>
       </DialogContent>
     </Dialog>

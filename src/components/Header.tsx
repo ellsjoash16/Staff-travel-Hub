@@ -1,79 +1,114 @@
-import { useState } from 'react'
-import { Settings, Shield } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Shield, Menu, Sun, Moon, Settings } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
-import { AdminLoginDialog } from './AdminLoginDialog'
 import { AdminPanel } from './AdminPanel'
 import { DestinationSearch } from './DestinationSearch'
 
-export function Header() {
+interface Props {
+  showMenuButton?: boolean
+  onMenuClick?: () => void
+}
+
+
+export function Header({ showMenuButton, onMenuClick }: Props) {
   const { state, dispatch } = useApp()
   const { settings, isAdmin } = state
-  const [loginOpen, setLoginOpen] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
+  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
 
-  function handleAdminClick() {
-    if (isAdmin) { setAdminOpen(true) } else { setLoginOpen(true) }
-  }
+  const logoOffset = (() => { try { const s = localStorage.getItem('logo-offset'); return s ? JSON.parse(s) : { x: 0, y: 0 } } catch { return { x: 0, y: 0 } } })()
 
-  function handleLoginSuccess() {
-    setLoginOpen(false)
-    dispatch({ type: 'SET_ADMIN', value: true })
-    setAdminOpen(true)
-  }
+  // Close dropdown on outside click
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark)
+    localStorage.setItem('theme', dark ? 'dark' : 'light')
+  }, [dark])
 
   return (
     <>
       <header
-        className="sticky top-0 z-40 h-16"
+        className="sticky top-0 z-40"
         style={{
           background: 'linear-gradient(90deg, #064e5a 0%, #05979a 40%, #05979a 60%, #07c5b0 100%)',
           boxShadow: '0 2px 24px hsl(var(--primary) / 0.45)',
         }}
       >
-        <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-4 sm:px-6">
+        {/* ── Main row ── */}
+        <div className="mx-auto flex h-14 sm:h-16 max-w-[1440px] items-center px-4 sm:px-6 gap-3">
 
-          {/* Logo + Title */}
-          <button
-            type="button"
-            onClick={() => dispatch({ type: 'SET_VIEW', view: 'home' })}
-            className="flex min-w-0 items-center gap-3 hover:opacity-85 transition-opacity"
-          >
-            <img src="/daf-bird.png" alt="DAF" className="h-9 w-auto flex-shrink-0 drop-shadow-sm" />
-            <span className="hidden sm:block font-outfit font-bold italic text-white text-2xl tracking-wide leading-none drop-shadow-sm">
-              {settings.title}
-            </span>
-          </button>
-
-          {/* Destination search */}
-          <DestinationSearch />
-
-          {/* Admin */}
+          {/* Left: Hamburger + Logo + Title */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {isAdmin && (
-              <span className="hidden sm:flex items-center gap-1 rounded-full border border-white/30 bg-white/15 px-2.5 py-1 text-xs text-white/90 backdrop-blur-sm">
-                <Shield className="h-3 w-3" />
-                Admin
-              </span>
+            {showMenuButton && (
+              <button
+                type="button"
+                onClick={onMenuClick}
+                className="lg:hidden p-2 rounded-xl text-white/80 hover:bg-white/15 transition-colors"
+                aria-label="Open menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
             )}
+            <img
+              src="/daf-logo.png"
+              alt="DAF"
+              className="h-7 sm:h-8 w-auto flex-shrink-0 drop-shadow-sm select-none"
+              style={{ transform: `translate(${logoOffset.x}px, ${logoOffset.y}px)` }}
+            />
             <button
-              onClick={handleAdminClick}
-              className="flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3 py-1.5 text-sm text-white transition-all hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
+              type="button"
+              onClick={() => dispatch({ type: 'SET_VIEW', view: 'home' })}
+              className="hover:opacity-85 transition-opacity"
             >
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Admin</span>
+              <span className="font-gilbert text-white text-lg sm:text-2xl leading-none drop-shadow-sm whitespace-nowrap">
+                {settings.title}
+              </span>
             </button>
           </div>
+
+          {/* Centre: Search — desktop only */}
+          <div className="hidden sm:block h-6 w-px bg-white/20 flex-shrink-0" />
+          <div className="hidden sm:flex flex-1 min-w-0 max-w-md mx-auto">
+            <DestinationSearch />
+          </div>
+          <div className="hidden sm:block h-6 w-px bg-white/20 flex-shrink-0" />
+
+          {/* Right: Theme + Settings + Admin */}
+          <div className="ml-auto sm:ml-0 flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => setDark(d => !d)}
+              className="flex items-center justify-center rounded-xl border border-white/25 bg-white/10 p-1.5 text-white transition-all hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
+              aria-label="Toggle theme"
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+
+            <button
+              onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}
+              className="flex items-center justify-center rounded-xl border border-white/25 bg-white/10 p-1.5 text-white transition-all hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
+              aria-label="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+
+            {isAdmin && (
+              <button
+                onClick={() => setAdminOpen(true)}
+                className="flex items-center gap-1.5 rounded-xl border border-amber-400/40 bg-amber-400/15 px-2.5 py-1.5 text-amber-300 transition-all hover:bg-amber-400/25 backdrop-blur-sm text-sm font-medium"
+              >
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Mobile search row ── */}
+        <div className="sm:hidden px-4 pb-3">
+          <DestinationSearch />
         </div>
       </header>
 
-      <AdminLoginDialog open={loginOpen} onOpenChange={setLoginOpen} onSuccess={handleLoginSuccess} />
-      <AdminPanel
-        open={adminOpen}
-        onOpenChange={(open) => {
-          setAdminOpen(open)
-          if (!open) dispatch({ type: 'SET_ADMIN', value: false })
-        }}
-      />
+      <AdminPanel open={adminOpen} onOpenChange={setAdminOpen} />
     </>
   )
 }

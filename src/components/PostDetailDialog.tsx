@@ -24,7 +24,7 @@ export function PostDetailDialog({ post, onOpenChange }: Props) {
     <Dialog open={!!post} onOpenChange={onOpenChange}>
       <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle className="font-outfit font-bold text-xl">{post.title}</DialogTitle>
+          <DialogTitle className="font-gilbert text-xl">{post.title}</DialogTitle>
         </DialogHeader>
         <DialogBody className="space-y-4">
           {post.images.length > 0 && (

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash2, Pencil, Loader2, CheckCircle2, X, Eye, Pin, PinOff, MapPin, Plane, Globe } from 'lucide-react'
+import { Trash2, Pencil, Loader2, CheckCircle2, X, Eye, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen } from 'lucide-react'
 import { ReviewExtras } from './ReviewExtras'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -24,7 +24,7 @@ interface PostForm {
   title: string; staff: string; staffImage: string | null
   review: string; locName: string; locationId: string | null
   date: string; tags: string; images: string[]
-  extras: PostExtras
+  extras: PostExtras; folder: string | null
 }
 
 
@@ -45,6 +45,7 @@ const emptyPostForm = (): PostForm => ({
   title: '', staff: '', staffImage: null, review: '', locName: '',
   locationId: null, date: today(), tags: '', images: [],
   extras: { hotels: [], airlines: [], cruises: [], activities: [] },
+  folder: null,
 })
 
 const emptyCourseForm = (): CourseForm => ({
@@ -75,6 +76,9 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
   const [viewingSubId, setViewingSubId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [manageSearch, setManageSearch] = useState('')
+  const [manageFolder, setManageFolder] = useState<string | null>(null)
+  const [newFolderName, setNewFolderName] = useState('')
 
   const [sTitle, setSTitle] = useState(settings.title)
   const [sHeading, setSHeading] = useState(settings.heading)
@@ -141,6 +145,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       extras: postForm.extras ?? EMPTY_EXTRAS,
       userId: null,
       status: 'approved',
+      folder: postForm.folder ?? null,
     }
     setSubmitting(true)
     try {
@@ -165,6 +170,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       date: post.date || today(), tags: post.tags.join(', '),
       images: post.images,
       extras: post.extras ?? EMPTY_EXTRAS,
+      folder: post.folder ?? null,
     })
     setEditingPostId(post.id); setTab('post')
   }
@@ -183,6 +189,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       date: sub.date || today(), tags: '',
       images: sub.images,
       extras: sub.extras ?? EMPTY_EXTRAS,
+      folder: null,
     })
     setEditingPostId(null)
     setTab('post')
@@ -373,6 +380,24 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
     }
   }
 
+  // ── Folders ───────────────────────────────────────────────────────────────
+
+  async function addFolder() {
+    const name = newFolderName.trim().toLowerCase()
+    if (!name) return
+    if (settings.adminFolders.includes(name)) { toast.error('Folder already exists'); return }
+    const updated = { ...settings, adminFolders: [...settings.adminFolders, name].sort() }
+    try { await saveSettings(updated); setNewFolderName('') }
+    catch { toast.error('Failed to save folder') }
+  }
+
+  async function removeFolder(name: string) {
+    if (!confirm(`Remove folder "${name}"? Posts in it will become unassigned.`)) return
+    const updated = { ...settings, adminFolders: settings.adminFolders.filter(f => f !== name) }
+    try { await saveSettings(updated); if (manageFolder === name) setManageFolder(null) }
+    catch { toast.error('Failed to remove folder') }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg">
@@ -490,6 +515,22 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
                   )
                 })()}
               </div>
+
+              {settings.adminFolders.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label>Admin Folder <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                  <select
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={postForm.folder ?? ''}
+                    onChange={e => setPost('folder', e.target.value || null)}
+                  >
+                    <option value="">— no folder —</option>
+                    {settings.adminFolders.map(f => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="secondary" onClick={() => { setPostForm(emptyPostForm()); setEditingPostId(null) }} disabled={submitting}>Clear</Button>
@@ -687,160 +728,273 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
             </TabsContent>
 
             {/* ── MANAGE ── */}
-            <TabsContent value="manage" className="space-y-6">
-              {submissions.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    Pending Submissions ({submissions.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {submissions.map((sub) => (
-                      <div key={sub.id} className="rounded-xl border border-border/60 overflow-hidden">
-                        <div className="flex items-start gap-3 p-3 bg-muted/40">
-                          {sub.images[0]
-                            ? <img src={sub.images[0]} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                            : <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Globe className="h-5 w-5 text-muted-foreground/50" /></div>
-                          }
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm">{sub.name}</p>
-                            {sub.location.name && (
-                              <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{sub.location.name}</p>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{sub.review}</p>
-                            <p className="text-xs text-muted-foreground">{fmtDate(sub.date)}</p>
-                          </div>
-                          <div className="flex flex-col gap-1.5 flex-shrink-0">
-                            <Button size="sm" onClick={() => useSubmission(sub)} className="gap-1 text-xs">
-                              <CheckCircle2 className="h-3 w-3" /> Post
-                            </Button>
-                            <Button
-                              size="sm" variant="secondary"
-                              onClick={() => setViewingSubId(viewingSubId === sub.id ? null : sub.id)}
-                              className="text-xs gap-1"
-                            >
-                              {viewingSubId === sub.id ? <X className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteSubmission(sub.id)} className="text-xs">
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        {viewingSubId === sub.id && (
-                          <div className="p-4 border-t border-border bg-background space-y-3">
-                            <div>
-                              <p className="font-semibold text-sm">{sub.name}</p>
-                              <div className="flex items-center gap-3 mt-0.5">
-                                {sub.location.name && <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{sub.location.name}</p>}
-                                {sub.date && <p className="text-xs text-muted-foreground">{fmtDate(sub.date)}</p>}
-                              </div>
-                            </div>
-                            {sub.images.length > 0 && (
-                              <div className="flex gap-2 overflow-x-auto pb-1">
-                                {sub.images.map((img, i) => (
-                                  <img key={i} src={img} alt="" className="h-28 w-28 flex-shrink-0 rounded-lg object-cover" />
-                                ))}
-                              </div>
-                            )}
-                            <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{sub.review}</p>
-                            <Button size="sm" onClick={() => { useSubmission(sub); setViewingSubId(null) }} className="gap-1">
-                              <CheckCircle2 className="h-3.5 w-3.5" /> Post this trip
-                            </Button>
-                          </div>
+            <TabsContent value="manage" className="space-y-5">
+              {/* Search + Folder filter */}
+              {(() => {
+                const adminFolders = settings.adminFolders ?? []
+                const q = manageSearch.toLowerCase()
+                const filteredPosts = posts.filter(p => {
+                  const matchFolder = manageFolder === null
+                    ? true
+                    : manageFolder === '__none__'
+                      ? !p.folder
+                      : p.folder === manageFolder
+                  const matchSearch = !q || p.title.toLowerCase().includes(q) || p.staff.toLowerCase().includes(q) || p.location.name.toLowerCase().includes(q)
+                  return matchFolder && matchSearch
+                })
+                const filteredCourses = courses.filter(c => {
+                  const matchSearch = !q || c.title.toLowerCase().includes(q) || (c.location.name ?? '').toLowerCase().includes(q)
+                  return matchSearch
+                })
+                return (
+                  <>
+                    {/* Folder management */}
+                    <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Folders</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {adminFolders.map(f => (
+                          <span key={f} className="flex items-center gap-1 rounded-full bg-card border border-border px-2.5 py-0.5 text-xs">
+                            <FolderOpen className="h-3 w-3 text-muted-foreground" />
+                            {f}
+                            <button onClick={() => removeFolder(f)} className="ml-0.5 text-muted-foreground hover:text-destructive transition-colors">
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                        {adminFolders.length === 0 && (
+                          <span className="text-xs text-muted-foreground">No folders yet</span>
                         )}
                       </div>
-                    ))}
-                  </div>
-                  <hr className="border-border mt-4" />
-                </div>
-              )}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="New folder name…"
+                          value={newFolderName}
+                          onChange={e => setNewFolderName(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && addFolder()}
+                          className="flex-1 rounded-lg border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                        <Button size="sm" onClick={addFolder} disabled={!newFolderName.trim()}>Add</Button>
+                      </div>
+                    </div>
 
-              {/* Posts */}
-              <div>
-                <h3 className="font-semibold text-sm mb-2">Posts ({posts.length})</h3>
-                {posts.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-6 text-sm">No posts yet</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Photo</th>
-                          <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Title</th>
-                          <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium hidden sm:table-cell">Staff</th>
-                          <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium hidden md:table-cell">Date</th>
-                          <th className="py-2 px-3" />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {posts.map((p) => (
-                          <tr key={p.id} className="border-b border-border/50 hover:bg-muted/40 transition-colors">
-                            <td className="py-2 px-3">
-                              {p.images[0]
-                                ? <img src={p.images[0]} alt="" className="w-11 h-11 rounded-lg object-cover" />
-                                : <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center"><Globe className="h-5 w-5 text-muted-foreground/50" /></div>}
-                            </td>
-                            <td className="py-2 px-3 font-medium max-w-[140px] truncate">{p.title}</td>
-                            <td className="py-2 px-3 hidden sm:table-cell text-muted-foreground">{p.staff}</td>
-                            <td className="py-2 px-3 hidden md:table-cell text-muted-foreground">{p.date || '—'}</td>
-                            <td className="py-2 px-3">
-                              <div className="flex gap-1.5">
-                                <Button size="sm" variant={p.pinned ? 'default' : 'secondary'} onClick={() => togglePin(p.id, !p.pinned)} title={p.pinned ? 'Unpin' : 'Pin to top'}>
-                                  {p.pinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
-                                </Button>
-                                <Button size="sm" variant="secondary" onClick={() => startEditPost(p)}><Pencil className="h-3 w-3" /></Button>
-                                <Button size="sm" variant="destructive" onClick={() => handleDeletePost(p.id)}><Trash2 className="h-3 w-3" /></Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+                    {/* Search bar */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <input
+                        type="search"
+                        placeholder="Search posts, staff, destinations…"
+                        value={manageSearch}
+                        onChange={e => setManageSearch(e.target.value)}
+                        className="w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
 
-              {/* Courses */}
-              <div>
-                <h3 className="font-semibold text-sm mb-2">Courses ({courses.length})</h3>
-                {courses.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-6 text-sm">No courses yet</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Thumb</th>
-                          <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Title</th>
-                          <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium hidden md:table-cell">Location</th>
-                          <th className="py-2 px-3" />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {courses.map((c) => (
-                          <tr key={c.id} className="border-b border-border/50 hover:bg-muted/40 transition-colors">
-                            <td className="py-2 px-3">
-                              {c.image
-                                ? <img src={c.image} alt="" className="w-11 h-11 rounded-lg object-cover" />
-                                : <div className="w-11 h-11 rounded-lg bg-emerald-100 flex items-center justify-center text-lg">📖</div>}
-                            </td>
-                            <td className="py-2 px-3 font-medium max-w-[160px] truncate">{c.title}</td>
-                            <td className="py-2 px-3 hidden md:table-cell text-muted-foreground">
-                              {c.locationId ? locations.find(l => l.id === c.locationId)?.name ?? '—' : '—'}
-                            </td>
-                            <td className="py-2 px-3">
-                              <div className="flex gap-1.5">
-                                <Button size="sm" variant="secondary" onClick={() => startEditCourse(c)}><Pencil className="h-3 w-3" /></Button>
-                                <Button size="sm" variant="destructive" onClick={() => handleDeleteCourse(c.id)}><Trash2 className="h-3 w-3" /></Button>
-                              </div>
-                            </td>
-                          </tr>
+                    {/* Folder filter chips */}
+                    {adminFolders.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          onClick={() => setManageFolder(null)}
+                          className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                            manageFolder === null
+                              ? 'btn-gradient text-white'
+                              : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
+                          }`}
+                        >
+                          All
+                        </button>
+                        {adminFolders.map(f => (
+                          <button
+                            key={f}
+                            onClick={() => setManageFolder(manageFolder === f ? null : f)}
+                            className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                              manageFolder === f
+                                ? 'btn-gradient text-white'
+                                : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
+                            }`}
+                          >
+                            <FolderOpen className="h-3 w-3" />
+                            {f}
+                          </button>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+                        <button
+                          onClick={() => setManageFolder(manageFolder === '__none__' ? null : '__none__')}
+                          className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                            manageFolder === '__none__'
+                              ? 'btn-gradient text-white'
+                              : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
+                          }`}
+                        >
+                          Unassigned
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Pending Submissions */}
+                    {submissions.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                          Pending Submissions ({submissions.length})
+                        </h3>
+                        <div className="space-y-3">
+                          {submissions.map((sub) => (
+                            <div key={sub.id} className="rounded-xl border border-border/60 overflow-hidden">
+                              <div className="flex items-start gap-3 p-3 bg-muted/40">
+                                {sub.images[0]
+                                  ? <img src={sub.images[0]} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                                  : <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Globe className="h-5 w-5 text-muted-foreground/50" /></div>
+                                }
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-sm">{sub.name}</p>
+                                  {sub.location.name && (
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{sub.location.name}</p>
+                                  )}
+                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{sub.review}</p>
+                                  <p className="text-xs text-muted-foreground">{fmtDate(sub.date)}</p>
+                                </div>
+                                <div className="flex flex-col gap-1.5 flex-shrink-0">
+                                  <Button size="sm" onClick={() => useSubmission(sub)} className="gap-1 text-xs">
+                                    <CheckCircle2 className="h-3 w-3" /> Post
+                                  </Button>
+                                  <Button
+                                    size="sm" variant="secondary"
+                                    onClick={() => setViewingSubId(viewingSubId === sub.id ? null : sub.id)}
+                                    className="text-xs gap-1"
+                                  >
+                                    {viewingSubId === sub.id ? <X className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                  </Button>
+                                  <Button size="sm" variant="destructive" onClick={() => handleDeleteSubmission(sub.id)} className="text-xs">
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                              {viewingSubId === sub.id && (
+                                <div className="p-4 border-t border-border bg-background space-y-3">
+                                  <div>
+                                    <p className="font-semibold text-sm">{sub.name}</p>
+                                    <div className="flex items-center gap-3 mt-0.5">
+                                      {sub.location.name && <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{sub.location.name}</p>}
+                                      {sub.date && <p className="text-xs text-muted-foreground">{fmtDate(sub.date)}</p>}
+                                    </div>
+                                  </div>
+                                  {sub.images.length > 0 && (
+                                    <div className="flex gap-2 overflow-x-auto pb-1">
+                                      {sub.images.map((img, i) => (
+                                        <img key={i} src={img} alt="" className="h-28 w-28 flex-shrink-0 rounded-lg object-cover" />
+                                      ))}
+                                    </div>
+                                  )}
+                                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{sub.review}</p>
+                                  <Button size="sm" onClick={() => { useSubmission(sub); setViewingSubId(null) }} className="gap-1">
+                                    <CheckCircle2 className="h-3.5 w-3.5" /> Post this trip
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <hr className="border-border mt-4" />
+                      </div>
+                    )}
+
+                    {/* Posts */}
+                    <div>
+                      <h3 className="font-semibold text-sm mb-2">
+                        Posts ({filteredPosts.length}{filteredPosts.length !== posts.length ? ` of ${posts.length}` : ''})
+                      </h3>
+                      {filteredPosts.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-6 text-sm">
+                          {posts.length === 0 ? 'No posts yet' : 'No posts match your search'}
+                        </p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-border">
+                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Photo</th>
+                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Title</th>
+                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium hidden sm:table-cell">Staff</th>
+                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium hidden md:table-cell">Date</th>
+                                <th className="py-2 px-3" />
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filteredPosts.map((p) => (
+                                <tr key={p.id} className="border-b border-border/50 hover:bg-muted/40 transition-colors">
+                                  <td className="py-2 px-3">
+                                    {p.images[0]
+                                      ? <img src={p.images[0]} alt="" className="w-11 h-11 rounded-lg object-cover" />
+                                      : <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center"><Globe className="h-5 w-5 text-muted-foreground/50" /></div>}
+                                  </td>
+                                  <td className="py-2 px-3 font-medium max-w-[140px] truncate">{p.title}</td>
+                                  <td className="py-2 px-3 hidden sm:table-cell text-muted-foreground">{p.staff}</td>
+                                  <td className="py-2 px-3 hidden md:table-cell text-muted-foreground">{p.date || '—'}</td>
+                                  <td className="py-2 px-3">
+                                    <div className="flex gap-1.5">
+                                      <Button size="sm" variant={p.pinned ? 'default' : 'secondary'} onClick={() => togglePin(p.id, !p.pinned)} title={p.pinned ? 'Unpin' : 'Pin to top'}>
+                                        {p.pinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+                                      </Button>
+                                      <Button size="sm" variant="secondary" onClick={() => startEditPost(p)}><Pencil className="h-3 w-3" /></Button>
+                                      <Button size="sm" variant="destructive" onClick={() => handleDeletePost(p.id)}><Trash2 className="h-3 w-3" /></Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Courses */}
+                    <div>
+                      <h3 className="font-semibold text-sm mb-2">
+                        Courses ({filteredCourses.length}{filteredCourses.length !== courses.length ? ` of ${courses.length}` : ''})
+                      </h3>
+                      {filteredCourses.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-6 text-sm">
+                          {courses.length === 0 ? 'No courses yet' : 'No courses match your search'}
+                        </p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-border">
+                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Thumb</th>
+                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Title</th>
+                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium hidden md:table-cell">Location</th>
+                                <th className="py-2 px-3" />
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {filteredCourses.map((c) => (
+                                <tr key={c.id} className="border-b border-border/50 hover:bg-muted/40 transition-colors">
+                                  <td className="py-2 px-3">
+                                    {c.image
+                                      ? <img src={c.image} alt="" className="w-11 h-11 rounded-lg object-cover" />
+                                      : <div className="w-11 h-11 rounded-lg bg-emerald-100 flex items-center justify-center text-lg">📖</div>}
+                                  </td>
+                                  <td className="py-2 px-3 font-medium max-w-[160px] truncate">{c.title}</td>
+                                  <td className="py-2 px-3 hidden md:table-cell text-muted-foreground">
+                                    {c.locationId ? locations.find(l => l.id === c.locationId)?.name ?? '—' : '—'}
+                                  </td>
+                                  <td className="py-2 px-3">
+                                    <div className="flex gap-1.5">
+                                      <Button size="sm" variant="secondary" onClick={() => startEditCourse(c)}><Pencil className="h-3 w-3" /></Button>
+                                      <Button size="sm" variant="destructive" onClick={() => handleDeleteCourse(c.id)}><Trash2 className="h-3 w-3" /></Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )
+              })()}
             </TabsContent>
 
             {/* ── SETTINGS ── */}

@@ -11,7 +11,7 @@ export function CoursesView() {
         <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-5">
           <BookOpen className="h-10 w-10 text-emerald-500/50" />
         </div>
-        <h3 className="font-outfit font-bold text-xl mb-1 text-foreground">No courses yet</h3>
+        <h3 className="font-gilbert text-xl mb-1 text-foreground">No courses yet</h3>
         <p className="text-sm text-center max-w-xs">Admins can add Articulate Rise 360 courses from the admin panel</p>
       </div>
     )
@@ -19,7 +19,7 @@ export function CoursesView() {
 
   return (
     <div>
-      <h2 className="font-outfit font-bold text-3xl mb-6">Training Courses</h2>
+      <h2 className="font-gilbert text-3xl mb-6">Training Courses</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {courses.map((course) => (
           <div

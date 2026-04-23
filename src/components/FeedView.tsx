@@ -25,7 +25,7 @@ export function FeedView() {
     <div className="flex flex-col">
       {/* Section header */}
       <div className="w-full mb-5">
-        <h2 className="font-outfit font-bold text-3xl text-foreground leading-tight">{settings.heading}</h2>
+        <h2 className="font-gilbert text-3xl text-foreground leading-tight">{settings.heading}</h2>
         {settings.welcome && (
           <p className="text-sm text-muted-foreground mt-1.5">{settings.welcome}</p>
         )}
@@ -66,13 +66,13 @@ export function FeedView() {
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
             <Globe className="h-10 w-10 text-primary/50" />
           </div>
-          <h3 className="font-outfit font-bold text-xl mb-1 text-foreground">No trips posted yet</h3>
+          <h3 className="font-gilbert text-xl mb-1 text-foreground">No trips posted yet</h3>
           <p className="text-sm text-center max-w-xs">Admins can upload photos and reviews from staff trips in the admin panel</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 w-full">
-          {sorted.map((post) => (
-            <PostCard key={post.id} post={post} onClick={() => setSelectedPost(post)} />
+          {sorted.map((post, i) => (
+            <PostCard key={post.id} post={post} onClick={() => setSelectedPost(post)} tiltDir={i % 2 === 0 ? 1 : -1} />
           ))}
         </div>
       )}

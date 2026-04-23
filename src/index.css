@@ -135,3 +135,33 @@
 .view-enter {
   animation: viewFadeIn 0.18s ease-out both;
 }
+
+/* Animated header gradient */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.header-gradient {
+  background: linear-gradient(270deg, #064e5a, #05979a, #07c5b0, #0891b2, #064e5a);
+  background-size: 350% 350%;
+  animation: gradientShift 12s ease infinite;
+}
+
+/* Film strip sprocket row */
+.film-sprockets {
+  height: 18px;
+  background-color: #111;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 5px,
+    #333 5px,
+    #333 16px,
+    transparent 16px,
+    transparent 22px
+  );
+}
+
+/* Hide scrollbar */
+.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }

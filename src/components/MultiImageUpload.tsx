@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Camera, X, Plus, GripVertical } from 'lucide-react'
+import { Camera, X, Plus } from 'lucide-react'
 import { compressImage } from '@/lib/utils'
 
 const MIN = 4
@@ -8,6 +8,10 @@ const MAX = 10
 interface Props {
   values: string[]
   onChange: (images: string[]) => void
+}
+
+function FilmSprockets() {
+  return <div className="film-sprockets w-full" />
 }
 
 export function MultiImageUpload({ values, onChange }: Props) {
@@ -56,10 +60,7 @@ export function MultiImageUpload({ values, onChange }: Props) {
   function handleDrop(e: React.DragEvent<HTMLDivElement>, index: number) {
     e.preventDefault()
     const from = dragIndexRef.current
-    if (from === null || from === index) {
-      resetDragState()
-      return
-    }
+    if (from === null || from === index) { resetDragState(); return }
     const reordered = [...values]
     const [moved] = reordered.splice(from, 1)
     reordered.splice(index, 0, moved)
@@ -75,19 +76,16 @@ export function MultiImageUpload({ values, onChange }: Props) {
     dragIndexRef.current = null
   }
 
-  // ── Drop zone (file) events ─────────────────────────────────────────────
+  // ── Drop zone events ────────────────────────────────────────────────────
 
   function onDropZoneDragOver(e: React.DragEvent) {
-    // Only activate for file drops, not image reorder drags
     if (dragIndexRef.current !== null) return
     e.preventDefault()
     setDropZoneActive(true)
   }
 
   function onDropZoneDragLeave(e: React.DragEvent) {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setDropZoneActive(false)
-    }
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropZoneActive(false)
   }
 
   function onDropZoneDrop(e: React.DragEvent) {
@@ -99,51 +97,77 @@ export function MultiImageUpload({ values, onChange }: Props) {
   return (
     <div className="space-y-3">
 
-      {/* Thumbnail grid */}
+      {/* Film strip — shown once there are images */}
       {values.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
-          {values.map((src, i) => (
-            <div
-              key={i}
-              className={`relative aspect-square rounded-xl overflow-hidden transition-all
-                ${draggingIndex === i ? 'opacity-40' : 'opacity-100'}
-                ${dragOverIndex === i ? 'ring-2 ring-primary' : ''}
-              `}
-              draggable
-              onDragStart={e => handleDragStart(e, i)}
-              onDragOver={e => handleDragOver(e, i)}
-              onDragLeave={handleDragLeave}
-              onDrop={e => handleDrop(e, i)}
-              onDragEnd={handleDragEnd}
-            >
-              <img src={src} alt="" className="w-full h-full object-cover" />
-              <div className="absolute top-1 left-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-grab active:cursor-grabbing">
-                <GripVertical className="h-3 w-3" />
+        <div className="rounded-xl overflow-hidden" style={{ background: '#0a0a0a' }}>
+          <FilmSprockets />
+
+          <div className="flex gap-2 overflow-x-auto px-3 py-2 scrollbar-hide" style={{ background: '#111' }}>
+            {values.map((src, i) => (
+              <div
+                key={i}
+                className={`relative flex-shrink-0 w-20 h-20 rounded overflow-hidden border-2 transition-all cursor-grab active:cursor-grabbing ${
+                  draggingIndex === i ? 'opacity-40 scale-90' : 'opacity-100 hover:border-white/60'
+                } ${dragOverIndex === i ? 'border-primary scale-105' : 'border-white/20'}`}
+                draggable
+                onDragStart={e => handleDragStart(e, i)}
+                onDragOver={e => handleDragOver(e, i)}
+                onDragLeave={handleDragLeave}
+                onDrop={e => handleDrop(e, i)}
+                onDragEnd={handleDragEnd}
+              >
+                <img src={src} alt="" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => remove(i)}
+                  className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full w-4 h-4 flex items-center justify-center hover:bg-red-500 transition-colors"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+                {i === 0 ? (
+                  <span className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-[8px] text-center py-0.5 uppercase tracking-widest font-semibold">
+                    Cover
+                  </span>
+                ) : (
+                  <span className="absolute bottom-0.5 right-1 text-white/40 text-[8px] font-mono">{i + 1}</span>
+                )}
               </div>
+            ))}
+
+            {/* Inline add button in the strip */}
+            {!atMax && (
               <button
                 type="button"
-                onClick={() => remove(i)}
-                className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-black/80"
+                onClick={() => inputRef.current?.click()}
+                className="flex-shrink-0 w-20 h-20 rounded border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-1 text-white/40 hover:border-white/50 hover:text-white/70 transition-colors"
               >
-                <X className="h-3 w-3" />
+                <Plus className="h-5 w-5" />
+                <span className="text-[9px] uppercase tracking-wider">Add</span>
               </button>
-              {i === 0 && (
-                <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] rounded px-1.5 py-0.5">
-                  Cover
-                </span>
-              )}
-            </div>
-          ))}
+            )}
+          </div>
+
+          <FilmSprockets />
+
+          <div className="flex items-center justify-between px-3 py-1.5" style={{ background: '#0a0a0a' }}>
+            <span className="text-[10px] text-neutral-500 font-mono uppercase tracking-wider">
+              {values.length} frame{values.length !== 1 ? 's' : ''} · drag to reorder
+            </span>
+            <span className="text-[10px] text-neutral-500 font-mono">
+              {values.length < MIN
+                ? <span className="text-amber-500">{MIN - values.length} more required</span>
+                : `max ${MAX}`
+              }
+            </span>
+          </div>
         </div>
       )}
 
-      {/* Always-visible drop zone (hidden at max) */}
+      {/* Drop zone — always visible when under the max */}
       {!atMax && (
         <div
           className={`border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-            dropZoneActive
-              ? 'border-primary bg-primary/5'
-              : 'border-border hover:border-primary/50'
+            dropZoneActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
           }`}
           onClick={() => inputRef.current?.click()}
           onDragOver={onDropZoneDragOver}
@@ -169,9 +193,7 @@ export function MultiImageUpload({ values, onChange }: Props) {
       )}
 
       {atMax && (
-        <p className="text-xs text-center text-muted-foreground py-1">
-          Maximum of {MAX} photos reached
-        </p>
+        <p className="text-xs text-center text-muted-foreground py-1">Maximum of {MAX} photos reached</p>
       )}
 
       <input

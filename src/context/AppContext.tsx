@@ -222,7 +222,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       newStaffImagePath = null
     }
     await updatePost(finalPost, [...keptPaths, ...uploaded.map((r) => r.path)], newStaffImagePath)
-    dispatch({ type: 'UPDATE_POST', post: finalPost })
+    const wasPending = state.pendingPosts.some(p => p.id === finalPost.id)
+    if (wasPending && finalPost.status === 'approved') {
+      dispatch({ type: 'SET_PENDING', posts: state.pendingPosts.filter(p => p.id !== finalPost.id) })
+      dispatch({ type: 'ADD_POST', post: finalPost })
+    } else {
+      dispatch({ type: 'UPDATE_POST', post: finalPost })
+    }
   }
 
   async function deletePost(id: string): Promise<void> {

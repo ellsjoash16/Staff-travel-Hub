@@ -52,7 +52,7 @@ export function SettingsView() {
   return (
     <div className="max-w-xl mx-auto space-y-5">
       <div>
-        <h1 className="font-outfit font-bold text-2xl mb-1">Settings</h1>
+        <h1 className="font-gilbert text-2xl mb-1">Settings</h1>
       </div>
 
       <SectionCard title="Admin Access" icon={Shield}>

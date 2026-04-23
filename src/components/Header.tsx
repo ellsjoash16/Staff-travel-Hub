@@ -27,11 +27,8 @@ export function Header({ showMenuButton, onMenuClick }: Props) {
   return (
     <>
       <header
-        className="sticky top-0 z-40"
-        style={{
-          background: 'linear-gradient(90deg, #064e5a 0%, #05979a 40%, #05979a 60%, #07c5b0 100%)',
-          boxShadow: '0 2px 24px hsl(var(--primary) / 0.45)',
-        }}
+        className="sticky top-0 z-40 header-gradient"
+        style={{ boxShadow: '0 2px 24px hsl(var(--primary) / 0.45)' }}
       >
         {/* ── Main row ── */}
         <div className="mx-auto flex h-14 sm:h-16 max-w-[1440px] items-center px-4 sm:px-6 gap-3">
@@ -96,7 +93,7 @@ export function Header({ showMenuButton, onMenuClick }: Props) {
             {isAdmin && (
               <button
                 onClick={() => setAdminOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-amber-400/40 bg-amber-400/15 px-2.5 py-1.5 text-amber-300 transition-all hover:bg-amber-400/25 backdrop-blur-sm text-sm font-medium"
+                className="flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-2.5 py-1.5 text-white transition-all hover:bg-white/20 hover:border-white/40 backdrop-blur-sm text-sm font-medium"
               >
                 <Shield className="h-4 w-4" />
                 <span className="hidden sm:inline">Admin</span>

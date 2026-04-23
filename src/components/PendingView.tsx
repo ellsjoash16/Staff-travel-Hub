@@ -64,7 +64,7 @@ export function PendingView() {
             <Clock className="h-5 w-5 text-amber-500" />
           </div>
           <div>
-            <h1 className="font-outfit font-bold text-xl">Pending Approvals</h1>
+            <h1 className="font-gilbert text-xl">Pending Approvals</h1>
             <p className="text-sm text-muted-foreground">
               {pendingPosts.length} {pendingPosts.length === 1 ? 'submission' : 'submissions'} awaiting review
             </p>

@@ -24,7 +24,7 @@ export function YearsView() {
         <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
           <CalendarDays className="h-10 w-10 text-primary/50" />
         </div>
-        <h3 className="font-outfit font-bold text-xl mb-1 text-foreground">No trips yet</h3>
+        <h3 className="font-gilbert text-xl mb-1 text-foreground">No trips yet</h3>
         <p className="text-sm">An admin can add trips in the Admin Panel → Trips tab</p>
       </div>
     )
@@ -44,7 +44,7 @@ export function YearsView() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h2 className="font-outfit font-bold text-3xl text-foreground mb-1">By Year</h2>
+      <h2 className="font-gilbert text-3xl text-foreground mb-1">By Year</h2>
       <p className="text-muted-foreground text-sm mb-6">
         {trips.length} trip{trips.length !== 1 ? 's' : ''} across {years.length} year{years.length !== 1 ? 's' : ''}
       </p>
@@ -62,9 +62,6 @@ export function YearsView() {
             }`}
           >
             {year}
-            <span className={`ml-1.5 text-[11px] ${activeYear === year ? 'opacity-70' : 'text-muted-foreground'}`}>
-              {trips.filter(t => (t.date?.slice(0, 4) || 'Unknown') === year).length}
-            </span>
           </button>
         ))}
       </div>
@@ -89,7 +86,7 @@ export function YearsView() {
                   {/* Month marker */}
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-primary/15 flex-shrink-0 z-10" />
-                    <h3 className="font-outfit font-bold text-base text-foreground">{monthName}</h3>
+                    <h3 className="font-gilbert text-base text-foreground">{monthName}</h3>
                     <div className="flex-1 h-px bg-border" />
                     <span className="text-xs text-muted-foreground flex-shrink-0">
                       {mTrips.length} trip{mTrips.length !== 1 ? 's' : ''}

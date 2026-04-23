@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS: Settings = {
   welcome: '',
   departureAirport: { name: 'LHR', lat: 51.5074, lng: -0.1278 },
   panelImages: { feed: null, map: null, courses: null, years: null, submit: null },
+  adminFolders: [],
 }
 
 // ── Row mappers ───────────────────────────────────────────────────────────
@@ -39,6 +40,7 @@ function rowToPost(row: any): Post {
     extras,
     userId: row.user_id ?? null,
     status: row.status ?? 'approved',
+    folder: row.folder ?? null,
   }
 }
 
@@ -128,6 +130,7 @@ export async function submitPendingPost(post: Post, imagePaths: string[]): Promi
     extras: post.extras ?? EMPTY_EXTRAS,
     user_id: post.userId,
     status: 'pending',
+    folder: post.folder ?? null,
   })
   if (error) throw error
 }
@@ -158,6 +161,7 @@ export async function insertPost(
     extras: post.extras ?? EMPTY_EXTRAS,
     user_id: post.userId ?? null,
     status: post.status ?? 'approved',
+    folder: post.folder ?? null,
   })
   if (error) throw error
 }
@@ -202,6 +206,8 @@ export async function updatePost(
     image_urls: post.images,
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
+    status: post.status ?? 'approved',
+    folder: post.folder ?? null,
     ...(newImagePaths !== undefined ? { image_path: newImagePaths[0] ?? null, image_paths: newImagePaths } : {}),
     ...(newStaffImagePath !== undefined ? { staff_image_path: newStaffImagePath } : {}),
   }).eq('id', post.id)
@@ -366,6 +372,7 @@ export async function fetchSettings(): Promise<Settings> {
       lng: data.departure_lng ?? -0.1278,
     },
     panelImages: { feed: null, map: null, courses: null, years: null, submit: null, ...(data.panel_images ?? {}) },
+    adminFolders: data.admin_folders ?? [],
   }
 }
 
@@ -385,6 +392,7 @@ export async function upsertSettings(settings: Settings): Promise<void> {
     departure_lng: settings.departureAirport?.lng ?? -0.1278,
   }).eq('id', 1)
   await supabase.from('settings').update({ panel_images: settings.panelImages }).eq('id', 1)
+  await supabase.from('settings').update({ admin_folders: settings.adminFolders ?? [] }).eq('id', 1)
 }
 
 // ── Locations ─────────────────────────────────────────────────────────────

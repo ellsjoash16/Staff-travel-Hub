@@ -38,6 +38,7 @@ export interface Post {
   extras: PostExtras
   userId: string | null
   status: 'pending' | 'approved'
+  folder?: string | null
 }
 
 export interface Course {
@@ -78,6 +79,7 @@ export interface Settings {
   welcome: string
   departureAirport: { name: string; lat: number; lng: number }
   panelImages: PanelImages
+  adminFolders: string[]
 }
 
 export interface Trip {

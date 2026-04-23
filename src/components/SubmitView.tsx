@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import confetti from 'canvas-confetti'
 import {
   Send, Loader2, CheckCircle, Plane, ChevronRight, ChevronLeft,
   User, MapPin, Camera, PenLine, Star,
@@ -37,17 +38,19 @@ function StepProgress({ current }: { current: number }) {
         return (
           <div key={step.id} className="flex items-center">
             <div className="flex flex-col items-center gap-1">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                 done
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/40 ring-2 ring-emerald-500/30 ring-offset-1 ring-offset-background'
                   : active
                     ? 'bg-primary/15 border-2 border-primary text-primary'
                     : 'bg-muted border-2 border-border text-muted-foreground'
-              }`}>
+              }`}
+              style={done ? { transform: 'rotate(-4deg)' } : undefined}
+              >
                 {done ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-3.5 w-3.5" />}
               </div>
-              <span className={`text-[10px] font-medium transition-colors ${active ? 'text-primary' : done ? 'text-primary/70' : 'text-muted-foreground'}`}>
-                {step.label}
+              <span className={`text-[10px] font-medium transition-colors ${active ? 'text-primary' : done ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                {done ? '✓ ' : ''}{step.label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
@@ -120,6 +123,12 @@ export function SubmitView() {
         },
         newDataUrls
       )
+      confetti({
+        particleCount: 130,
+        spread: 75,
+        origin: { y: 0.55 },
+        colors: ['#05979a', '#07c5b0', '#064e5a', '#f59e0b', '#ffffff', '#34d399'],
+      })
       setSubmitted(true)
     } catch (err: any) {
       console.error('Submit error:', err)
@@ -135,7 +144,7 @@ export function SubmitView() {
         <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-5">
           <CheckCircle className="h-10 w-10 text-emerald-500" />
         </div>
-        <h2 className="font-outfit font-bold text-3xl mb-2">Thanks for sharing!</h2>
+        <h2 className="font-gilbert text-3xl mb-2">Thanks for sharing!</h2>
         <p className="text-muted-foreground mb-6">Your trip has been submitted for approval!</p>
         <Button
           variant="secondary"
@@ -164,7 +173,7 @@ export function SubmitView() {
               <Plane className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <h2 className="font-outfit font-bold text-2xl mb-0.5">Share Your Trip</h2>
+          <h2 className="font-gilbert text-2xl mb-0.5">Share Your Trip</h2>
           <p className="text-xs text-muted-foreground">
             We'll guide you through each section — takes about 2 minutes
           </p>
@@ -174,7 +183,7 @@ export function SubmitView() {
 
         {/* Step heading */}
         <div className="mb-5">
-          <h3 className="font-outfit font-bold text-lg">{stepInfo.title}</h3>
+          <h3 className="font-gilbert text-lg">{stepInfo.title}</h3>
           <p className="text-sm text-muted-foreground">{stepInfo.subtitle}</p>
         </div>
 

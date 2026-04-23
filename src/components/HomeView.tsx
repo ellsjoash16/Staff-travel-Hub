@@ -183,31 +183,27 @@ export function HomeView() {
   }
 
   return (
-    <div className="py-2">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="h-full grid grid-cols-1 md:grid-cols-3 gap-3 [grid-template-rows:repeat(5,minmax(0,1fr))] md:[grid-template-rows:repeat(2,minmax(0,1fr))]">
+      <PanelCard
+        panel={PANELS[0]}
+        className="md:col-span-2"
+        onClick={() => navigate('feed')}
+        bgImage={settings.panelImages?.feed ?? null}
+        headingText={settings.heading}
+      />
+      <MapPanel
+        onClick={() => navigate('map')}
+      />
+
+      {PANELS.slice(1).map(panel => (
         <PanelCard
-          panel={PANELS[0]}
-          className="h-[280px] md:h-[360px] md:col-span-2"
-          onClick={() => navigate('feed')}
-          bgImage={settings.panelImages?.feed ?? null}
+          key={panel.key}
+          panel={panel}
+          onClick={() => navigate(panel.key)}
+          bgImage={(settings.panelImages as unknown as Record<string, string | null>)?.[panel.key] ?? null}
           headingText={settings.heading}
         />
-        <MapPanel
-          className="h-[220px] md:h-[360px] md:col-span-1"
-          onClick={() => navigate('map')}
-        />
-
-        {PANELS.slice(1).map(panel => (
-          <PanelCard
-            key={panel.key}
-            panel={panel}
-            className="h-[180px] md:h-[200px]"
-            onClick={() => navigate(panel.key)}
-            bgImage={(settings.panelImages as unknown as Record<string, string | null>)?.[panel.key] ?? null}
-            headingText={settings.heading}
-          />
-        ))}
-      </div>
+      ))}
     </div>
   )
 }

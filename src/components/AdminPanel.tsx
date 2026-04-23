@@ -58,9 +58,9 @@ const emptyTripForm = (): TripForm => ({
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
 
-interface Props { open: boolean; onOpenChange: (open: boolean) => void }
+interface Props { open: boolean; onOpenChange: (open: boolean) => void; initialPost?: Post }
 
-export function AdminPanel({ open, onOpenChange }: Props) {
+export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
   const { state, togglePin, addPost, editPost, deletePost, addCourse, editCourse, deleteCourse, deleteSubmission, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, savePageImages } = useApp()
   const { posts, courses, submissions, trips, locations, settings } = state
 
@@ -105,6 +105,7 @@ export function AdminPanel({ open, onOpenChange }: Props) {
       setPCourses(settings.panelImages?.courses ?? null)
       setPYears(settings.panelImages?.years ?? null)
       setPSubmit(settings.panelImages?.submit ?? null)
+      if (initialPost) startEditPost(initialPost)
     }
   }, [open])
 

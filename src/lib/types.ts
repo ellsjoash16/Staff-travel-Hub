@@ -53,6 +53,7 @@ export interface Course {
 export interface Submission {
   id: string
   name: string
+  staff?: string
   location: PostLocation
   date: string
   review: string

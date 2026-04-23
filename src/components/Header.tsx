@@ -82,13 +82,16 @@ export function Header({ showMenuButton, onMenuClick }: Props) {
               {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
 
-            <button
-              onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}
-              className="flex items-center justify-center rounded-xl border border-white/25 bg-white/10 p-1.5 text-white transition-all hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
-              aria-label="Settings"
-            >
-              <Settings className="h-4 w-4" />
-            </button>
+            {!isAdmin && (
+              <button
+                onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}
+                className="flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-2.5 py-1.5 text-white transition-all hover:bg-white/20 hover:border-white/40 backdrop-blur-sm text-sm font-medium"
+                aria-label="Admin Access"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin Access</span>
+              </button>
+            )}
 
             {isAdmin && (
               <button

@@ -265,7 +265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let uploadedImages: string[] = []
     let uploadedPaths: string[] = []
     try {
-      const results = await Promise.all(imageDataUrls.map((url) => uploadImage(url, submission.id)))
+      const results = await Promise.all(imageDataUrls.map((url, i) => uploadImage(url, `${submission.id}-${i}`)))
       uploadedImages = results.map((r) => r.url)
       uploadedPaths = results.map((r) => r.path)
     } catch {
@@ -276,7 +276,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const post: Post = {
       id: submission.id,
       title: submission.name, // use location/name as title fallback
-      staff: submission.name,
+      staff: submission.staff || submission.name,
       staffImage: null,
       review: submission.review,
       location: submission.location,

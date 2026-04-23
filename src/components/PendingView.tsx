@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { CheckCircle, Trash2, Clock, MapPin, ImageIcon, Loader2 } from 'lucide-react'
+import { CheckCircle, Trash2, Clock, MapPin, ImageIcon, Loader2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
+import { AdminPanel } from './AdminPanel'
 import { removePost } from '@/lib/db'
 import { fmtDate } from '@/lib/utils'
+import type { Post } from '@/lib/types'
 
 export function PendingView() {
   const { state, fetchPending, approvePostFn, dispatch } = useApp()
   const { pendingPosts } = state
   const [loading, setLoading] = useState(false)
   const [actionId, setActionId] = useState<string | null>(null)
+  const [editPost, setEditPost] = useState<Post | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -144,6 +147,16 @@ export function PendingView() {
                 </Button>
                 <Button
                   size="sm"
+                  variant="outline"
+                  onClick={() => setEditPost(post)}
+                  disabled={actionId === post.id}
+                  className="gap-1.5"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
                   onClick={() => handleApprove(post.id)}
                   disabled={actionId === post.id}
                   className="gap-1.5"
@@ -159,6 +172,11 @@ export function PendingView() {
           ))}
         </div>
       )}
+      <AdminPanel
+        open={!!editPost}
+        onOpenChange={open => { if (!open) setEditPost(null) }}
+        initialPost={editPost ?? undefined}
+      />
     </div>
   )
 }

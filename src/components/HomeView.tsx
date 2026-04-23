@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
-import Globe, { GlobeMethods } from 'react-globe.gl'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import type { GlobeMethods } from 'react-globe.gl'
 import { Camera, BookOpen, CalendarDays, Send, ArrowRight, Globe2 } from 'lucide-react'
+
+const Globe = lazy(() => import('react-globe.gl'))
 import { useApp } from '@/context/AppContext'
 import type { View } from '@/lib/types'
 
@@ -110,25 +112,27 @@ function MapPanel({ onClick }: { onClick: () => void }) {
         onClick={onClick}
       >
         <div className="absolute inset-0 pointer-events-none">
-          <Globe
-            ref={globeRef}
-            width={dims.w}
-            height={dims.h}
-            globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-            backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
-            showAtmosphere
-            atmosphereColor={pinColor}
-            atmosphereAltitude={0.18}
-            onGlobeReady={() => {
-              if (globeRef.current) {
-                globeRef.current.controls().autoRotate = true
-                globeRef.current.controls().autoRotateSpeed = 0.6
-                globeRef.current.controls().enableZoom = false
-                globeRef.current.controls().enableRotate = false
-                globeRef.current.controls().enablePan = false
-              }
-            }}
-          />
+          <Suspense fallback={null}>
+            <Globe
+              ref={globeRef}
+              width={dims.w}
+              height={dims.h}
+              globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+              backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
+              showAtmosphere
+              atmosphereColor={pinColor}
+              atmosphereAltitude={0.18}
+              onGlobeReady={() => {
+                if (globeRef.current) {
+                  globeRef.current.controls().autoRotate = true
+                  globeRef.current.controls().autoRotateSpeed = 0.6
+                  globeRef.current.controls().enableZoom = false
+                  globeRef.current.controls().enableRotate = false
+                  globeRef.current.controls().enablePan = false
+                }
+              }}
+            />
+          </Suspense>
         </div>
 
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"

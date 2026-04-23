@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { AppProvider, useApp } from '@/context/AppContext'
@@ -6,7 +6,6 @@ import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
 import { HomeView } from '@/components/HomeView'
 import { FeedView } from '@/components/FeedView'
-import { MapView } from '@/components/MapView'
 import { CoursesView } from '@/components/CoursesView'
 import { YearsView } from '@/components/YearsView'
 import { SubmitView } from '@/components/SubmitView'
@@ -14,6 +13,8 @@ import { PendingView } from '@/components/PendingView'
 import { SettingsView } from '@/components/SettingsView'
 import { PostDetailDialog } from '@/components/PostDetailDialog'
 import type { Post } from '@/lib/types'
+
+const MapView = lazy(() => import('@/components/MapView').then(m => ({ default: m.MapView })))
 
 function AppShell() {
   const { state } = useApp()
@@ -61,13 +62,13 @@ function AppShell() {
           {state.activeView === 'home' && <HomeView />}
           {state.activeView === 'feed' && <FeedView />}
           {state.activeView === 'map' && (
-            <>
+            <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
               <MapView onSelectPost={setMapPost} />
               <PostDetailDialog
                 post={mapPost}
                 onOpenChange={(open) => !open && setMapPost(null)}
               />
-            </>
+            </Suspense>
           )}
           {state.activeView === 'courses' && <CoursesView />}
           {state.activeView === 'years' && <YearsView />}

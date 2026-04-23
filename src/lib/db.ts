@@ -484,12 +484,32 @@ export async function removeTrip(id: string): Promise<void> {
 
 // ── Storage ───────────────────────────────────────────────────────────────
 
+function compressImage(dataUrl: string, maxWidth = 1920, quality = 0.82): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onerror = reject
+    img.onload = () => {
+      let { width, height } = img
+      if (width > maxWidth) {
+        height = Math.round(height * maxWidth / width)
+        width = maxWidth
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Compression failed')), 'image/jpeg', quality)
+    }
+    img.src = dataUrl
+  })
+}
+
 export async function uploadImage(
   dataUrl: string,
   id: string
 ): Promise<{ url: string; path: string }> {
-  const blob = await fetch(dataUrl).then((r) => r.blob())
-  const ext = blob.type === 'image/png' ? 'png' : 'jpg'
+  const blob = dataUrl.startsWith('data:') ? await compressImage(dataUrl) : await fetch(dataUrl).then(r => r.blob())
+  const ext = 'jpg'
   const path = `${id}-${Date.now()}.${ext}`
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
     contentType: blob.type,

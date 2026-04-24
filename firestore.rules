@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Posts: anyone can read approved posts; writes are open (app-layer password guards admin actions)
+    match /posts/{id} {
+      allow read: if resource.data.status == 'approved';
+      allow write: if true;
+    }
+
+    // Courses: public read/write (password-protected at app layer)
+    match /courses/{id} {
+      allow read, write: if true;
+    }
+
+    // Submissions: public read/write (password-protected at app layer)
+    match /submissions/{id} {
+      allow read, write: if true;
+    }
+
+    // Settings: public read, write protected at app layer
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Locations: public read/write
+    match /locations/{id} {
+      allow read, write: if true;
+    }
+
+    // Trips: public read/write
+    match /trips/{id} {
+      allow read, write: if true;
+    }
+  }
+}

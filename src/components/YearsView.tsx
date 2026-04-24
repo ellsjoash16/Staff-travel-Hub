@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { CalendarDays, MapPin, Plane } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CalendarDays, MapPin, Plane, ExternalLink } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
 
@@ -12,11 +12,19 @@ export function YearsView() {
   const { state } = useApp()
   const { trips, locations } = state
 
+  const [externalOnly, setExternalOnly] = useState(false)
+
+  const visibleTrips = externalOnly ? trips.filter((t) => t.external) : trips
+
   const years = [...new Set(
-    trips.map((t) => t.date?.slice(0, 4) || 'Unknown')
+    visibleTrips.map((t) => t.date?.slice(0, 4) || 'Unknown')
   )].sort((a, b) => b.localeCompare(a))
 
   const [activeYear, setActiveYear] = useState(years[0] || '')
+
+  useEffect(() => {
+    if (!years.includes(activeYear)) setActiveYear(years[0] || '')
+  }, [years, activeYear])
 
   if (trips.length === 0) {
     return (
@@ -30,7 +38,7 @@ export function YearsView() {
     )
   }
 
-  const yearTrips = [...trips]
+  const yearTrips = [...visibleTrips]
     .filter((t) => (t.date?.slice(0, 4) || 'Unknown') === activeYear)
     .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
 
@@ -44,10 +52,27 @@ export function YearsView() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h2 className="font-gilbert text-3xl text-foreground mb-1">By Year</h2>
+      <div className="flex items-center justify-between gap-4 mb-1">
+        <h2 className="font-gilbert text-3xl text-foreground">By Year</h2>
+        <button
+          onClick={() => setExternalOnly((v) => !v)}
+          className={`flex items-center gap-1.5 flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all border ${
+            externalOnly
+              ? 'bg-primary/10 border-primary/30 text-primary'
+              : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
+          }`}
+        >
+          <ExternalLink className="h-3 w-3" />
+          External only
+        </button>
+      </div>
       <p className="text-muted-foreground text-sm mb-6">
-        {trips.length} trip{trips.length !== 1 ? 's' : ''} across {years.length} year{years.length !== 1 ? 's' : ''}
+        {visibleTrips.length} trip{visibleTrips.length !== 1 ? 's' : ''} across {years.length} year{years.length !== 1 ? 's' : ''}
       </p>
+
+      {visibleTrips.length === 0 && externalOnly ? (
+        <p className="text-muted-foreground text-center py-12">No external trips found</p>
+      ) : null}
 
       {/* Year pills */}
       <div className="flex flex-wrap gap-2 mb-8">
@@ -119,7 +144,15 @@ export function YearsView() {
 
                           {/* Info */}
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-foreground truncate leading-tight">{trip.name}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="font-semibold text-sm text-foreground truncate leading-tight">{trip.name}</p>
+                              {trip.external && (
+                                <span className="inline-flex items-center gap-0.5 flex-shrink-0 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 rounded px-1.5 py-0.5">
+                                  <ExternalLink className="h-2.5 w-2.5" />
+                                  External
+                                </span>
+                              )}
+                            </div>
                             {loc && (
                               <p className="text-xs text-primary flex items-center gap-1 mt-0.5 truncate">
                                 <MapPin className="h-3 w-3 flex-shrink-0" />

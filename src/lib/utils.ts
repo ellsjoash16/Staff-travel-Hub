@@ -58,10 +58,11 @@ export function hexToHsl(hex: string): { h: number; s: number; l: number } | nul
   return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) }
 }
 
-export function extractStoragePath(url: string, bucket: string): string | null {
-  const marker = `/object/public/${bucket}/`
-  const idx = url.indexOf(marker)
-  return idx >= 0 ? decodeURIComponent(url.slice(idx + marker.length)) : null
+export function extractStoragePath(url: string, _bucket?: string): string | null {
+  // Firebase Storage: https://firebasestorage.googleapis.com/v0/b/.../o/PATH?alt=media&token=...
+  const match = url.match(/\/o\/([^?]+)/)
+  if (match) return decodeURIComponent(match[1])
+  return null
 }
 
 export function compressImage(file: File): Promise<string> {

@@ -1,7 +1,17 @@
-import { supabase } from './supabase'
+import {
+  collection, doc, getDoc, getDocs,
+  setDoc, updateDoc, deleteDoc,
+  query, where, orderBy, serverTimestamp,
+} from 'firebase/firestore'
+import {
+  ref, uploadBytes, getDownloadURL, deleteObject,
+} from 'firebase/storage'
+import { db, storage } from './firebase'
 import type { Post, Course, Submission, Settings, Trip, Location, PostExtras } from './types'
 
-const BUCKET = 'post-images'
+// ── Constants ─────────────────────────────────────────────────────────────
+
+const EMPTY_EXTRAS: PostExtras = { hotels: [], airlines: [], cruises: [], activities: [] }
 
 export const DEFAULT_SETTINGS: Settings = {
   title: 'DAF Adventures',
@@ -14,472 +24,422 @@ export const DEFAULT_SETTINGS: Settings = {
   adminFolders: [],
 }
 
-// ── Row mappers ───────────────────────────────────────────────────────────
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const EMPTY_EXTRAS: PostExtras = { hotels: [], airlines: [], cruises: [], activities: [] }
-
-function rowToPost(row: any): Post {
-  const images: string[] =
-    row.image_urls?.length ? row.image_urls : (row.image_url ? [row.image_url] : [])
-  const extras: PostExtras = row.extras
-    ? { ...EMPTY_EXTRAS, ...row.extras }
-    : EMPTY_EXTRAS
-  return {
-    id: row.id,
-    title: row.title,
-    staff: row.staff,
-    staffImage: row.staff_image_url ?? null,
-    review: row.review,
-    location: { name: row.loc_name, lat: row.loc_lat ?? null, lng: row.loc_lng ?? null },
-    locationId: row.location_id ?? null,
-    date: row.date ?? '',
-    tags: row.tags ?? [],
-    images,
-    pinned: row.pinned ?? false,
-    extras,
-    userId: row.user_id ?? null,
-    status: row.status ?? 'approved',
-    folder: row.folder ?? null,
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rowToCourse(row: any): Course {
-  return {
-    id: row.id,
-    title: row.title,
-    description: row.description ?? null,
-    image: row.image_url ?? null,
-    riseUrl: row.rise_url,
-    location: { name: row.loc_name, lat: row.loc_lat ?? null, lng: row.loc_lng ?? null },
-    locationId: row.location_id ?? null,
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rowToSubmission(row: any): Submission {
-  return {
-    id: row.id,
-    name: row.name,
-    location: { name: row.loc_name ?? '', lat: row.loc_lat ?? null, lng: row.loc_lng ?? null },
-    date: row.date ?? '',
-    review: row.review ?? '',
-    images: row.image_urls ?? [],
-    showOnMap: row.show_on_map ?? false,
-    extras: row.extras ? { ...EMPTY_EXTRAS, ...row.extras } : { ...EMPTY_EXTRAS },
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rowToLocation(row: any): Location {
-  return { id: row.id, name: row.name, country: row.country }
-}
-
-
-
 // ── Posts ─────────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function docToPost(id: string, d: any): Post {
+  const images: string[] = d.images?.length ? d.images : (d.image ? [d.image] : [])
+  const extras: PostExtras = d.extras ? { ...EMPTY_EXTRAS, ...d.extras } : EMPTY_EXTRAS
+  return {
+    id,
+    title: d.title ?? '',
+    staff: d.staff ?? '',
+    staffImage: d.staffImage ?? null,
+    review: d.review ?? '',
+    location: { name: d.locName ?? '', lat: d.locLat ?? null, lng: d.locLng ?? null },
+    locationId: d.locationId ?? null,
+    date: d.date ?? '',
+    tags: d.tags ?? [],
+    images,
+    pinned: d.pinned ?? false,
+    extras,
+    userId: d.userId ?? null,
+    status: d.status ?? 'approved',
+    folder: d.folder ?? null,
+  }
+}
+
 export async function fetchPosts(): Promise<Post[]> {
-  const { data, error } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('status', 'approved')
-    .order('date', { ascending: false })
-  if (error) throw error
-  return (data ?? []).map(rowToPost)
+  const q = query(collection(db, 'posts'), where('status', '==', 'approved'))
+  const snap = await getDocs(q)
+  return snap.docs
+    .map((d) => docToPost(d.id, d.data()))
+    .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
 }
 
 export async function fetchPendingPosts(): Promise<Post[]> {
-  const { data, error } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return (data ?? []).map(rowToPost)
+  const q = query(collection(db, 'posts'), where('status', '==', 'pending'))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => docToPost(d.id, d.data()))
 }
 
 export async function approvePost(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('posts')
-    .update({ status: 'approved' })
-    .eq('id', id)
-  if (error) throw error
+  await updateDoc(doc(db, 'posts', id), { status: 'approved' })
 }
 
 export async function submitPendingPost(post: Post, imagePaths: string[]): Promise<void> {
-  const { error } = await supabase.from('posts').insert({
-    id: post.id,
+  await setDoc(doc(db, 'posts', post.id), {
     title: post.title,
     staff: post.staff,
-    staff_image_url: post.staffImage,
-    staff_image_path: null,
+    staffImage: post.staffImage ?? null,
+    staffImagePath: null,
     review: post.review,
-    loc_name: post.location.name,
-    loc_lat: post.location.lat,
-    loc_lng: post.location.lng,
-    location_id: post.locationId,
+    locName: post.location.name,
+    locLat: post.location.lat ?? null,
+    locLng: post.location.lng ?? null,
+    locationId: post.locationId ?? null,
     date: post.date,
     tags: post.tags,
-    image_url: post.images[0] ?? null,
-    image_path: imagePaths[0] ?? null,
-    image_urls: post.images,
-    image_paths: imagePaths,
+    images: post.images,
+    imagePaths,
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
-    user_id: post.userId,
+    userId: post.userId ?? null,
     status: 'pending',
     folder: post.folder ?? null,
+    createdAt: serverTimestamp(),
   })
-  if (error) throw error
 }
 
 export async function insertPost(
   post: Post,
   imagePaths: string[],
-  staffImagePath: string | null
+  staffImagePath: string | null,
 ): Promise<void> {
-  const { error } = await supabase.from('posts').insert({
-    id: post.id,
+  await setDoc(doc(db, 'posts', post.id), {
     title: post.title,
     staff: post.staff,
-    staff_image_url: post.staffImage,
-    staff_image_path: staffImagePath,
+    staffImage: post.staffImage ?? null,
+    staffImagePath,
     review: post.review,
-    loc_name: post.location.name,
-    loc_lat: post.location.lat,
-    loc_lng: post.location.lng,
-    location_id: post.locationId,
+    locName: post.location.name,
+    locLat: post.location.lat ?? null,
+    locLng: post.location.lng ?? null,
+    locationId: post.locationId ?? null,
     date: post.date,
     tags: post.tags,
-    image_url: post.images[0] ?? null,
-    image_path: imagePaths[0] ?? null,
-    image_urls: post.images,
-    image_paths: imagePaths,
+    images: post.images,
+    imagePaths,
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
-    user_id: post.userId ?? null,
+    userId: post.userId ?? null,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
+    createdAt: serverTimestamp(),
   })
-  if (error) throw error
 }
 
 export async function togglePinPost(id: string, pinned: boolean): Promise<void> {
-  const { error } = await supabase.from('posts').update({ pinned }).eq('id', id)
-  if (error) throw error
+  await updateDoc(doc(db, 'posts', id), { pinned })
 }
 
 export async function updatePost(
   post: Post,
   newImagePaths: string[] | undefined,
-  newStaffImagePath: string | null | undefined
+  newStaffImagePath: string | null | undefined,
 ): Promise<void> {
+  const ref_ = doc(db, 'posts', post.id)
+
   if (newImagePaths !== undefined) {
-    const { data } = await supabase
-      .from('posts').select('image_paths').eq('id', post.id).single()
-    const oldPaths: string[] = data?.image_paths ?? []
+    const snap = await getDoc(ref_)
+    const oldPaths: string[] = snap.data()?.imagePaths ?? []
     const toDelete = oldPaths.filter((p) => !newImagePaths.includes(p))
     await Promise.all(toDelete.map((p) => deleteImage(p).catch(() => {})))
   }
+
   if (newStaffImagePath !== undefined) {
-    const { data } = await supabase
-      .from('posts').select('staff_image_path').eq('id', post.id).single()
-    if (data?.staff_image_path && data.staff_image_path !== newStaffImagePath) {
-      await deleteImage(data.staff_image_path).catch(() => {})
+    const snap = await getDoc(ref_)
+    const oldPath: string | null = snap.data()?.staffImagePath ?? null
+    if (oldPath && oldPath !== newStaffImagePath) {
+      await deleteImage(oldPath).catch(() => {})
     }
   }
 
-  const { error } = await supabase.from('posts').update({
+  await updateDoc(ref_, {
     title: post.title,
     staff: post.staff,
-    staff_image_url: post.staffImage,
+    staffImage: post.staffImage ?? null,
     review: post.review,
-    loc_name: post.location.name,
-    loc_lat: post.location.lat,
-    loc_lng: post.location.lng,
-    location_id: post.locationId,
+    locName: post.location.name,
+    locLat: post.location.lat ?? null,
+    locLng: post.location.lng ?? null,
+    locationId: post.locationId ?? null,
     date: post.date,
     tags: post.tags,
-    image_url: post.images[0] ?? null,
-    image_urls: post.images,
+    images: post.images,
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
-    ...(newImagePaths !== undefined ? { image_path: newImagePaths[0] ?? null, image_paths: newImagePaths } : {}),
-    ...(newStaffImagePath !== undefined ? { staff_image_path: newStaffImagePath } : {}),
-  }).eq('id', post.id)
-  if (error) throw error
+    ...(newImagePaths !== undefined ? { imagePaths: newImagePaths } : {}),
+    ...(newStaffImagePath !== undefined ? { staffImagePath: newStaffImagePath } : {}),
+  })
 }
 
 export async function removePost(id: string): Promise<void> {
-  const { data } = await supabase.from('posts').select('image_paths, staff_image_path').eq('id', id).single()
-  const { error } = await supabase.from('posts').delete().eq('id', id)
-  if (error) throw error
+  const snap = await getDoc(doc(db, 'posts', id))
+  const d = snap.data()
+  await deleteDoc(doc(db, 'posts', id))
   const paths: string[] = [
-    ...(data?.image_paths ?? []),
-    ...(data?.staff_image_path ? [data.staff_image_path] : []),
+    ...(d?.imagePaths ?? []),
+    ...(d?.staffImagePath ? [d.staffImagePath] : []),
   ]
   await Promise.all(paths.map((p) => deleteImage(p).catch(() => {})))
 }
 
 // ── Courses ───────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function docToCourse(id: string, d: any): Course {
+  return {
+    id,
+    title: d.title ?? '',
+    description: d.description ?? null,
+    image: d.image ?? null,
+    riseUrl: d.riseUrl ?? '',
+    location: { name: d.locName ?? '', lat: d.locLat ?? null, lng: d.locLng ?? null },
+    locationId: d.locationId ?? null,
+  }
+}
+
 export async function fetchCourses(): Promise<Course[]> {
-  const { data, error } = await supabase
-    .from('courses').select('*').order('created_at', { ascending: false })
-  if (error) throw error
-  return (data ?? []).map(rowToCourse)
+  const snap = await getDocs(collection(db, 'courses'))
+  return snap.docs.map((d) => docToCourse(d.id, d.data()))
 }
 
 export async function insertCourse(course: Course, imagePath: string | null): Promise<void> {
-  const { error } = await supabase.from('courses').insert({
-    id: course.id,
+  await setDoc(doc(db, 'courses', course.id), {
     title: course.title,
-    description: course.description,
-    image_url: course.image,
-    image_path: imagePath,
-    rise_url: course.riseUrl,
-    loc_name: course.location.name,
-    loc_lat: course.location.lat,
-    loc_lng: course.location.lng,
-    location_id: course.locationId,
+    description: course.description ?? null,
+    image: course.image ?? null,
+    imagePath,
+    riseUrl: course.riseUrl,
+    locName: course.location.name,
+    locLat: course.location.lat ?? null,
+    locLng: course.location.lng ?? null,
+    locationId: course.locationId ?? null,
+    createdAt: serverTimestamp(),
   })
-  if (error) throw new Error(error.message)
 }
 
 export async function updateCourse(
   course: Course,
-  newImagePath: string | null | undefined
+  newImagePath: string | null | undefined,
 ): Promise<void> {
+  const ref_ = doc(db, 'courses', course.id)
   if (newImagePath !== undefined) {
-    const { data } = await supabase.from('courses').select('image_path').eq('id', course.id).single()
-    if (data?.image_path && data.image_path !== newImagePath) {
-      await deleteImage(data.image_path).catch(() => {})
-    }
+    const snap = await getDoc(ref_)
+    const oldPath: string | null = snap.data()?.imagePath ?? null
+    if (oldPath && oldPath !== newImagePath) await deleteImage(oldPath).catch(() => {})
   }
-  const { error } = await supabase.from('courses').update({
+  await updateDoc(ref_, {
     title: course.title,
-    description: course.description,
-    image_url: course.image,
-    rise_url: course.riseUrl,
-    loc_name: course.location.name,
-    loc_lat: course.location.lat,
-    loc_lng: course.location.lng,
-    location_id: course.locationId,
-    ...(newImagePath !== undefined ? { image_path: newImagePath } : {}),
-  }).eq('id', course.id)
-  if (error) throw new Error(error.message)
+    description: course.description ?? null,
+    image: course.image ?? null,
+    riseUrl: course.riseUrl,
+    locName: course.location.name,
+    locLat: course.location.lat ?? null,
+    locLng: course.location.lng ?? null,
+    locationId: course.locationId ?? null,
+    ...(newImagePath !== undefined ? { imagePath: newImagePath } : {}),
+  })
 }
 
 export async function removeCourse(id: string): Promise<void> {
-  const { data } = await supabase.from('courses').select('image_path').eq('id', id).single()
-  const { error } = await supabase.from('courses').delete().eq('id', id)
-  if (error) throw error
-  if (data?.image_path) await deleteImage(data.image_path).catch(() => {})
+  const snap = await getDoc(doc(db, 'courses', id))
+  const imagePath: string | null = snap.data()?.imagePath ?? null
+  await deleteDoc(doc(db, 'courses', id))
+  if (imagePath) await deleteImage(imagePath).catch(() => {})
 }
 
 // ── Submissions ───────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function docToSubmission(id: string, d: any): Submission {
+  return {
+    id,
+    name: d.name ?? '',
+    location: { name: d.locName ?? '', lat: d.locLat ?? null, lng: d.locLng ?? null },
+    date: d.date ?? '',
+    review: d.review ?? '',
+    images: d.images ?? [],
+    showOnMap: d.showOnMap ?? false,
+    extras: d.extras ? { ...EMPTY_EXTRAS, ...d.extras } : { ...EMPTY_EXTRAS },
+  }
+}
+
 export async function fetchSubmissions(): Promise<Submission[]> {
-  const { data, error } = await supabase
-    .from('submissions').select('*').order('submitted_at', { ascending: false })
-  if (error) throw error
-  return (data ?? []).map(rowToSubmission)
+  const snap = await getDocs(collection(db, 'submissions'))
+  return snap.docs.map((d) => docToSubmission(d.id, d.data()))
 }
 
 export async function insertSubmission(
   submission: Submission,
-  imagePaths: string[]
+  imagePaths: string[],
 ): Promise<void> {
-  const full = {
-    id: submission.id,
+  await setDoc(doc(db, 'submissions', submission.id), {
     name: submission.name,
     review: submission.review,
     date: submission.date || null,
-    loc_name: submission.location.name || null,
-    loc_lat: submission.location.lat ?? null,
-    loc_lng: submission.location.lng ?? null,
-    image_urls: submission.images,
-    image_paths: imagePaths,
-    show_on_map: false,
+    locName: submission.location.name || null,
+    locLat: submission.location.lat ?? null,
+    locLng: submission.location.lng ?? null,
+    images: submission.images,
+    imagePaths,
+    showOnMap: false,
     extras: submission.extras ?? EMPTY_EXTRAS,
-  }
-  const { error } = await supabase.from('submissions').insert(full)
-  if (!error) return
-  if (error.message.includes('column') || error.code === '42703') {
-    const { error: fallbackError } = await supabase.from('submissions').insert({
-      id: submission.id,
-      name: submission.name,
-      review: submission.review,
-      date: submission.date || null,
-    })
-    if (fallbackError) throw new Error(fallbackError.message)
-    return
-  }
-  throw new Error(error.message)
+    submittedAt: serverTimestamp(),
+  })
 }
 
-export async function updateSubmission(submission: Submission, newImagePaths: string[]): Promise<void> {
-  const { data } = await supabase.from('submissions').select('image_paths').eq('id', submission.id).single()
-  const existingPaths: string[] = data?.image_paths ?? []
-  const fields = {
+export async function updateSubmission(
+  submission: Submission,
+  newImagePaths: string[],
+): Promise<void> {
+  const snap = await getDoc(doc(db, 'submissions', submission.id))
+  const existingPaths: string[] = snap.data()?.imagePaths ?? []
+  await updateDoc(doc(db, 'submissions', submission.id), {
     name: submission.name,
-    loc_name: submission.location.name,
-    loc_lat: submission.location.lat,
-    loc_lng: submission.location.lng,
+    locName: submission.location.name,
+    locLat: submission.location.lat ?? null,
+    locLng: submission.location.lng ?? null,
     date: submission.date,
     review: submission.review,
-    image_urls: submission.images,
-    image_paths: [...existingPaths, ...newImagePaths],
-    show_on_map: submission.showOnMap,
-  }
-  const { error } = await supabase.from('submissions').update(fields).eq('id', submission.id)
-  if (!error) return
-  if (error.message.includes('show_on_map') || error.code === '42703') {
-    const { show_on_map: _omit, ...withoutFlag } = fields
-    const { error: e2 } = await supabase.from('submissions').update(withoutFlag).eq('id', submission.id)
-    if (e2) throw new Error(e2.message)
-    return
-  }
-  throw new Error(error.message)
+    images: submission.images,
+    imagePaths: [...existingPaths, ...newImagePaths],
+    showOnMap: submission.showOnMap,
+  })
 }
 
 export async function removeSubmission(id: string): Promise<void> {
-  const { data } = await supabase.from('submissions').select('image_paths').eq('id', id).single()
-  const { error } = await supabase.from('submissions').delete().eq('id', id)
-  if (error) throw error
-  const paths: string[] = data?.image_paths ?? []
+  const snap = await getDoc(doc(db, 'submissions', id))
+  const paths: string[] = snap.data()?.imagePaths ?? []
+  await deleteDoc(doc(db, 'submissions', id))
   await Promise.all(paths.map((p) => deleteImage(p).catch(() => {})))
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────
 
 export async function fetchSettings(): Promise<Settings> {
-  const { data } = await supabase.from('settings').select('*').eq('id', 1).single()
-  if (!data) return DEFAULT_SETTINGS
+  const snap = await getDoc(doc(db, 'settings', 'main'))
+  if (!snap.exists()) return DEFAULT_SETTINGS
+  const d = snap.data()
   return {
-    title: data.title,
-    heading: data.heading,
-    color: data.color,
-    password: data.password,
-    welcome: data.welcome,
+    title: d.title ?? DEFAULT_SETTINGS.title,
+    heading: d.heading ?? DEFAULT_SETTINGS.heading,
+    color: d.color ?? DEFAULT_SETTINGS.color,
+    password: d.password ?? DEFAULT_SETTINGS.password,
+    welcome: d.welcome ?? DEFAULT_SETTINGS.welcome,
     departureAirport: {
-      name: data.departure_name ?? 'LHR',
-      lat: data.departure_lat ?? 51.5074,
-      lng: data.departure_lng ?? -0.1278,
+      name: d.departureName ?? 'LHR',
+      lat: d.departureLat ?? 51.5074,
+      lng: d.departureLng ?? -0.1278,
     },
-    panelImages: { feed: null, map: null, courses: null, years: null, submit: null, ...(data.panel_images ?? {}) },
-    adminFolders: data.admin_folders ?? [],
+    panelImages: {
+      feed: null, map: null, courses: null, years: null, submit: null,
+      ...(d.panelImages ?? {}),
+    },
+    adminFolders: d.adminFolders ?? [],
   }
 }
 
 export async function upsertSettings(settings: Settings): Promise<void> {
-  const { error } = await supabase.from('settings').upsert({
-    id: 1,
+  await setDoc(doc(db, 'settings', 'main'), {
     title: settings.title,
     heading: settings.heading,
     color: settings.color,
     password: settings.password,
     welcome: settings.welcome,
-  }, { onConflict: 'id' })
-  if (error) throw error
-  await supabase.from('settings').update({
-    departure_name: settings.departureAirport?.name ?? 'LHR',
-    departure_lat: settings.departureAirport?.lat ?? 51.5074,
-    departure_lng: settings.departureAirport?.lng ?? -0.1278,
-  }).eq('id', 1)
-  await supabase.from('settings').update({ panel_images: settings.panelImages }).eq('id', 1)
-  await supabase.from('settings').update({ admin_folders: settings.adminFolders ?? [] }).eq('id', 1)
+    departureName: settings.departureAirport?.name ?? 'LHR',
+    departureLat: settings.departureAirport?.lat ?? 51.5074,
+    departureLng: settings.departureAirport?.lng ?? -0.1278,
+    panelImages: settings.panelImages,
+    adminFolders: settings.adminFolders ?? [],
+  })
 }
 
 // ── Locations ─────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function docToLocation(id: string, d: any): Location {
+  return { id, name: d.name ?? '', country: d.country ?? '' }
+}
+
 export async function fetchLocations(): Promise<Location[]> {
-  const { data, error } = await supabase
-    .from('locations').select('*').order('name', { ascending: true })
-  if (error) return []
-  return (data ?? []).map(rowToLocation)
+  const q = query(collection(db, 'locations'), orderBy('name', 'asc'))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => docToLocation(d.id, d.data()))
 }
 
 export async function insertLocation(location: Location): Promise<void> {
-  const { error } = await supabase.from('locations').insert({
-    id: location.id, name: location.name, country: location.country,
+  await setDoc(doc(db, 'locations', location.id), {
+    name: location.name,
+    country: location.country,
   })
-  if (error) throw new Error(error.message)
 }
 
 export async function updateLocation(location: Location): Promise<void> {
-  const { error } = await supabase.from('locations').update({
-    name: location.name, country: location.country,
-  }).eq('id', location.id)
-  if (error) throw new Error(error.message)
+  await updateDoc(doc(db, 'locations', location.id), {
+    name: location.name,
+    country: location.country,
+  })
 }
 
 export async function removeLocation(id: string): Promise<void> {
-  const { error } = await supabase.from('locations').delete().eq('id', id)
-  if (error) throw error
+  await deleteDoc(doc(db, 'locations', id))
 }
 
 // ── Trips ─────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rowToTrip(row: any): Trip {
+function docToTrip(id: string, d: any): Trip {
   return {
-    id: row.id,
-    name: row.name,
-    participants: row.participants ?? [],
-    date: row.date ?? '',
-    image: row.image_url ?? null,
-    locationId: row.location_id ?? null,
+    id,
+    name: d.name ?? '',
+    participants: d.participants ?? [],
+    date: d.date ?? '',
+    image: d.image ?? null,
+    locationId: d.locationId ?? null,
+    external: d.external ?? false,
   }
 }
 
 export async function fetchTrips(): Promise<Trip[]> {
-  const { data, error } = await supabase
-    .from('trips').select('*').order('date', { ascending: false })
-  if (error) return []
-  return (data ?? []).map(rowToTrip)
+  const snap = await getDocs(collection(db, 'trips'))
+  return snap.docs
+    .map((d) => docToTrip(d.id, d.data()))
+    .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
 }
 
 export async function insertTrip(trip: Trip, imagePath: string | null): Promise<void> {
-  const { error } = await supabase.from('trips').insert({
-    id: trip.id,
+  await setDoc(doc(db, 'trips', trip.id), {
     name: trip.name,
     participants: trip.participants,
     date: trip.date || null,
-    image_url: trip.image,
-    image_path: imagePath,
-    location_id: trip.locationId,
+    image: trip.image ?? null,
+    imagePath,
+    locationId: trip.locationId ?? null,
+    external: trip.external ?? false,
+    createdAt: serverTimestamp(),
   })
-  if (error) throw new Error(error.message)
 }
 
-export async function updateTrip(trip: Trip, newImagePath: string | null | undefined): Promise<void> {
+export async function updateTrip(
+  trip: Trip,
+  newImagePath: string | null | undefined,
+): Promise<void> {
+  const ref_ = doc(db, 'trips', trip.id)
   if (newImagePath !== undefined) {
-    const { data } = await supabase.from('trips').select('image_path').eq('id', trip.id).single()
-    if (data?.image_path && data.image_path !== newImagePath) {
-      await deleteImage(data.image_path).catch(() => {})
-    }
+    const snap = await getDoc(ref_)
+    const oldPath: string | null = snap.data()?.imagePath ?? null
+    if (oldPath && oldPath !== newImagePath) await deleteImage(oldPath).catch(() => {})
   }
-  const { error } = await supabase.from('trips').update({
+  await updateDoc(ref_, {
     name: trip.name,
     participants: trip.participants,
     date: trip.date || null,
-    image_url: trip.image,
-    location_id: trip.locationId,
-    ...(newImagePath !== undefined ? { image_path: newImagePath } : {}),
-  }).eq('id', trip.id)
-  if (error) throw new Error(error.message)
+    image: trip.image ?? null,
+    locationId: trip.locationId ?? null,
+    external: trip.external ?? false,
+    ...(newImagePath !== undefined ? { imagePath: newImagePath } : {}),
+  })
 }
 
 export async function removeTrip(id: string): Promise<void> {
-  const { data } = await supabase.from('trips').select('image_path').eq('id', id).single()
-  const { error } = await supabase.from('trips').delete().eq('id', id)
-  if (error) throw error
-  if (data?.image_path) await deleteImage(data.image_path).catch(() => {})
+  const snap = await getDoc(doc(db, 'trips', id))
+  const imagePath: string | null = snap.data()?.imagePath ?? null
+  await deleteDoc(doc(db, 'trips', id))
+  if (imagePath) await deleteImage(imagePath).catch(() => {})
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────
@@ -498,7 +458,11 @@ function compressImage(dataUrl: string, maxWidth = 1920, quality = 0.82): Promis
       canvas.width = width
       canvas.height = height
       canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
-      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Compression failed')), 'image/jpeg', quality)
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error('Compression failed'))),
+        'image/jpeg',
+        quality,
+      )
     }
     img.src = dataUrl
   })
@@ -506,20 +470,18 @@ function compressImage(dataUrl: string, maxWidth = 1920, quality = 0.82): Promis
 
 export async function uploadImage(
   dataUrl: string,
-  id: string
+  id: string,
 ): Promise<{ url: string; path: string }> {
-  const blob = dataUrl.startsWith('data:') ? await compressImage(dataUrl) : await fetch(dataUrl).then(r => r.blob())
-  const ext = 'jpg'
-  const path = `${id}-${Date.now()}.${ext}`
-  const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
-    contentType: blob.type,
-    upsert: false,
-  })
-  if (error) throw error
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  return { url: data.publicUrl, path }
+  const blob = dataUrl.startsWith('data:')
+    ? await compressImage(dataUrl)
+    : await fetch(dataUrl).then((r) => r.blob())
+  const path = `images/${id}-${Date.now()}.jpg`
+  const storageRef = ref(storage, path)
+  await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' })
+  const url = await getDownloadURL(storageRef)
+  return { url, path }
 }
 
 export async function deleteImage(path: string): Promise<void> {
-  await supabase.storage.from(BUCKET).remove([path])
+  await deleteObject(ref(storage, path))
 }

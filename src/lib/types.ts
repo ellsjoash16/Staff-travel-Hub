@@ -89,6 +89,7 @@ export interface Trip {
   date: string
   image: string | null
   locationId: string | null
+  external: boolean
 }
 
 export type View = 'home' | 'feed' | 'map' | 'courses' | 'years' | 'submit' | 'settings' | 'pending'

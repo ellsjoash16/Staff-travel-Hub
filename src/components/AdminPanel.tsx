@@ -311,7 +311,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       }
       setLocationForm(emptyLocationForm()); setEditingLocationId(null)
     } catch (err) {
-      console.error(err); toast.error('Something went wrong — make sure the locations table exists in Supabase.')
+      console.error(err); toast.error('Something went wrong saving location.')
     } finally { setSubmitting(false) }
   }
 

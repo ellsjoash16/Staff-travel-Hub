@@ -1,7 +1,7 @@
 import {
   collection, doc, getDoc, getDocs,
   setDoc, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp,
+  query, where, serverTimestamp,
 } from 'firebase/firestore'
 import {
   ref, uploadBytes, getDownloadURL, deleteObject,
@@ -356,9 +356,10 @@ function docToLocation(id: string, d: any): Location {
 }
 
 export async function fetchLocations(): Promise<Location[]> {
-  const q = query(collection(db, 'locations'), orderBy('name', 'asc'))
-  const snap = await getDocs(q)
-  return snap.docs.map((d) => docToLocation(d.id, d.data()))
+  const snap = await getDocs(collection(db, 'locations'))
+  return snap.docs
+    .map((d) => docToLocation(d.id, d.data()))
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 export async function insertLocation(location: Location): Promise<void> {

@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
+import { initializeFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 
 const firebaseConfig = {
@@ -10,7 +10,10 @@ const firebaseConfig = {
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string,
   appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
 }
-
 const app = initializeApp(firebaseConfig)
-export const db = getFirestore(app)
+// experimentalAutoDetectLongPolling: falls back from WebChannel to HTTP polling
+// when the environment blocks streaming connections (e.g. some CDN/proxy setups)
+export const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+})
 export const storage = getStorage(app)

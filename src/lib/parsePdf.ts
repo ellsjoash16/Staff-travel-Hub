@@ -14,21 +14,19 @@ export interface ParsedReview {
   images: string[] // data URLs extracted from the PDF
 }
 
-// Minimum image dimensions to filter out icons/UI elements
-const MIN_IMG_PX = 150
 
 export async function parsePdf(file: File): Promise<ParsedReview[]> {
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
 
   const pageLines: string[] = []
-  // Collect all images across all pages, grouped by page
-  const pageImages: string[][] = []
+  const pageTextLengths: number[] = []
+  const pageDataUrls: string[] = []
 
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p)
 
-    // ── Text extraction ──────────────────────────────────────────────────────
+    // ── Text extraction (reconstruct lines via y-coordinate) ─────────────────
     const content = await page.getTextContent()
     const byY = new Map<number, string[]>()
     for (const item of content.items as any[]) {
@@ -38,80 +36,34 @@ export async function parsePdf(file: File): Promise<ParsedReview[]> {
       byY.get(y)!.push(item.str)
     }
     const sortedYs = [...byY.keys()].sort((a, b) => b - a)
+    let pageText = ''
     for (const y of sortedYs) {
       const line = byY.get(y)!.join(' ').trim()
-      if (line) pageLines.push(line)
+      if (line) { pageLines.push(line); pageText += line }
     }
     pageLines.push('')
+    pageTextLengths.push(pageText.length)
 
-    // ── Image extraction ─────────────────────────────────────────────────────
-    const imgs = await extractPageImages(page)
-    pageImages.push(imgs)
+    // ── Render page to canvas → JPEG data URL ────────────────────────────────
+    try {
+      const viewport = page.getViewport({ scale: 1.5 })
+      const canvas = document.createElement('canvas')
+      canvas.width = viewport.width
+      canvas.height = viewport.height
+      const ctx = canvas.getContext('2d')!
+      await page.render({ canvasContext: ctx, viewport, canvas }).promise
+      pageDataUrls.push(canvas.toDataURL('image/jpeg', 0.82))
+    } catch {
+      pageDataUrls.push('')
+    }
   }
+
+  // Pages with very little text are likely photo pages — use those as images.
+  // Threshold: fewer than 80 chars of text on the page.
+  const photoPages = pageDataUrls.filter((url, i) => url && pageTextLengths[i] < 80)
 
   const fullText = pageLines.join('\n')
-  const allImages = pageImages.flat()
-  return splitIntoReviews(fullText, allImages)
-}
-
-async function extractPageImages(page: any): Promise<string[]> {
-  try {
-    const ops = await page.getOperatorList()
-    const seenKeys = new Set<string>()
-    const imageKeys: string[] = []
-
-    // OPS values: paintImageXObject=85, paintInlineImageXObject=86
-    const PAINT_IMAGE = (pdfjsLib as any).OPS?.paintImageXObject ?? 85
-    const PAINT_INLINE = (pdfjsLib as any).OPS?.paintInlineImageXObject ?? 86
-
-    for (let i = 0; i < ops.fnArray.length; i++) {
-      const fn = ops.fnArray[i]
-      if (fn === PAINT_IMAGE || fn === PAINT_INLINE) {
-        const key = ops.argsArray[i]?.[0]
-        if (typeof key === 'string' && !seenKeys.has(key)) {
-          seenKeys.add(key)
-          imageKeys.push(key)
-        }
-      }
-    }
-
-    const dataUrls: string[] = []
-    for (const key of imageKeys) {
-      try {
-        // Race with a 3s timeout so we never hang
-        const img: any = await Promise.race([
-          new Promise(resolve => page.objs.get(key, resolve)),
-          new Promise(resolve => setTimeout(() => resolve(null), 3000)),
-        ])
-        if (!img?.data || img.width < MIN_IMG_PX || img.height < MIN_IMG_PX) continue
-
-        const canvas = document.createElement('canvas')
-        canvas.width = img.width
-        canvas.height = img.height
-        const ctx = canvas.getContext('2d')!
-        const imageData = ctx.createImageData(img.width, img.height)
-
-        const src: Uint8ClampedArray = img.data
-        const dst = imageData.data
-        if (src.length === img.width * img.height * 3) {
-          for (let i = 0, j = 0; i < src.length; i += 3, j += 4) {
-            dst[j] = src[i]; dst[j + 1] = src[i + 1]; dst[j + 2] = src[i + 2]; dst[j + 3] = 255
-          }
-        } else {
-          dst.set(src)
-        }
-
-        ctx.putImageData(imageData, 0, 0)
-        dataUrls.push(canvas.toDataURL('image/jpeg', 0.85))
-      } catch {
-        // skip individual image failures
-      }
-    }
-    return dataUrls
-  } catch {
-    // If image extraction fails entirely, return empty — don't break text parsing
-    return []
-  }
+  return splitIntoReviews(fullText, photoPages)
 }
 
 // ── Parsing ───────────────────────────────────────────────────────────────────

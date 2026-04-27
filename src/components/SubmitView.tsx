@@ -12,11 +12,12 @@ import { Label } from '@/components/ui/label'
 import { MultiImageUpload } from './MultiImageUpload'
 import { DatePicker } from './DatePicker'
 import { ReviewExtras } from './ReviewExtras'
+import { BlogEditor } from './BlogEditor'
 import { useApp } from '@/context/AppContext'
 import { today } from '@/lib/utils'
 import type { PostExtras } from '@/lib/types'
 
-const EMPTY_EXTRAS: PostExtras = { hotels: [], airlines: [], cruises: [], activities: [] }
+const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
 
 const STEPS = [
   { id: 1, label: 'You',     icon: User,    title: "Who's submitting?",    subtitle: 'Just your name so we know who to credit' },
@@ -266,14 +267,14 @@ export function SubmitView() {
         {step === 5 && (
           <div className="space-y-1.5">
             <Label>Your Review <span className="text-destructive">*</span></Label>
-            <Textarea
-              placeholder="Tell us about your trip — highlights, recommendations, what you loved..."
-              value={review}
-              onChange={e => setReview(e.target.value)}
-              className="min-h-[160px]"
-              spellCheck={true}
-              autoFocus
+            <BlogEditor
+              review={review}
+              images={images}
+              onReviewChange={setReview}
             />
+            <p className="text-xs text-muted-foreground">
+              Your first photo is the header. Click "Insert photo" to place the others where you want them.
+            </p>
           </div>
         )}
 

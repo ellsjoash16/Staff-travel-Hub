@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import type { PostExtras, ReviewItem } from '@/lib/types'
 
 const SECTIONS = [
-  { key: 'hotels'     as const, label: 'Hotels',     singular: 'Hotel',    img: '/hotels.webp'     },
   { key: 'airlines'   as const, label: 'Airlines',   singular: 'Airline',  img: '/airlines.jpg'    },
+  { key: 'hotels'     as const, label: 'Hotels',     singular: 'Hotel',    img: '/hotels.webp'     },
   { key: 'cruises'    as const, label: 'Cruises',    singular: 'Cruise',   img: '/cruises.webp'    },
   { key: 'activities' as const, label: 'Activities', singular: 'Activity', img: '/activities.png'  },
+  { key: 'dmcs'       as const, label: 'DMCs',       singular: 'DMC',      img: '/dmc.webp'        },
 ]
 
 interface DraftState {

@@ -17,10 +17,11 @@ export interface ReviewItem {
 }
 
 export interface PostExtras {
-  hotels: ReviewItem[]
   airlines: ReviewItem[]
+  hotels: ReviewItem[]
   cruises: ReviewItem[]
   activities: ReviewItem[]
+  dmcs: ReviewItem[]
 }
 
 export interface Post {

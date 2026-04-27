@@ -3,6 +3,7 @@ import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
 import { Trash2, Pencil, Loader2, CheckCircle2, X, Eye, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen } from 'lucide-react'
 import { ReviewExtras } from './ReviewExtras'
+import { BlogEditor } from './BlogEditor'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -18,7 +19,7 @@ import type { Post, Course, PanelImages, Trip, Location, PostExtras } from '@/li
 
 const PALETTE = ['#0077b6', '#6366f1', '#ec4899', '#f97316', '#10b981', '#dc2626', '#7c3aed', '#0f766e']
 
-const EMPTY_EXTRAS: PostExtras = { hotels: [], airlines: [], cruises: [], activities: [] }
+const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
 
 interface PostForm {
   title: string; staff: string; staffImage: string | null
@@ -44,7 +45,7 @@ interface LocationForm {
 const emptyPostForm = (): PostForm => ({
   title: '', staff: '', staffImage: null, review: '', locName: '',
   locationId: null, date: today(), tags: '', images: [],
-  extras: { hotels: [], airlines: [], cruises: [], activities: [] },
+  extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
   folder: null,
 })
 
@@ -274,7 +275,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       }
       setTripForm(emptyTripForm()); setEditingTripId(null)
     } catch (err) {
-      console.error(err); toast.error('Something went wrong.')
+      console.error(err); toast.error(err instanceof Error ? err.message : 'Something went wrong.')
     } finally { setSubmitting(false) }
   }
 
@@ -450,11 +451,14 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
 
               <div className="space-y-1.5">
                 <Label>Review / Description <span className="text-destructive">*</span></Label>
-                <Textarea
-                  placeholder="Share the experience, highlights, recommendations..."
-                  value={postForm.review}
-                  onChange={(e) => setPost('review', e.target.value)}
+                <BlogEditor
+                  review={postForm.review}
+                  images={postForm.images}
+                  onReviewChange={(v) => setPost('review', v)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Photo 1 is always the hero. Click "Insert photo" to place the next photo at that point in the text.
+                </p>
               </div>
 
               {/* ── Extras sections ── */}
@@ -888,25 +892,48 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
                                 </div>
                               </div>
                               {viewingSubId === sub.id && (
-                                <div className="p-4 border-t border-border bg-background space-y-3">
-                                  <div>
-                                    <p className="font-semibold text-sm">{sub.name}</p>
-                                    <div className="flex items-center gap-3 mt-0.5">
-                                      {sub.location.name && <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{sub.location.name}</p>}
-                                      {sub.date && <p className="text-xs text-muted-foreground">{fmtDate(sub.date)}</p>}
-                                    </div>
-                                  </div>
-                                  {sub.images.length > 0 && (
-                                    <div className="flex gap-2 overflow-x-auto pb-1">
-                                      {sub.images.map((img, i) => (
-                                        <img key={i} src={img} alt="" className="h-28 w-28 flex-shrink-0 rounded-lg object-cover" />
-                                      ))}
-                                    </div>
+                                <div className="border-t border-border bg-background">
+                                  {/* Hero image */}
+                                  {sub.images[0] && (
+                                    <img src={sub.images[0]} alt="" className="w-full aspect-video object-cover" />
                                   )}
-                                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{sub.review}</p>
-                                  <Button size="sm" onClick={() => { useSubmission(sub); setViewingSubId(null) }} className="gap-1">
-                                    <CheckCircle2 className="h-3.5 w-3.5" /> Post this trip
-                                  </Button>
+                                  <div className="p-4 space-y-4">
+                                    {/* Meta */}
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                      {sub.location.name && (
+                                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-primary" />{sub.location.name}</span>
+                                      )}
+                                      {sub.date && <span>{fmtDate(sub.date)}</span>}
+                                    </div>
+                                    {/* Review text */}
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/85">{sub.review}</p>
+                                    {/* Remaining images */}
+                                    {sub.images.length > 1 && (
+                                      <div className="flex gap-2 overflow-x-auto pb-1">
+                                        {sub.images.slice(1).map((img, i) => (
+                                          <img key={i} src={img} alt="" className="h-24 w-24 flex-shrink-0 rounded-xl object-cover border border-border" />
+                                        ))}
+                                      </div>
+                                    )}
+                                    {/* Extras summary */}
+                                    {sub.extras && Object.values(sub.extras).some(arr => arr.length > 0) && (
+                                      <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1.5">
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ratings submitted</p>
+                                        {(['airlines','hotels','cruises','activities','dmcs'] as const).map(key => {
+                                          const items = sub.extras?.[key] ?? []
+                                          if (!items.length) return null
+                                          return (
+                                            <div key={key} className="text-xs text-muted-foreground">
+                                              <span className="font-medium capitalize text-foreground">{key}</span>: {items.map(i => `${i.name} (${'★'.repeat(i.rating)})`).join(', ')}
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+                                    )}
+                                    <Button size="sm" onClick={() => { useSubmission(sub); setViewingSubId(null) }} className="gap-1 w-full">
+                                      <CheckCircle2 className="h-3.5 w-3.5" /> Use this submission → Post tab
+                                    </Button>
+                                  </div>
                                 </div>
                               )}
                             </div>

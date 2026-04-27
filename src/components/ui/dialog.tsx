@@ -25,7 +25,7 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { size?: 'default' | 'lg' }
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { size?: 'default' | 'lg' | 'blog' }
 >(({ className, children, size = 'default', ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
@@ -33,8 +33,9 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         'fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 bg-card shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-2xl',
-        size === 'lg' ? 'max-w-3xl' : 'max-w-lg',
-        'max-h-[92vh] overflow-y-auto mx-4',
+        size === 'blog' ? 'max-w-4xl' : size === 'lg' ? 'max-w-3xl' : 'max-w-lg',
+        size === 'blog' ? 'max-h-[95vh]' : 'max-h-[92vh]',
+        'overflow-y-auto mx-4',
         className
       )}
       {...props}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CalendarDays, MapPin, Plane, ExternalLink } from 'lucide-react'
+import { CalendarDays, MapPin, Plane } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
 
@@ -62,7 +62,6 @@ export function YearsView() {
               : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
           }`}
         >
-          <ExternalLink className="h-3 w-3" />
           External only
         </button>
       </div>
@@ -147,8 +146,7 @@ export function YearsView() {
                             <div className="flex items-center gap-1.5">
                               <p className="font-semibold text-sm text-foreground truncate leading-tight">{trip.name}</p>
                               {trip.external && (
-                                <span className="inline-flex items-center gap-0.5 flex-shrink-0 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 rounded px-1.5 py-0.5">
-                                  <ExternalLink className="h-2.5 w-2.5" />
+                                <span className="inline-flex items-center flex-shrink-0 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 rounded px-1.5 py-0.5">
                                   External
                                 </span>
                               )}

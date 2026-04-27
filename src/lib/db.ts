@@ -11,7 +11,7 @@ import type { Post, Course, Submission, Settings, Trip, Location, PostExtras } f
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const EMPTY_EXTRAS: PostExtras = { hotels: [], airlines: [], cruises: [], activities: [] }
+const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
 
 export const DEFAULT_SETTINGS: Settings = {
   title: 'DAF Adventures',

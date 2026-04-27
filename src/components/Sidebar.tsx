@@ -79,7 +79,7 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
                 onClick={() => go(id)}
                 title={collapsed ? label : undefined}
                 className={`
-                  w-full flex items-center rounded-xl transition-all duration-150
+                  relative w-full flex items-center rounded-xl transition-all duration-150
                   ${collapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2.5'}
                   ${active
                     ? 'bg-primary/10 text-primary'
@@ -87,6 +87,9 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
                   }
                 `}
               >
+                {active && !collapsed && (
+                  <span className="absolute left-0 inset-y-2 w-0.5 bg-primary rounded-full" />
+                )}
                 <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${active ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                   <Icon className="h-4 w-4" />
                 </div>

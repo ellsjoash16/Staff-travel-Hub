@@ -1,5 +1,7 @@
-import { X, ImagePlus } from 'lucide-react'
+import { useState } from 'react'
+import { X, ImagePlus, Sparkles, Loader2 } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
+import { toast } from 'sonner'
 
 interface Props {
   review: string
@@ -16,6 +18,8 @@ export function BlogEditor({ review, images, onReviewChange }: Props) {
   const sections = review ? review.split('\n---\n') : ['']
   const placedCount = sections.length - 1
   const nextImage = insertable[placedCount]
+
+  const [paraphrasingIdx, setParaphrasingIdx] = useState<number | null>(null)
 
   function updateSection(i: number, val: string) {
     const s = [...sections]
@@ -36,17 +40,52 @@ export function BlogEditor({ review, images, onReviewChange }: Props) {
     onReviewChange(s.join('\n---\n'))
   }
 
+  async function paraphrase(i: number) {
+    const text = sections[i].trim()
+    if (!text) { toast.error('Nothing to paraphrase'); return }
+    setParaphrasingIdx(i)
+    try {
+      const res = await fetch('/api/paraphrase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed')
+      updateSection(i, data.result)
+      toast.success('Paraphrased!')
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Paraphrase failed')
+    } finally {
+      setParaphrasingIdx(null)
+    }
+  }
+
   return (
     <div className="space-y-2">
       {sections.map((section, i) => (
         <div key={i} className="space-y-2">
-          <Textarea
-            placeholder={i === 0 ? 'Write your review...' : 'Continue writing...'}
-            value={section}
-            onChange={e => updateSection(i, e.target.value)}
-            className="min-h-[110px]"
-            spellCheck
-          />
+          <div className="relative group/section">
+            <Textarea
+              placeholder={i === 0 ? 'Write your review...' : 'Continue writing...'}
+              value={section}
+              onChange={e => updateSection(i, e.target.value)}
+              className="min-h-[110px] pr-24"
+              spellCheck
+            />
+            <button
+              type="button"
+              onClick={() => paraphrase(i)}
+              disabled={paraphrasingIdx !== null}
+              title="AI paraphrase"
+              className="absolute top-2 right-2 flex items-center gap-1 rounded-md bg-muted/80 backdrop-blur-sm border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground opacity-0 group-hover/section:opacity-100 hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all disabled:opacity-40"
+            >
+              {paraphrasingIdx === i
+                ? <><Loader2 className="h-3 w-3 animate-spin" /> Writing…</>
+                : <><Sparkles className="h-3 w-3" /> AI</>
+              }
+            </button>
+          </div>
 
           {/* Placed image thumbnail */}
           {i < placedCount && insertable[i] && (

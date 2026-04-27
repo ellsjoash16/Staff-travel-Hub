@@ -407,25 +407,33 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
   }
 
   async function handleSavePages() {
+    setSubmitting(true)
     try {
+      // Use data: URL if newly uploaded, else keep existing saved URL, else null
+      const resolve = (local: string | null, saved: string | null | undefined) =>
+        local?.startsWith('data:') ? null : (local?.startsWith('https:') ? local : (saved ?? null))
+
       const currentImages: PanelImages = {
-        feed: pFeed?.startsWith('https:') ? pFeed : settings.panelImages?.feed ?? null,
-        map: pMap?.startsWith('https:') ? pMap : settings.panelImages?.map ?? null,
-        courses: pCourses?.startsWith('https:') ? pCourses : settings.panelImages?.courses ?? null,
-        years: pYears?.startsWith('https:') ? pYears : settings.panelImages?.years ?? null,
-        submit: pSubmit?.startsWith('https:') ? pSubmit : settings.panelImages?.submit ?? null,
+        feed:    resolve(pFeed,    settings.panelImages?.feed),
+        map:     resolve(pMap,     settings.panelImages?.map),
+        courses: resolve(pCourses, settings.panelImages?.courses),
+        years:   resolve(pYears,   settings.panelImages?.years),
+        submit:  resolve(pSubmit,  settings.panelImages?.submit),
       }
-      const dataUrls: Partial<Record<keyof PanelImages, string | null>> = {
-        ...(pFeed?.startsWith('data:') ? { feed: pFeed } : {}),
-        ...(pMap?.startsWith('data:') ? { map: pMap } : {}),
+      const dataUrls: Partial<Record<keyof PanelImages, string>> = {
+        ...(pFeed?.startsWith('data:')    ? { feed: pFeed }       : {}),
+        ...(pMap?.startsWith('data:')     ? { map: pMap }         : {}),
         ...(pCourses?.startsWith('data:') ? { courses: pCourses } : {}),
-        ...(pYears?.startsWith('data:') ? { years: pYears } : {}),
-        ...(pSubmit?.startsWith('data:') ? { submit: pSubmit } : {}),
+        ...(pYears?.startsWith('data:')   ? { years: pYears }     : {}),
+        ...(pSubmit?.startsWith('data:')  ? { submit: pSubmit }   : {}),
       }
       await savePageImages(currentImages, dataUrls)
       toast.success('Page backgrounds saved!')
     } catch (err: unknown) {
+      console.error('Save pages error:', err)
       toast.error(err instanceof Error ? err.message : 'Failed to save pages')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -1224,7 +1232,9 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
                 })}
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleSavePages}>Save Pages</Button>
+                <Button onClick={handleSavePages} disabled={submitting}>
+                  {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : 'Save Pages'}
+                </Button>
               </div>
             </TabsContent>
           </Tabs>

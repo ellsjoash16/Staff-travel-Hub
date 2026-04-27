@@ -58,24 +58,26 @@ function AppShell() {
             : `py-6 px-4 sm:px-6 ${showSidebar ? (sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-60') : 'max-w-[1440px] mx-auto'}`
         }`}
       >
-        <div key={state.activeView} className={`view-enter ${state.activeView === 'home' ? 'h-full' : ''}`}>
-          {state.activeView === 'home' && <HomeView />}
-          {state.activeView === 'feed' && <FeedView />}
-          {state.activeView === 'map' && (
-            <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
-              <MapView onSelectPost={setMapPost} />
-              <PostDetailDialog
-                post={mapPost}
-                onOpenChange={(open) => !open && setMapPost(null)}
-              />
-            </Suspense>
-          )}
-          {state.activeView === 'courses' && <CoursesView />}
-          {state.activeView === 'years' && <YearsView />}
-          {state.activeView === 'submit' && <SubmitView />}
-          {state.activeView === 'settings' && <SettingsView />}
-          {state.activeView === 'pending' && state.isAdmin && <PendingView />}
-        </div>
+        <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
+          <div key={state.activeView} className={`view-enter ${state.activeView === 'home' ? 'h-full' : ''}`}>
+            {state.activeView === 'home' && <HomeView />}
+            {state.activeView === 'feed' && <FeedView />}
+            {state.activeView === 'map' && (
+              <>
+                <MapView onSelectPost={setMapPost} />
+                <PostDetailDialog
+                  post={mapPost}
+                  onOpenChange={(open) => !open && setMapPost(null)}
+                />
+              </>
+            )}
+            {state.activeView === 'courses' && <CoursesView />}
+            {state.activeView === 'years' && <YearsView />}
+            {state.activeView === 'submit' && <SubmitView />}
+            {state.activeView === 'settings' && <SettingsView />}
+            {state.activeView === 'pending' && state.isAdmin && <PendingView />}
+          </div>
+        </Suspense>
       </main>
 
       <Toaster position="bottom-right" richColors />

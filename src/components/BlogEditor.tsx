@@ -50,6 +50,10 @@ export function BlogEditor({ review, images, onReviewChange }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       })
+      const contentType = res.headers.get('content-type') ?? ''
+      if (!contentType.includes('application/json')) {
+        throw new Error('AI paraphrase only works on the live site, not localhost')
+      }
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed')
       updateSection(i, data.result)

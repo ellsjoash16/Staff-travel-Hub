@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash2, Pencil, Loader2, CheckCircle2, X, Eye, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen } from 'lucide-react'
+import { Trash2, Pencil, Loader2, CheckCircle2, X, Eye, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight } from 'lucide-react'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
+import { parsePdf, type ParsedReview } from '@/lib/parsePdf'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -78,6 +79,9 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
   const [viewingSubId, setViewingSubId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [manageSearch, setManageSearch] = useState('')
+  const [pdfParsing, setPdfParsing] = useState(false)
+  const [pdfReviews, setPdfReviews] = useState<ParsedReview[]>([])
+  const pdfInputRef = useRef<HTMLInputElement>(null)
   const [manageFolder, setManageFolder] = useState<string | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
 
@@ -201,6 +205,48 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
     if (!confirm('Discard this submission?')) return
     try { await deleteSubmission(id); toast.success('Submission discarded') }
     catch { toast.error('Failed to discard') }
+  }
+
+  // ── PDF Import ────────────────────────────────────────────────────────────
+
+  async function handlePdfFile(file: File) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('Please select a PDF file'); return
+    }
+    setPdfParsing(true)
+    try {
+      const reviews = await parsePdf(file)
+      if (reviews.length === 0) {
+        toast.error('No reviews found in this PDF')
+      } else {
+        setPdfReviews(reviews)
+        toast.success(`Found ${reviews.length} review${reviews.length > 1 ? 's' : ''} — click one to load it`)
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to parse PDF')
+    } finally {
+      setPdfParsing(false)
+    }
+  }
+
+  function loadPdfReview(r: ParsedReview) {
+    setPostForm({
+      title: r.title,
+      staff: r.staff,
+      staffImage: null,
+      review: r.review,
+      locName: r.location,
+      locationId: null,
+      date: r.date,
+      tags: '',
+      images: [],
+      extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
+      folder: null,
+    })
+    setEditingPostId(null)
+    setPdfReviews([])
+    toast.success('Review loaded — add photos then publish')
   }
 
   // ── Course ────────────────────────────────────────────────────────────────
@@ -428,6 +474,49 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
 
             {/* ── UPLOAD POST ── */}
             <TabsContent value="post" className="space-y-4">
+
+              {/* PDF Import */}
+              <div className="rounded-xl border border-dashed border-border bg-muted/30 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-muted-foreground">Import from Rise 360 PDF</p>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-7 text-xs gap-1.5"
+                    disabled={pdfParsing}
+                    onClick={() => pdfInputRef.current?.click()}
+                  >
+                    {pdfParsing ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileUp className="h-3 w-3" />}
+                    {pdfParsing ? 'Reading…' : 'Upload PDF'}
+                  </Button>
+                  <input
+                    ref={pdfInputRef}
+                    type="file"
+                    accept=".pdf"
+                    className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handlePdfFile(f); e.target.value = '' }}
+                  />
+                </div>
+                {pdfReviews.length > 0 && (
+                  <div className="space-y-1.5">
+                    {pdfReviews.map((r, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => loadPdfReview(r)}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg border border-border bg-card hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{r.title || '(no title)'}</p>
+                          <p className="text-xs text-muted-foreground">{r.staff} · {r.location}</p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-1.5">
                 <Label>Trip Photos</Label>
                 <MultiImageUpload values={postForm.images} onChange={(imgs) => setPost('images', imgs)} />

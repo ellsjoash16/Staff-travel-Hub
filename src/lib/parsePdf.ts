@@ -20,7 +20,6 @@ export async function parsePdf(file: File): Promise<ParsedReview[]> {
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
 
   const pageLines: string[] = []
-  const pageTextLengths: number[] = []
   const pageDataUrls: string[] = []
 
   for (let p = 1; p <= pdf.numPages; p++) {
@@ -36,13 +35,11 @@ export async function parsePdf(file: File): Promise<ParsedReview[]> {
       byY.get(y)!.push(item.str)
     }
     const sortedYs = [...byY.keys()].sort((a, b) => b - a)
-    let pageText = ''
     for (const y of sortedYs) {
       const line = byY.get(y)!.join(' ').trim()
-      if (line) { pageLines.push(line); pageText += line }
+      if (line) pageLines.push(line)
     }
     pageLines.push('')
-    pageTextLengths.push(pageText.length)
 
     // ── Render page to canvas → JPEG data URL ────────────────────────────────
     try {
@@ -58,9 +55,7 @@ export async function parsePdf(file: File): Promise<ParsedReview[]> {
     }
   }
 
-  // Pages with very little text are likely photo pages — use those as images.
-  // Threshold: fewer than 80 chars of text on the page.
-  const photoPages = pageDataUrls.filter((url, i) => url && pageTextLengths[i] < 80)
+  const photoPages = pageDataUrls.filter(Boolean)
 
   const fullText = pageLines.join('\n')
   return splitIntoReviews(fullText, photoPages)

@@ -4,17 +4,17 @@ import { Loader2 } from 'lucide-react'
 import { AppProvider, useApp } from '@/context/AppContext'
 import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
-import { HomeView } from '@/components/HomeView'
-import { FeedView } from '@/components/FeedView'
-import { CoursesView } from '@/components/CoursesView'
-import { YearsView } from '@/components/YearsView'
-import { SubmitView } from '@/components/SubmitView'
-import { PendingView } from '@/components/PendingView'
-import { SettingsView } from '@/components/SettingsView'
-import { PostDetailDialog } from '@/components/PostDetailDialog'
 import type { Post } from '@/lib/types'
 
-const MapView = lazy(() => import('@/components/MapView').then(m => ({ default: m.MapView })))
+const HomeView      = lazy(() => import('@/components/HomeView').then(m => ({ default: m.HomeView })))
+const FeedView      = lazy(() => import('@/components/FeedView').then(m => ({ default: m.FeedView })))
+const CoursesView   = lazy(() => import('@/components/CoursesView').then(m => ({ default: m.CoursesView })))
+const YearsView     = lazy(() => import('@/components/YearsView').then(m => ({ default: m.YearsView })))
+const SubmitView    = lazy(() => import('@/components/SubmitView').then(m => ({ default: m.SubmitView })))
+const PendingView   = lazy(() => import('@/components/PendingView').then(m => ({ default: m.PendingView })))
+const SettingsView  = lazy(() => import('@/components/SettingsView').then(m => ({ default: m.SettingsView })))
+const MapView       = lazy(() => import('@/components/MapView').then(m => ({ default: m.MapView })))
+const PostDetailDialog = lazy(() => import('@/components/PostDetailDialog').then(m => ({ default: m.PostDetailDialog })))
 
 function AppShell() {
   const { state } = useApp()

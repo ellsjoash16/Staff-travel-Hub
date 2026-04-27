@@ -55,57 +55,63 @@ export async function parsePdf(file: File): Promise<ParsedReview[]> {
 }
 
 async function extractPageImages(page: any): Promise<string[]> {
-  const ops = await page.getOperatorList()
-  const seenKeys = new Set<string>()
-  const imageKeys: string[] = []
+  try {
+    const ops = await page.getOperatorList()
+    const seenKeys = new Set<string>()
+    const imageKeys: string[] = []
 
-  const PAINT_IMAGE = pdfjsLib.OPS?.paintImageXObject ?? 85
-  const PAINT_INLINE = pdfjsLib.OPS?.paintInlineImageXObject ?? 86
+    // OPS values: paintImageXObject=85, paintInlineImageXObject=86
+    const PAINT_IMAGE = (pdfjsLib as any).OPS?.paintImageXObject ?? 85
+    const PAINT_INLINE = (pdfjsLib as any).OPS?.paintInlineImageXObject ?? 86
 
-  for (let i = 0; i < ops.fnArray.length; i++) {
-    const fn = ops.fnArray[i]
-    if (fn === PAINT_IMAGE || fn === PAINT_INLINE) {
-      const key = ops.argsArray[i][0]
-      if (typeof key === 'string' && !seenKeys.has(key)) {
-        seenKeys.add(key)
-        imageKeys.push(key)
-      }
-    }
-  }
-
-  const dataUrls: string[] = []
-  for (const key of imageKeys) {
-    try {
-      const img: any = await new Promise((resolve, reject) => {
-        page.objs.get(key, (obj: any) => obj ? resolve(obj) : reject())
-      })
-      if (!img?.data || img.width < MIN_IMG_PX || img.height < MIN_IMG_PX) continue
-
-      const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext('2d')!
-      const imageData = ctx.createImageData(img.width, img.height)
-
-      // pdfjs image data may be RGB (3 channels) or RGBA (4 channels)
-      const src: Uint8ClampedArray = img.data
-      const dst = imageData.data
-      if (src.length === img.width * img.height * 3) {
-        // RGB → RGBA
-        for (let i = 0, j = 0; i < src.length; i += 3, j += 4) {
-          dst[j] = src[i]; dst[j + 1] = src[i + 1]; dst[j + 2] = src[i + 2]; dst[j + 3] = 255
+    for (let i = 0; i < ops.fnArray.length; i++) {
+      const fn = ops.fnArray[i]
+      if (fn === PAINT_IMAGE || fn === PAINT_INLINE) {
+        const key = ops.argsArray[i]?.[0]
+        if (typeof key === 'string' && !seenKeys.has(key)) {
+          seenKeys.add(key)
+          imageKeys.push(key)
         }
-      } else {
-        dst.set(src)
       }
-
-      ctx.putImageData(imageData, 0, 0)
-      dataUrls.push(canvas.toDataURL('image/jpeg', 0.85))
-    } catch {
-      // skip unloadable images
     }
+
+    const dataUrls: string[] = []
+    for (const key of imageKeys) {
+      try {
+        // Race with a 3s timeout so we never hang
+        const img: any = await Promise.race([
+          new Promise(resolve => page.objs.get(key, resolve)),
+          new Promise(resolve => setTimeout(() => resolve(null), 3000)),
+        ])
+        if (!img?.data || img.width < MIN_IMG_PX || img.height < MIN_IMG_PX) continue
+
+        const canvas = document.createElement('canvas')
+        canvas.width = img.width
+        canvas.height = img.height
+        const ctx = canvas.getContext('2d')!
+        const imageData = ctx.createImageData(img.width, img.height)
+
+        const src: Uint8ClampedArray = img.data
+        const dst = imageData.data
+        if (src.length === img.width * img.height * 3) {
+          for (let i = 0, j = 0; i < src.length; i += 3, j += 4) {
+            dst[j] = src[i]; dst[j + 1] = src[i + 1]; dst[j + 2] = src[i + 2]; dst[j + 3] = 255
+          }
+        } else {
+          dst.set(src)
+        }
+
+        ctx.putImageData(imageData, 0, 0)
+        dataUrls.push(canvas.toDataURL('image/jpeg', 0.85))
+      } catch {
+        // skip individual image failures
+      }
+    }
+    return dataUrls
+  } catch {
+    // If image extraction fails entirely, return empty — don't break text parsing
+    return []
   }
-  return dataUrls
 }
 
 // ── Parsing ───────────────────────────────────────────────────────────────────

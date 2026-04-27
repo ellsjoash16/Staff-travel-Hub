@@ -15,6 +15,7 @@ import { MultiImageUpload } from './MultiImageUpload'
 import { ImageUpload } from './ImageUpload'
 import { DatePicker } from './DatePicker'
 import { useApp } from '@/context/AppContext'
+import { uploadImage } from '@/lib/db'
 import { today, fmtDate } from '@/lib/utils'
 import type { Post, Course, PanelImages, Trip, Location, PostExtras } from '@/lib/types'
 
@@ -409,25 +410,26 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
   async function handleSavePages() {
     setSubmitting(true)
     try {
-      // Use data: URL if newly uploaded, else keep existing saved URL, else null
-      const resolve = (local: string | null, saved: string | null | undefined) =>
-        local?.startsWith('data:') ? null : (local?.startsWith('https:') ? local : (saved ?? null))
-
-      const currentImages: PanelImages = {
-        feed:    resolve(pFeed,    settings.panelImages?.feed),
-        map:     resolve(pMap,     settings.panelImages?.map),
-        courses: resolve(pCourses, settings.panelImages?.courses),
-        years:   resolve(pYears,   settings.panelImages?.years),
-        submit:  resolve(pSubmit,  settings.panelImages?.submit),
+      const pairs: [string | null, keyof PanelImages][] = [
+        [pFeed, 'feed'], [pMap, 'map'], [pCourses, 'courses'],
+        [pYears, 'years'], [pSubmit, 'submit'],
+      ]
+      const panelImages: PanelImages = {
+        feed: settings.panelImages?.feed ?? null,
+        map: settings.panelImages?.map ?? null,
+        courses: settings.panelImages?.courses ?? null,
+        years: settings.panelImages?.years ?? null,
+        submit: settings.panelImages?.submit ?? null,
       }
-      const dataUrls: Partial<Record<keyof PanelImages, string>> = {
-        ...(pFeed?.startsWith('data:')    ? { feed: pFeed }       : {}),
-        ...(pMap?.startsWith('data:')     ? { map: pMap }         : {}),
-        ...(pCourses?.startsWith('data:') ? { courses: pCourses } : {}),
-        ...(pYears?.startsWith('data:')   ? { years: pYears }     : {}),
-        ...(pSubmit?.startsWith('data:')  ? { submit: pSubmit }   : {}),
+      for (const [val, key] of pairs) {
+        if (val?.startsWith('data:')) {
+          const { url } = await uploadImage(val, `panel-${key}`)
+          panelImages[key] = url
+        } else if (val?.startsWith('https:')) {
+          panelImages[key] = val
+        }
       }
-      await savePageImages(currentImages, dataUrls)
+      await saveSettings({ ...settings, panelImages })
       toast.success('Page backgrounds saved!')
     } catch (err: unknown) {
       console.error('Save pages error:', err)

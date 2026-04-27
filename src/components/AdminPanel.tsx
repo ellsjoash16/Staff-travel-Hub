@@ -240,13 +240,13 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       locationId: null,
       date: r.date,
       tags: '',
-      images: [],
+      images: r.images,
       extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
       folder: null,
     })
     setEditingPostId(null)
     setPdfReviews([])
-    toast.success('Review loaded — add photos then publish')
+    toast.success(`Review loaded${r.images.length > 0 ? ` with ${r.images.length} photo${r.images.length > 1 ? 's' : ''}` : ' — add photos then publish'}`)
   }
 
   // ── Course ────────────────────────────────────────────────────────────────

@@ -11,45 +11,106 @@ export interface ParsedReview {
   date: string   // YYYY-MM-DD
   location: string
   review: string
+  images: string[] // data URLs extracted from the PDF
 }
+
+// Minimum image dimensions to filter out icons/UI elements
+const MIN_IMG_PX = 150
 
 export async function parsePdf(file: File): Promise<ParsedReview[]> {
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
 
   const pageLines: string[] = []
+  // Collect all images across all pages, grouped by page
+  const pageImages: string[][] = []
 
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p)
-    const content = await page.getTextContent()
 
-    // Group text items by y-coordinate to reconstruct real lines
+    // ── Text extraction ──────────────────────────────────────────────────────
+    const content = await page.getTextContent()
     const byY = new Map<number, string[]>()
     for (const item of content.items as any[]) {
       if (!('str' in item) || !item.str.trim()) continue
-      // Round y to nearest 2pt so items on same visual line cluster together
       const y = Math.round(item.transform[5] / 2) * 2
       if (!byY.has(y)) byY.set(y, [])
       byY.get(y)!.push(item.str)
     }
-
-    // Sort y descending (PDF y=0 is bottom of page)
     const sortedYs = [...byY.keys()].sort((a, b) => b - a)
     for (const y of sortedYs) {
       const line = byY.get(y)!.join(' ').trim()
       if (line) pageLines.push(line)
     }
+    pageLines.push('')
 
-    pageLines.push('') // blank line between pages
+    // ── Image extraction ─────────────────────────────────────────────────────
+    const imgs = await extractPageImages(page)
+    pageImages.push(imgs)
   }
 
   const fullText = pageLines.join('\n')
-  return splitIntoReviews(fullText)
+  const allImages = pageImages.flat()
+  return splitIntoReviews(fullText, allImages)
+}
+
+async function extractPageImages(page: any): Promise<string[]> {
+  const ops = await page.getOperatorList()
+  const seenKeys = new Set<string>()
+  const imageKeys: string[] = []
+
+  const PAINT_IMAGE = pdfjsLib.OPS?.paintImageXObject ?? 85
+  const PAINT_INLINE = pdfjsLib.OPS?.paintInlineImageXObject ?? 86
+
+  for (let i = 0; i < ops.fnArray.length; i++) {
+    const fn = ops.fnArray[i]
+    if (fn === PAINT_IMAGE || fn === PAINT_INLINE) {
+      const key = ops.argsArray[i][0]
+      if (typeof key === 'string' && !seenKeys.has(key)) {
+        seenKeys.add(key)
+        imageKeys.push(key)
+      }
+    }
+  }
+
+  const dataUrls: string[] = []
+  for (const key of imageKeys) {
+    try {
+      const img: any = await new Promise((resolve, reject) => {
+        page.objs.get(key, (obj: any) => obj ? resolve(obj) : reject())
+      })
+      if (!img?.data || img.width < MIN_IMG_PX || img.height < MIN_IMG_PX) continue
+
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')!
+      const imageData = ctx.createImageData(img.width, img.height)
+
+      // pdfjs image data may be RGB (3 channels) or RGBA (4 channels)
+      const src: Uint8ClampedArray = img.data
+      const dst = imageData.data
+      if (src.length === img.width * img.height * 3) {
+        // RGB → RGBA
+        for (let i = 0, j = 0; i < src.length; i += 3, j += 4) {
+          dst[j] = src[i]; dst[j + 1] = src[i + 1]; dst[j + 2] = src[i + 2]; dst[j + 3] = 255
+        }
+      } else {
+        dst.set(src)
+      }
+
+      ctx.putImageData(imageData, 0, 0)
+      dataUrls.push(canvas.toDataURL('image/jpeg', 0.85))
+    } catch {
+      // skip unloadable images
+    }
+  }
+  return dataUrls
 }
 
 // ── Parsing ───────────────────────────────────────────────────────────────────
 
-function splitIntoReviews(text: string): ParsedReview[] {
+function splitIntoReviews(text: string, allImages: string[]): ParsedReview[] {
   const normalised = text
     .replace(/\r\n/g, '\n')
     .replace(/[ \t]+/g, ' ')
@@ -59,10 +120,16 @@ function splitIntoReviews(text: string): ParsedReview[] {
   const lessonPattern = /(?:CONTINUE\s*)?\bLesson\s+\d+\s+of\s+\d+\b/gi
   const chunks = normalised.split(lessonPattern).map(c => c.trim()).filter(Boolean)
 
+  // Distribute images evenly across lessons
+  const perLesson = chunks.length > 0 ? Math.ceil(allImages.length / chunks.length) : 0
+
   const reviews: ParsedReview[] = []
-  for (const chunk of chunks) {
-    const parsed = parseLesson(chunk)
-    if (parsed) reviews.push(parsed)
+  for (let i = 0; i < chunks.length; i++) {
+    const parsed = parseLesson(chunks[i])
+    if (parsed) {
+      parsed.images = allImages.slice(i * perLesson, (i + 1) * perLesson)
+      reviews.push(parsed)
+    }
   }
   return reviews
 }
@@ -71,54 +138,35 @@ function parseLesson(chunk: string): ParsedReview | null {
   const lines = chunk.split('\n').map(l => l.trim()).filter(Boolean)
   if (lines.length < 3) return null
 
-  // Find the "Name (Agency)" line — it identifies the staff member
-  // Search within first 8 lines to be safe
   let staffLineIdx = -1
   for (let i = 0; i < Math.min(lines.length, 8); i++) {
-    // Matches: "John Fell (Jordan)", "Max Letchfield (Brody)", etc.
     if (/^[A-Z][a-zA-Z'-]+ [A-Z][a-zA-Z'-]+(?: [A-Z][a-zA-Z'-]+)? \([^)]+\)\s*$/.test(lines[i])) {
-      staffLineIdx = i
-      break
+      staffLineIdx = i; break
     }
   }
-
-  // Fallback: look for any line containing "(Word)" in brackets in first 8 lines
   if (staffLineIdx === -1) {
     for (let i = 0; i < Math.min(lines.length, 8); i++) {
-      if (/\([A-Z][a-z]+\)/.test(lines[i])) {
-        staffLineIdx = i
-        break
-      }
+      if (/\([A-Z][a-z]+\)/.test(lines[i])) { staffLineIdx = i; break }
     }
   }
-
   if (staffLineIdx === -1) return null
 
-  // Everything before the staff line = title (join into one string)
   const title = lines.slice(0, staffLineIdx).join(' ').trim()
   const rawStaff = lines[staffLineIdx]
-
-  // Extract just the name (before the bracket)
   const staffMatch = rawStaff.match(/^([^(]+?)\s*\(/)
   const staff = staffMatch ? staffMatch[1].trim() : rawStaff
 
-  // Next line should be the date "March 2025"
   const rawDate = lines[staffLineIdx + 1] ?? ''
   const date = parseMonthYear(rawDate)
-
-  // If rawDate looks like a real month/year, body starts 2 lines after staff
-  // otherwise body starts 1 line after staff
   const hasDate = /^[A-Z][a-z]+ \d{4}$/.test(rawDate.trim())
   const bodyStart = staffLineIdx + (hasDate ? 2 : 1)
 
-  const bodyLines = lines.slice(bodyStart)
-  const review = bodyLines.join('\n\n').trim()
-
+  const review = lines.slice(bodyStart).join('\n\n').trim()
   const location = extractLocation(title)
 
   if (!title || !staff || !review) return null
 
-  return { title, staff, date, location, review }
+  return { title, staff, date, location, review, images: [] }
 }
 
 const MONTHS: Record<string, string> = {

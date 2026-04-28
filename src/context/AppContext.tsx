@@ -13,7 +13,7 @@ import {
   updateSubmission, removeSubmission,
   insertTrip, updateTrip, removeTrip,
   insertLocation, updateLocation, removeLocation,
-  upsertSettings, uploadImage, DEFAULT_SETTINGS,
+  upsertSettings, updatePanelImages, uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
@@ -377,7 +377,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     const newSettings = { ...state.settings, panelImages: uploaded }
     dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
-    await upsertSettings(newSettings)
+    await updatePanelImages(uploaded)
   }
 
   return (

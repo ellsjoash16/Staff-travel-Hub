@@ -333,6 +333,10 @@ export async function fetchSettings(): Promise<Settings> {
   }
 }
 
+export async function updatePanelImages(panelImages: Settings['panelImages']): Promise<void> {
+  await updateDoc(doc(db, 'settings', 'main'), { panelImages })
+}
+
 export async function upsertSettings(settings: Settings): Promise<void> {
   await setDoc(doc(db, 'settings', 'main'), {
     title: settings.title,

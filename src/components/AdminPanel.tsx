@@ -78,6 +78,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
   const [viewingSubId, setViewingSubId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [savingPages, setSavingPages] = useState(false)
   const [manageSearch, setManageSearch] = useState('')
   const [pdfParsing, setPdfParsing] = useState(false)
   const [pdfReviews, setPdfReviews] = useState<ParsedReview[]>([])
@@ -407,18 +408,14 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
   }
 
   async function handleSavePages() {
-    setSubmitting(true)
+    setSavingPages(true)
     try {
-      // Use data: URL if newly uploaded, else keep existing saved URL, else null
-      const resolve = (local: string | null, saved: string | null | undefined) =>
-        local?.startsWith('data:') ? null : (local?.startsWith('https:') ? local : (saved ?? null))
-
       const currentImages: PanelImages = {
-        feed:    resolve(pFeed,    settings.panelImages?.feed),
-        map:     resolve(pMap,     settings.panelImages?.map),
-        courses: resolve(pCourses, settings.panelImages?.courses),
-        years:   resolve(pYears,   settings.panelImages?.years),
-        submit:  resolve(pSubmit,  settings.panelImages?.submit),
+        feed:    pFeed?.startsWith('https:')    ? pFeed    : settings.panelImages?.feed    ?? null,
+        map:     pMap?.startsWith('https:')     ? pMap     : settings.panelImages?.map     ?? null,
+        courses: pCourses?.startsWith('https:') ? pCourses : settings.panelImages?.courses ?? null,
+        years:   pYears?.startsWith('https:')   ? pYears   : settings.panelImages?.years   ?? null,
+        submit:  pSubmit?.startsWith('https:')  ? pSubmit  : settings.panelImages?.submit  ?? null,
       }
       const dataUrls: Partial<Record<keyof PanelImages, string>> = {
         ...(pFeed?.startsWith('data:')    ? { feed: pFeed }       : {}),
@@ -433,7 +430,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       console.error('Save pages error:', err)
       toast.error(err instanceof Error ? err.message : 'Failed to save pages')
     } finally {
-      setSubmitting(false)
+      setSavingPages(false)
     }
   }
 
@@ -1232,8 +1229,8 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
                 })}
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleSavePages} disabled={submitting}>
-                  {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : 'Save Pages'}
+                <Button onClick={handleSavePages} disabled={savingPages}>
+                  {savingPages ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : 'Save Pages'}
                 </Button>
               </div>
             </TabsContent>

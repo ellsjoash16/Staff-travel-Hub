@@ -10,10 +10,10 @@ export interface ParsedReview {
 
 export async function parsePdf(file: File): Promise<ParsedReview[]> {
   const pdfjsLib = await import('pdfjs-dist')
-  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url,
-  ).toString()
+  // Use CDN-hosted worker — local `new URL(…, import.meta.url)` is unreliable
+  // inside a dynamically imported chunk in both Vite dev and production builds.
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
 
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
@@ -51,6 +51,8 @@ export async function parsePdf(file: File): Promise<ParsedReview[]> {
       pageDataUrls.push(canvas.toDataURL('image/jpeg', 0.82))
     } catch {
       pageDataUrls.push('')
+    } finally {
+      page.cleanup()
     }
   }
 

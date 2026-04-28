@@ -1,3 +1,7 @@
+// Vite resolves this at build time and copies the worker file into dist/
+// giving us a reliable URL in both dev and production without CDN dependency.
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+
 export interface ParsedReview {
   title: string
   staff: string
@@ -10,10 +14,7 @@ export interface ParsedReview {
 
 export async function parsePdf(file: File): Promise<ParsedReview[]> {
   const pdfjsLib = await import('pdfjs-dist')
-  // Use CDN-hosted worker — local `new URL(…, import.meta.url)` is unreliable
-  // inside a dynamically imported chunk in both Vite dev and production builds.
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise

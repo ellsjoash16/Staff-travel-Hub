@@ -146,16 +146,16 @@ function MapPanel({ onClick }: { onClick: () => void }) {
           style={{ boxShadow: 'inset 0 0 60px rgba(5,151,154,0.2)' }} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
 
-        <div className="relative h-full flex flex-col justify-end p-4 sm:p-5 pointer-events-none">
+        <div className="relative h-full flex flex-col justify-end p-4 sm:p-5 2xl:p-7 pointer-events-none">
           <div className="flex items-end justify-between">
-            <div className="space-y-1.5">
-              <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                <Globe2 className="h-5 w-5 text-white" />
+            <div className="space-y-1.5 2xl:space-y-2">
+              <div className="w-9 h-9 2xl:w-11 2xl:h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                <Globe2 className="h-5 w-5 2xl:h-6 2xl:w-6 text-white" />
               </div>
-              <h2 className="font-gilbert text-white text-2xl sm:text-3xl drop-shadow-lg leading-none">
+              <h2 className="font-gilbert text-white text-2xl sm:text-3xl 2xl:text-4xl drop-shadow-lg leading-none">
                 World Map
               </h2>
-              <p className="text-white/70 text-sm tracking-wide">Explore destinations</p>
+              <p className="text-white/70 text-sm 2xl:text-base tracking-wide">Explore destinations</p>
             </div>
             <div className="flex items-center justify-center w-9 h-9 rounded-full bg-white/0 group-hover:bg-white/20 transition-all duration-200 mb-1 border border-white/0 group-hover:border-white/30">
               <ArrowRight className="h-4 w-4 text-white/0 group-hover:text-white transition-all duration-200" />
@@ -207,18 +207,18 @@ function PanelCard({
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-primary/8" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
 
-        <div className="relative h-full flex flex-col justify-end p-4 sm:p-5">
+        <div className="relative h-full flex flex-col justify-end p-4 sm:p-5 2xl:p-7">
           <div className="flex items-end justify-between gap-3">
-            <div className="space-y-1.5 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+            <div className="space-y-1.5 2xl:space-y-2 min-w-0">
+              <div className="w-9 h-9 2xl:w-11 2xl:h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
                 {panel.icon}
               </div>
               <h2 className={`font-gilbert text-white drop-shadow-lg leading-none ${
-                large ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-lg sm:text-xl'
+                large ? 'text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl' : 'text-lg sm:text-xl 2xl:text-2xl'
               }`}>
                 {panel.title(headingText)}
               </h2>
-              <p className="text-white/70 text-sm tracking-wide">{panel.subtitle}</p>
+              <p className="text-white/70 text-sm 2xl:text-base tracking-wide">{panel.subtitle}</p>
             </div>
             <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-white/0 group-hover:bg-white/20 transition-all duration-200 mb-1 border border-white/0 group-hover:border-white/30">
               <ArrowRight className="h-4 w-4 text-white/0 group-hover:text-white transition-all duration-200" />
@@ -241,10 +241,10 @@ export function HomeView() {
   }
 
   return (
-    <div className="h-full grid grid-cols-1 md:grid-cols-3 gap-3 [grid-template-rows:repeat(5,minmax(0,1fr))] md:[grid-template-rows:repeat(2,minmax(0,1fr))]">
+    <div className="h-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 2xl:gap-4 [grid-template-rows:repeat(5,minmax(0,1fr))] sm:[grid-template-rows:repeat(3,minmax(0,1fr))] md:[grid-template-rows:repeat(2,minmax(0,1fr))]">
       <PanelCard
         panel={PANELS[0]}
-        className="md:col-span-2"
+        className="sm:col-span-2 md:col-span-2"
         onClick={() => navigate('feed')}
         bgImage={PANEL_IMAGES.feed ?? null}
         headingText={settings.heading}

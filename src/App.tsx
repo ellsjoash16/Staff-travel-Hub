@@ -54,8 +54,8 @@ function AppShell() {
       <main
         className={`flex-1 min-h-0 overflow-auto transition-all duration-300 ${
           state.activeView === 'home'
-            ? 'px-3 sm:px-6 py-3 w-full max-w-[1440px] mx-auto'
-            : `py-6 px-4 sm:px-6 ${showSidebar ? (sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-60') : 'max-w-[1440px] mx-auto'}`
+            ? 'px-3 sm:px-6 2xl:px-10 py-3 2xl:py-5 w-full max-w-[1440px] mx-auto'
+            : `py-6 2xl:py-8 px-4 sm:px-6 2xl:px-10 ${showSidebar ? (sidebarCollapsed ? 'lg:ml-16 xl:ml-20' : 'lg:ml-60 xl:ml-72') : 'max-w-[1440px] mx-auto'}`
         }`}
       >
         <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>

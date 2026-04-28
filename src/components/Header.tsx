@@ -31,7 +31,7 @@ export function Header({ showMenuButton, onMenuClick }: Props) {
         style={{ boxShadow: '0 2px 24px hsl(var(--primary) / 0.45)' }}
       >
         {/* ── Main row ── */}
-        <div className="mx-auto flex h-14 sm:h-16 max-w-[1440px] items-center px-4 sm:px-6 gap-3">
+        <div className="mx-auto flex h-14 sm:h-16 2xl:h-20 max-w-[1440px] items-center px-4 sm:px-6 2xl:px-10 gap-3 2xl:gap-4">
 
           {/* Left: Hamburger + Logo + Title */}
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -48,7 +48,7 @@ export function Header({ showMenuButton, onMenuClick }: Props) {
             <img
               src="/daf-logo.png"
               alt="DAF"
-              className="h-7 sm:h-8 w-auto flex-shrink-0 drop-shadow-sm select-none"
+              className="h-7 sm:h-8 2xl:h-11 w-auto flex-shrink-0 drop-shadow-sm select-none"
               style={{ transform: `translate(${logoOffset.x}px, ${logoOffset.y}px)` }}
             />
             <button
@@ -56,7 +56,7 @@ export function Header({ showMenuButton, onMenuClick }: Props) {
               onClick={() => dispatch({ type: 'SET_VIEW', view: 'home' })}
               className="hover:opacity-85 transition-opacity"
             >
-              <span className="font-gilbert text-white text-lg sm:text-2xl leading-none drop-shadow-sm whitespace-nowrap">
+              <span className="font-gilbert text-white text-lg sm:text-2xl 2xl:text-3xl leading-none drop-shadow-sm whitespace-nowrap">
                 {settings.title}
               </span>
             </button>

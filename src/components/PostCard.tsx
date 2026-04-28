@@ -61,15 +61,15 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
 
         <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <Avatar className="h-9 w-9 ring-2 ring-white/80 flex-shrink-0 shadow-md">
+            <Avatar className="h-9 w-9 2xl:h-11 2xl:w-11 ring-2 ring-white/80 flex-shrink-0 shadow-md">
               {post.staffImage && <AvatarImage src={post.staffImage} alt={post.staff} className="object-cover" />}
               <AvatarFallback className="text-[10px] bg-primary text-primary-foreground font-semibold">
                 {initials(post.staff)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="font-semibold text-sm text-white leading-tight truncate drop-shadow">{post.staff}</p>
-              <p className="text-xs text-white/80 flex items-center gap-0.5 truncate drop-shadow">
+              <p className="font-semibold text-sm 2xl:text-base text-white leading-tight truncate drop-shadow">{post.staff}</p>
+              <p className="text-xs 2xl:text-sm text-white/80 flex items-center gap-0.5 truncate drop-shadow">
                 <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
                 {post.location.name}
               </p>
@@ -82,7 +82,7 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
       </div>
 
       {/* Body with destination watermark */}
-      <div className="relative px-4 pt-3 pb-2 overflow-hidden">
+      <div className="relative px-4 2xl:px-5 pt-3 2xl:pt-4 pb-2 2xl:pb-3 overflow-hidden">
         {post.location.name && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
             <span className="text-[4.5rem] font-black text-foreground/[0.04] whitespace-nowrap -rotate-12 leading-none tracking-widest uppercase">
@@ -90,8 +90,8 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
             </span>
           </div>
         )}
-        <h3 className="relative font-bold text-base mb-1.5 leading-snug">{post.title}</h3>
-        <p className="relative text-sm text-muted-foreground leading-relaxed line-clamp-3">{post.review}</p>
+        <h3 className="relative font-bold text-base 2xl:text-lg mb-1.5 leading-snug">{post.title}</h3>
+        <p className="relative text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-3">{post.review}</p>
       </div>
 
       {post.tags.length > 0 && (

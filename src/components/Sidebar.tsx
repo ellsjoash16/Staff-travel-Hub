@@ -31,7 +31,7 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
       {/* Mobile backdrop */}
       {mobileOpen && (
         <div
-          className="fixed top-16 inset-x-0 bottom-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed top-14 sm:top-16 2xl:top-20 inset-x-0 bottom-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
           onClick={onMobileClose}
         />
       )}
@@ -39,10 +39,10 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
       {/* Sidebar panel */}
       <aside
         className={`
-          fixed top-16 bottom-0 left-0 z-40 flex flex-col
+          fixed top-14 sm:top-16 2xl:top-20 bottom-0 left-0 z-40 flex flex-col
           bg-card border-r border-border
           transition-all duration-300 ease-in-out
-          ${collapsed ? 'w-16' : 'w-60'}
+          ${collapsed ? 'w-16 xl:w-20' : 'w-60 xl:w-72'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
@@ -80,7 +80,7 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
                 title={collapsed ? label : undefined}
                 className={`
                   relative w-full flex items-center rounded-xl transition-all duration-150
-                  ${collapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2.5'}
+                  ${collapsed ? 'justify-center p-3 xl:p-4' : 'gap-3 px-3 xl:px-4 py-2.5 xl:py-3'}
                   ${active
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -90,16 +90,16 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
                 {active && !collapsed && (
                   <span className="absolute left-0 inset-y-2 w-0.5 bg-primary rounded-full" />
                 )}
-                <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${active ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  <Icon className="h-4 w-4" />
+                <div className={`flex-shrink-0 w-8 h-8 xl:w-10 xl:h-10 rounded-lg flex items-center justify-center ${active ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <Icon className="h-4 w-4 xl:h-5 xl:w-5" />
                 </div>
                 {!collapsed && (
                   <>
                     <div className="flex-1 text-left min-w-0">
-                      <p className={`text-sm font-medium leading-none ${active ? 'text-primary' : ''}`}>
+                      <p className={`text-sm xl:text-base font-medium leading-none ${active ? 'text-primary' : ''}`}>
                         {label}
                       </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{sub}</p>
+                      <p className="text-[11px] xl:text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>
                     </div>
                   </>
                 )}

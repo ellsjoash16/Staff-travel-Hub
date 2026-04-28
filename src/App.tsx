@@ -8,7 +8,7 @@ import type { Post } from '@/lib/types'
 
 const HomeView      = lazy(() => import('@/components/HomeView').then(m => ({ default: m.HomeView })))
 const FeedView      = lazy(() => import('@/components/FeedView').then(m => ({ default: m.FeedView })))
-const CoursesView   = lazy(() => import('@/components/CoursesView').then(m => ({ default: m.CoursesView })))
+const UpcomingTripsView = lazy(() => import('@/components/UpcomingTripsView').then(m => ({ default: m.UpcomingTripsView })))
 const YearsView     = lazy(() => import('@/components/YearsView').then(m => ({ default: m.YearsView })))
 const SubmitView    = lazy(() => import('@/components/SubmitView').then(m => ({ default: m.SubmitView })))
 const PendingView   = lazy(() => import('@/components/PendingView').then(m => ({ default: m.PendingView })))
@@ -71,7 +71,7 @@ function AppShell() {
                 />
               </>
             )}
-            {state.activeView === 'courses' && <CoursesView />}
+            {state.activeView === 'upcoming' && <UpcomingTripsView />}
             {state.activeView === 'years' && <YearsView />}
             {state.activeView === 'submit' && <SubmitView />}
             {state.activeView === 'settings' && <SettingsView />}

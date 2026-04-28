@@ -36,7 +36,7 @@ interface CourseForm {
 }
 
 interface TripForm {
-  name: string; participants: string; date: string; image: string | null; locationId: string | null; external: boolean
+  name: string; description: string; participants: string; date: string; image: string | null; locationId: string | null; external: boolean
 }
 
 interface LocationForm {
@@ -56,7 +56,7 @@ const emptyCourseForm = (): CourseForm => ({
 })
 
 const emptyTripForm = (): TripForm => ({
-  name: '', participants: '', date: today(), image: null, locationId: null, external: false,
+  name: '', description: '', participants: '', date: today(), image: null, locationId: null, external: false,
 })
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
@@ -296,7 +296,9 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
     const participants = tripForm.participants.split(',').map(s => s.trim()).filter(Boolean)
     const imageDataUrl = tripForm.image?.startsWith('data:') ? tripForm.image : null
     const trip: Trip = {
-      id, name: tripForm.name, participants,
+      id, name: tripForm.name,
+      description: tripForm.description.trim() || null,
+      participants,
       date: tripForm.date || today(),
       image: tripForm.image?.startsWith('https:') ? tripForm.image : null,
       locationId: tripForm.locationId,
@@ -317,7 +319,9 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
 
   function startEditTrip(trip: Trip) {
     setTripForm({
-      name: trip.name, participants: trip.participants.join(', '),
+      name: trip.name,
+      description: trip.description ?? '',
+      participants: trip.participants.join(', '),
       date: trip.date || today(), image: trip.image,
       locationId: trip.locationId ?? null,
       external: trip.external ?? false,
@@ -725,6 +729,11 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
               <div className="space-y-1.5">
                 <Label>Trip Name <span className="text-destructive">*</span></Label>
                 <Input placeholder="e.g. Bali Retreat 2026" value={tripForm.name} onChange={(e) => setTrip('name', e.target.value)} />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Short Description <span className="text-muted-foreground font-normal">(shown on upcoming trips page)</span></Label>
+                <Textarea placeholder="e.g. A 7-night luxury retreat in Bali covering beach resorts, culture and cuisine…" value={tripForm.description} onChange={(e) => setTrip('description', e.target.value)} rows={3} />
               </div>
 
               <div className="space-y-1.5">

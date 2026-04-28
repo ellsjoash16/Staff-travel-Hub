@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import type { GlobeMethods } from 'react-globe.gl'
-import { Camera, BookOpen, CalendarDays, Send, ArrowRight, Globe2 } from 'lucide-react'
+import { Camera, Plane, CalendarDays, Send, ArrowRight, Globe2 } from 'lucide-react'
 
 const Globe = lazy(() => import('react-globe.gl'))
 import { useApp } from '@/context/AppContext'
@@ -16,7 +16,7 @@ interface PanelConfig {
 
 const PANEL_IMAGES: Partial<Record<string, string>> = {
   feed:    'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-feed-1777296695807.jpg?alt=media&token=078c590d-47cf-425d-b29a-97df70829b49',
-  courses: 'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-courses-1777296696827.jpg?alt=media&token=bd530e62-64ea-4fbf-b7eb-7ab02f622393',
+  upcoming: 'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-courses-1777296696827.jpg?alt=media&token=bd530e62-64ea-4fbf-b7eb-7ab02f622393',
   years:   'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-years-1777296697735.jpg?alt=media&token=804fe1e5-38c5-4157-bc8b-2849939bed75',
   submit:  'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-submit-1777296698453.jpg?alt=media&token=dd03c0ed-40db-4b92-badf-944c08d69409',
 }
@@ -30,10 +30,10 @@ const PANELS: PanelConfig[] = [
     color: 'from-cyan-500/30 to-teal-600/20',
   },
   {
-    key: 'courses',
-    icon: <BookOpen className="h-5 w-5 text-white" />,
-    title: () => 'Training Courses',
-    subtitle: 'Learn before you go',
+    key: 'upcoming',
+    icon: <Plane className="h-5 w-5 text-white" />,
+    title: () => 'Upcoming Trips',
+    subtitle: 'See what\'s coming next',
     color: 'from-emerald-500/30 to-green-600/20',
   },
   {

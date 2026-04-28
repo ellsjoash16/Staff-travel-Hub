@@ -391,6 +391,7 @@ function docToTrip(id: string, d: any): Trip {
   return {
     id,
     name: d.name ?? '',
+    description: d.description ?? null,
     participants: d.participants ?? [],
     date: d.date ?? '',
     image: d.image ?? null,
@@ -409,6 +410,7 @@ export async function fetchTrips(): Promise<Trip[]> {
 export async function insertTrip(trip: Trip, imagePath: string | null): Promise<void> {
   await setDoc(doc(db, 'trips', trip.id), {
     name: trip.name,
+    description: trip.description ?? null,
     participants: trip.participants,
     date: trip.date || null,
     image: trip.image ?? null,
@@ -431,6 +433,7 @@ export async function updateTrip(
   }
   await updateDoc(ref_, {
     name: trip.name,
+    description: trip.description ?? null,
     participants: trip.participants,
     date: trip.date || null,
     image: trip.image ?? null,

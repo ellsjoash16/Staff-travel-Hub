@@ -65,7 +65,7 @@ export function DestinationSearch() {
       dispatch({ type: 'SET_FILTER', filter: tag })
       dispatch({ type: 'SET_VIEW', view: 'feed' })
     }
-    else if (r.type === 'course') dispatch({ type: 'SET_VIEW', view: 'courses' })
+    else if (r.type === 'course') dispatch({ type: 'SET_VIEW', view: 'upcoming' })
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

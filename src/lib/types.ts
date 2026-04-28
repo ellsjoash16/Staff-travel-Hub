@@ -86,6 +86,7 @@ export interface Settings {
 export interface Trip {
   id: string
   name: string
+  description: string | null
   participants: string[]
   date: string
   image: string | null
@@ -93,4 +94,4 @@ export interface Trip {
   external: boolean
 }
 
-export type View = 'home' | 'feed' | 'map' | 'courses' | 'years' | 'submit' | 'settings' | 'pending'
+export type View = 'home' | 'feed' | 'map' | 'upcoming' | 'years' | 'submit' | 'settings' | 'pending'

@@ -1,13 +1,13 @@
-import { Camera, Globe2, BookOpen, CalendarDays, Send, ChevronLeft, ChevronRight, Home, Settings, Clock } from 'lucide-react'
+import { Camera, Globe2, Plane, CalendarDays, Send, ChevronLeft, ChevronRight, Home, Settings, Clock } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import type { View } from '@/lib/types'
 
 const NAV: { id: View; label: string; sub: string; Icon: React.ElementType }[] = [
-  { id: 'feed',    label: 'Feed',        sub: 'Staff adventures',    Icon: Camera },
-  { id: 'map',     label: 'World Map',   sub: 'Explore destinations', Icon: Globe2 },
-  { id: 'courses', label: 'Courses',     sub: 'Training resources',  Icon: BookOpen },
-  { id: 'years',   label: 'By Year',     sub: 'Browse by year',      Icon: CalendarDays },
-  { id: 'submit',  label: 'Submit Trip', sub: 'Share your adventure', Icon: Send },
+  { id: 'feed',     label: 'Feed',           sub: 'Staff adventures',     Icon: Camera },
+  { id: 'map',      label: 'World Map',      sub: 'Explore destinations', Icon: Globe2 },
+  { id: 'upcoming', label: 'Upcoming Trips', sub: 'See what\'s next',     Icon: Plane },
+  { id: 'years',    label: 'By Year',        sub: 'Browse by year',       Icon: CalendarDays },
+  { id: 'submit',   label: 'Submit Trip',    sub: 'Share your adventure',  Icon: Send },
 ]
 
 interface Props {

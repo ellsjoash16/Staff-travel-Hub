@@ -26,16 +26,34 @@ export async function parsePdf(file: File): Promise<ParsedReview[]> {
 
     // ── Text extraction (reconstruct lines via y-coordinate) ─────────────────
     const content = await page.getTextContent()
-    const byY = new Map<number, string[]>()
+    // Store each item with its x position and width so we can join intelligently.
+    // PDFs often encode words character-by-character; naively joining with spaces
+    // produces "H e l l o" instead of "Hello".
+    const byY = new Map<number, { str: string; x: number; width: number }[]>()
     for (const item of content.items as any[]) {
       if (!('str' in item) || !item.str.trim()) continue
       const y = Math.round(item.transform[5] / 2) * 2
+      const x = item.transform[4] as number
+      const width = (item.width as number) ?? 0
       if (!byY.has(y)) byY.set(y, [])
-      byY.get(y)!.push(item.str)
+      byY.get(y)!.push({ str: item.str, x, width })
     }
     const sortedYs = [...byY.keys()].sort((a, b) => b - a)
     for (const y of sortedYs) {
-      const line = byY.get(y)!.join(' ').trim()
+      // Sort items left→right, then join: no space if items are touching/overlapping,
+      // space if there's a visible gap (> ~30% of the font size, approximated by scaleX).
+      const items = byY.get(y)!.sort((a, b) => a.x - b.x)
+      let line = ''
+      for (let i = 0; i < items.length; i++) {
+        const cur = items[i]
+        if (i === 0) { line = cur.str; continue }
+        const prev = items[i - 1]
+        const gap = cur.x - (prev.x + prev.width)
+        // If the gap is small relative to the item width, treat as adjacent (no space)
+        const threshold = (cur.width || prev.width || 4) * 0.4
+        line += gap <= threshold ? cur.str : ' ' + cur.str
+      }
+      line = line.trim()
       if (line) pageLines.push(line)
     }
     pageLines.push('')

@@ -270,14 +270,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function submitReview(submission: Submission, imageDataUrls: string[]): Promise<void> {
-    let uploadedImages: string[] = []
-    let uploadedPaths: string[] = []
-    try {
-      const results = await Promise.all(imageDataUrls.map((url, i) => uploadImage(url, `${submission.id}-${i}`)))
-      uploadedImages = results.map((r) => r.url)
-      uploadedPaths = results.map((r) => r.path)
-    } catch {
-      // Storage may restrict uploads
+    const uploadedImages: string[] = []
+    const uploadedPaths: string[] = []
+    for (let i = 0; i < imageDataUrls.length; i++) {
+      const result = await uploadImage(imageDataUrls[i], `${submission.id}-${i}`)
+      uploadedImages.push(result.url)
+      uploadedPaths.push(result.path)
     }
 
     // Build a Post from the Submission and insert as pending
@@ -303,7 +301,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function editSubmission(submission: Submission, newDataUrls: string[]): Promise<void> {
-    const uploaded = await Promise.all(newDataUrls.map((url) => uploadImage(url, submission.id)))
+    const uploaded: { url: string; path: string }[] = []
+    for (const url of newDataUrls) uploaded.push(await uploadImage(url, submission.id))
     const finalSubmission = {
       ...submission,
       images: [...submission.images, ...uploaded.map((r) => r.url)],

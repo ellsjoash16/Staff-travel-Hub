@@ -16,7 +16,7 @@ import { ImageUpload } from './ImageUpload'
 import { DatePicker } from './DatePicker'
 import { useApp } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
-import type { Post, Course, Trip, Location, PostExtras } from '@/lib/types'
+import type { Post, Trip, Location, PostExtras } from '@/lib/types'
 
 const PALETTE = ['#0077b6', '#6366f1', '#ec4899', '#f97316', '#10b981', '#dc2626', '#7c3aed', '#0f766e']
 
@@ -29,11 +29,6 @@ interface PostForm {
   extras: PostExtras; folder: string | null
 }
 
-
-interface CourseForm {
-  title: string; description: string; riseUrl: string
-  locName: string; locationId: string | null; image: string | null
-}
 
 interface TripForm {
   name: string; description: string; participants: string; date: string; image: string | null; locationId: string | null; external: boolean
@@ -50,11 +45,6 @@ const emptyPostForm = (): PostForm => ({
   folder: null,
 })
 
-const emptyCourseForm = (): CourseForm => ({
-  title: '', description: '', riseUrl: '', locName: '',
-  locationId: null, image: null,
-})
-
 const emptyTripForm = (): TripForm => ({
   name: '', description: '', participants: '', date: today(), image: null, locationId: null, external: false,
 })
@@ -64,14 +54,12 @@ const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
 interface Props { open: boolean; onOpenChange: (open: boolean) => void; initialPost?: Post }
 
 export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
-  const { state, togglePin, addPost, editPost, deletePost, addCourse, editCourse, deleteCourse, deleteSubmission, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings } = useApp()
+  const { state, togglePin, addPost, editPost, deletePost, deleteSubmission, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip } = useApp()
   const { posts, courses, submissions, trips, locations, settings } = state
 
   const [tab, setTab] = useState('post')
   const [postForm, setPostForm] = useState<PostForm>(emptyPostForm())
   const [editingPostId, setEditingPostId] = useState<string | null>(null)
-  const [courseForm, setCourseForm] = useState<CourseForm>(emptyCourseForm())
-  const [editingCourseId, setEditingCourseId] = useState<string | null>(null)
   const [tripForm, setTripForm] = useState<TripForm>(emptyTripForm())
   const [editingTripId, setEditingTripId] = useState<string | null>(null)
   const [locationForm, setLocationForm] = useState<LocationForm>(emptyLocationForm())
@@ -110,10 +98,6 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
 
   function setPost<K extends keyof PostForm>(key: K, value: PostForm[K]) {
     setPostForm((f) => ({ ...f, [key]: value }))
-  }
-
-  function setCourse<K extends keyof CourseForm>(key: K, value: CourseForm[K]) {
-    setCourseForm((f) => ({ ...f, [key]: value }))
   }
 
   // ── Post ──────────────────────────────────────────────────────────────────
@@ -239,51 +223,6 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
     toast.success(`Review loaded${r.images.length > 0 ? ` with ${r.images.length} photo${r.images.length > 1 ? 's' : ''}` : ' — add photos then publish'}`)
   }
 
-  // ── Course ────────────────────────────────────────────────────────────────
-
-  async function submitCourse() {
-    if (!courseForm.title || !courseForm.riseUrl) {
-      toast.error('Course title and Rise URL are required'); return
-    }
-    const id = editingCourseId || crypto.randomUUID()
-    const imageDataUrl = courseForm.image?.startsWith('data:') ? courseForm.image : null
-    const selectedLocation = locations.find(l => l.id === courseForm.locationId)
-    const course: Course = {
-      id, title: courseForm.title, description: courseForm.description || null,
-      image: courseForm.image?.startsWith('https:') ? courseForm.image : null,
-      riseUrl: courseForm.riseUrl,
-      location: { name: selectedLocation?.name ?? courseForm.locName, lat: null, lng: null },
-      locationId: courseForm.locationId,
-    }
-    setSubmitting(true)
-    try {
-      if (editingCourseId) {
-        await editCourse(course, imageDataUrl); toast.success('Course updated!')
-      } else {
-        await addCourse(course, imageDataUrl); toast.success('Course added!')
-      }
-      setCourseForm(emptyCourseForm()); setEditingCourseId(null)
-    } catch (err) {
-      console.error(err); toast.error('Something went wrong.')
-    } finally { setSubmitting(false) }
-  }
-
-  function startEditCourse(course: Course) {
-    setCourseForm({
-      title: course.title, description: course.description || '',
-      riseUrl: course.riseUrl, locName: course.location.name,
-      locationId: course.locationId,
-      image: course.image,
-    })
-    setEditingCourseId(course.id); setTab('courses')
-  }
-
-  async function handleDeleteCourse(id: string) {
-    if (!confirm('Delete this course?')) return
-    try { await deleteCourse(id); toast.success('Course deleted') }
-    catch { toast.error('Failed to delete course') }
-  }
-
   // ── Trips ─────────────────────────────────────────────────────────────────
 
   function setTrip<K extends keyof TripForm>(key: K, value: TripForm[K]) {
@@ -333,6 +272,16 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
     if (!confirm('Delete this trip?')) return
     try { await deleteTrip(id); toast.success('Trip deleted') }
     catch { toast.error('Failed to delete trip') }
+  }
+
+  async function handleTripComplete(trip: Trip) {
+    if (!confirm(`Mark "${trip.name}" as complete? It will be moved to the feed and By Year tab.`)) return
+    try {
+      await completeTrip(trip)
+      toast.success('Trip complete — it now appears in the feed and By Year tab')
+    } catch (err) {
+      console.error(err); toast.error('Failed to complete trip')
+    }
   }
 
   // ── Locations ─────────────────────────────────────────────────────────────
@@ -429,9 +378,8 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="overflow-x-auto flex-nowrap">
               <TabsTrigger value="post" className="px-3 text-xs">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
-              <TabsTrigger value="courses" className="px-3 text-xs">{editingCourseId ? 'Edit Course' : 'Course'}</TabsTrigger>
               <TabsTrigger value="locations" className="px-3 text-xs">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>
-              <TabsTrigger value="trips" className="px-3 text-xs">{editingTripId ? 'Edit Trip' : 'Trips'}</TabsTrigger>
+              <TabsTrigger value="trips" className="px-3 text-xs">{editingTripId ? 'Edit Trip' : 'Upcoming Trips'}</TabsTrigger>
               <TabsTrigger value="manage" className="px-3 text-xs">
                 Manage
                 {submissions.length > 0 && (
@@ -607,58 +555,6 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
               {editingPostId && <p className="text-right text-xs text-amber-500">Editing existing post</p>}
             </TabsContent>
 
-            {/* ── ADD COURSE ── */}
-            <TabsContent value="courses" className="space-y-4">
-              <div className="space-y-1.5">
-                <Label>Course Thumbnail <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <ImageUpload value={courseForm.image} onChange={(v) => setCourse('image', v)} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Course Title <span className="text-destructive">*</span></Label>
-                <Input placeholder="e.g. Bali Destination Guide" value={courseForm.title} onChange={(e) => setCourse('title', e.target.value)} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <Textarea placeholder="Brief overview..." value={courseForm.description} onChange={(e) => setCourse('description', e.target.value)} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Rise 360 Course URL <span className="text-destructive">*</span></Label>
-                <Input type="url" placeholder="https://rise.articulate.com/share/..." value={courseForm.riseUrl} onChange={(e) => setCourse('riseUrl', e.target.value)} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Location</Label>
-                <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={courseForm.locationId ?? ''}
-                  onChange={(e) => {
-                    const loc = locations.find(l => l.id === e.target.value)
-                    setCourse('locationId', e.target.value || null)
-                    if (loc) setCourse('locName', loc.name)
-                  }}
-                >
-                  <option value="">— no location —</option>
-                  {locations.map(l => (
-                    <option key={l.id} value={l.id}>{l.name}, {l.country}</option>
-                  ))}
-                </select>
-                {locations.length === 0 && (
-                  <p className="text-xs text-muted-foreground">Add locations in the Locations tab first</p>
-                )}
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="secondary" onClick={() => { setCourseForm(emptyCourseForm()); setEditingCourseId(null) }} disabled={submitting}>Clear</Button>
-                <Button onClick={submitCourse} disabled={submitting}>
-                  {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingCourseId ? 'Update Course' : 'Add Course'}
-                </Button>
-              </div>
-              {editingCourseId && <p className="text-right text-xs text-amber-500">Editing existing course</p>}
-            </TabsContent>
-
             {/* ── LOCATIONS ── */}
             <TabsContent value="locations" className="space-y-4">
               <p className="text-xs text-muted-foreground">Create locations for the world map. Posts and courses are linked to locations — clicking a country on the globe shows all locations for that country.</p>
@@ -803,9 +699,14 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
                           {t.locationId && (() => { const loc = locations.find(l => l.id === t.locationId); return loc ? <p className="text-xs text-primary truncate flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{loc.name}</p> : null })()}
                           {t.date && <p className="text-xs text-muted-foreground">{fmtDate(t.date)}</p>}
                         </div>
-                        <div className="flex gap-1.5 flex-shrink-0">
-                          <Button size="sm" variant="secondary" onClick={() => startEditTrip(t)}><Pencil className="h-3 w-3" /></Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleDeleteTrip(t.id)}><Trash2 className="h-3 w-3" /></Button>
+                        <div className="flex flex-col gap-1.5 flex-shrink-0">
+                          <div className="flex gap-1.5">
+                            <Button size="sm" variant="secondary" onClick={() => startEditTrip(t)}><Pencil className="h-3 w-3" /></Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteTrip(t.id)}><Trash2 className="h-3 w-3" /></Button>
+                          </div>
+                          <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-600/40 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-[11px] gap-1" onClick={() => handleTripComplete(t)}>
+                            <CheckCircle2 className="h-3 w-3" /> Trip Complete
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -829,10 +730,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
                   const matchSearch = !q || p.title.toLowerCase().includes(q) || p.staff.toLowerCase().includes(q) || p.location.name.toLowerCase().includes(q)
                   return matchFolder && matchSearch
                 })
-                const filteredCourses = courses.filter(c => {
-                  const matchSearch = !q || c.title.toLowerCase().includes(q) || (c.location.name ?? '').toLowerCase().includes(q)
-                  return matchSearch
-                })
+
                 return (
                   <>
                     {/* Folder management */}
@@ -1057,51 +955,6 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
                       )}
                     </div>
 
-                    {/* Courses */}
-                    <div>
-                      <h3 className="font-semibold text-sm mb-2">
-                        Courses ({filteredCourses.length}{filteredCourses.length !== courses.length ? ` of ${courses.length}` : ''})
-                      </h3>
-                      {filteredCourses.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-6 text-sm">
-                          {courses.length === 0 ? 'No courses yet' : 'No courses match your search'}
-                        </p>
-                      ) : (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                            <thead>
-                              <tr className="border-b border-border">
-                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Thumb</th>
-                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">Title</th>
-                                <th className="text-left py-2 px-3 text-xs text-muted-foreground font-medium hidden md:table-cell">Location</th>
-                                <th className="py-2 px-3" />
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filteredCourses.map((c) => (
-                                <tr key={c.id} className="border-b border-border/50 hover:bg-muted/40 transition-colors">
-                                  <td className="py-2 px-3">
-                                    {c.image
-                                      ? <img src={c.image} alt="" className="w-11 h-11 rounded-lg object-cover" />
-                                      : <div className="w-11 h-11 rounded-lg bg-emerald-100 flex items-center justify-center text-lg">📖</div>}
-                                  </td>
-                                  <td className="py-2 px-3 font-medium max-w-[160px] truncate">{c.title}</td>
-                                  <td className="py-2 px-3 hidden md:table-cell text-muted-foreground">
-                                    {c.locationId ? locations.find(l => l.id === c.locationId)?.name ?? '—' : '—'}
-                                  </td>
-                                  <td className="py-2 px-3">
-                                    <div className="flex gap-1.5">
-                                      <Button size="sm" variant="secondary" onClick={() => startEditCourse(c)}><Pencil className="h-3 w-3" /></Button>
-                                      <Button size="sm" variant="destructive" onClick={() => handleDeleteCourse(c.id)}><Trash2 className="h-3 w-3" /></Button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
                   </>
                 )
               })()}

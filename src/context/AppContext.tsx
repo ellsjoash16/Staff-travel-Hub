@@ -114,6 +114,7 @@ interface AppContextValue {
   addTrip: (trip: Trip, imageDataUrl: string | null) => Promise<void>
   editTrip: (trip: Trip, imageDataUrl: string | null) => Promise<void>
   deleteTrip: (id: string) => Promise<void>
+  completeTrip: (trip: Trip) => Promise<void>
   addLocation: (location: Location) => Promise<void>
   editLocation: (location: Location) => Promise<void>
   deleteLocation: (id: string) => Promise<void>
@@ -347,6 +348,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await removeTrip(id)
   }
 
+  async function completeTrip(trip: Trip): Promise<void> {
+    const loc = state.locations.find(l => l.id === trip.locationId) ?? null
+    const post: Post = {
+      id: crypto.randomUUID(),
+      title: trip.name,
+      staff: trip.participants.join(', ') || '',
+      staffImage: null,
+      review: '',
+      location: { name: loc?.name ?? '', lat: null, lng: null },
+      locationId: trip.locationId,
+      date: trip.date,
+      tags: [],
+      images: trip.image ? [trip.image] : [],
+      pinned: false,
+      extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
+      userId: null,
+      status: 'approved',
+      folder: null,
+    }
+    // insertPost directly so we keep the existing image URL without re-uploading
+    await insertPost(post, [], null)
+    dispatch({ type: 'ADD_POST', post })
+    await removeTrip(trip.id)
+    dispatch({ type: 'DELETE_TRIP', id: trip.id })
+  }
+
   async function addLocation(location: Location): Promise<void> {
     dispatch({ type: 'ADD_LOCATION', location })
     await insertLocation(location)
@@ -388,7 +415,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPost, editPost, deletePost,
       addCourse, editCourse, deleteCourse,
       submitReview, editSubmission, deleteSubmission,
-      addTrip, editTrip, deleteTrip,
+      addTrip, editTrip, deleteTrip, completeTrip,
       addLocation, editLocation, deleteLocation,
       saveSettings, savePageImages,
       approvePostFn, fetchPending, promoteToAdmin,

@@ -632,6 +632,8 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
   ])
   return {
     uid,
+    authEmail: data.authEmail ?? null,
+    authDisplayName: data.authDisplayName ?? null,
     firstName: firstName ?? '',
     lastName: lastName ?? '',
     passportNumber: passportNumber ?? '',

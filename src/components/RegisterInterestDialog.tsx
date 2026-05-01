@@ -138,6 +138,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
       if (dataConsent) {
         await upsertUserProfile({
           uid: user.uid,
+          authEmail: user.email ?? null,
+          authDisplayName: user.displayName ?? null,
           firstName: reg.firstName, lastName: reg.lastName,
           passportNumber: reg.passportNumber,
           passportFirstName: reg.passportFirstName,

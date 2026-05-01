@@ -2,34 +2,67 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Posts: public read/write (app-layer password guards admin actions)
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/settings/main) &&
+        'adminUids' in get(/databases/$(database)/documents/settings/main).data &&
+        request.auth.uid in get(/databases/$(database)/documents/settings/main).data.adminUids;
+    }
+
+    // Bootstrap: allow settings write if no admins have been set up yet
+    function noAdminsYet() {
+      return !exists(/databases/$(database)/documents/settings/main) ||
+        !('adminUids' in get(/databases/$(database)/documents/settings/main).data) ||
+        get(/databases/$(database)/documents/settings/main).data.adminUids.size() == 0;
+    }
+
+    // Posts — authenticated users can submit (pending only), admins manage all
     match /posts/{id} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.status == 'pending';
+      allow update, delete: if isAdmin();
     }
 
-    // Courses: public read/write
-    match /courses/{id} {
-      allow read, write: if true;
-    }
-
-    // Submissions: public read/write
+    // Submissions — authenticated users can create, admins manage
     match /submissions/{id} {
-      allow read, write: if true;
+      allow create: if isAuthenticated();
+      allow read, update, delete: if isAdmin();
     }
 
-    // Settings: public read/write
+    // Settings — authenticated read; admin write, or bootstrap if no admins exist yet
     match /settings/{id} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || noAdminsYet();
     }
 
-    // Locations: public read/write
+    // Locations — authenticated read, admin write
     match /locations/{id} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
-    // Trips: public read/write
+    // Trips — authenticated read, admin write
     match /trips/{id} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Registrations — users create/read their own; admins manage all
+    match /registrations/{id} {
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow read: if isAuthenticated() &&
+        (isAdmin() || resource.data.uid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // User profiles — users manage their own; admins can read and delete
+    match /userProfiles/{uid} {
+      allow read, write: if isAuthenticated() && request.auth.uid == uid;
+      allow read, delete: if isAdmin();
     }
   }
 }

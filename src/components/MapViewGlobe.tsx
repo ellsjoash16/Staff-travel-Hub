@@ -88,6 +88,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         cursor={cursor}
+        attributionControl={false}
       >
         <Source id="countries" type="geojson" data="/countries.json">
           {/* Inactive countries — transparent but clickable */}
@@ -190,16 +191,13 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
 
   return (
     <>
-      {/* ── Desktop: map only ── */}
-      <div
-        className="hidden md:block relative rounded-2xl overflow-hidden shadow-md"
-        style={{ height: 'calc(100vh - 140px)' }}
-      >
+      {/* ── Desktop: full map ── */}
+      <div className="hidden md:block h-full">
         {mapEl}
       </div>
 
       {/* ── Mobile: toggle between list and map ── */}
-      <div className="md:hidden flex flex-col" style={{ height: 'calc(100vh - 130px)' }}>
+      <div className="md:hidden flex flex-col h-full px-4 pb-4 pt-3">
         <div className="flex rounded-xl overflow-hidden border border-border mb-3 flex-shrink-0">
           <button
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${mobileView === 'list' ? 'btn-gradient text-white' : 'bg-card text-muted-foreground'}`}

@@ -5,18 +5,21 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import type { Post, Course, Submission, Settings, View, PanelImages, Trip, Location } from '@/lib/types'
+import type { Post, Course, Submission, Settings, View, PanelImages, Trip, Location, Registration, RegistrationStatus, UserProfile } from '@/lib/types'
 import {
   fetchPosts, fetchCourses, fetchSettings, fetchSubmissions, fetchTrips, fetchLocations,
   insertPost, updatePost, removePost, togglePinPost,
   insertCourse, updateCourse, removeCourse,
   updateSubmission, removeSubmission,
-  insertTrip, updateTrip, removeTrip,
+  insertTrip, updateTrip, removeTrip, markTripComplete,
   insertLocation, updateLocation, removeLocation,
-  upsertSettings, updatePanelImages, uploadImage, DEFAULT_SETTINGS,
+  upsertSettings, updatePanelImages, setAdminUids, uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
+  fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, deleteUserProfile,
+  fetchAllUserProfiles,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
+import { auth } from '@/lib/firebase'
 
 const BUCKET = 'post-images'
 
@@ -32,6 +35,9 @@ interface AppState {
   activeFilter: string | null
   loading: boolean
   pendingPosts: Post[]
+  registrations: Registration[]
+  userProfiles: (UserProfile & { updatedAt: string | null })[]
+  myRegistrations: Registration[]
 }
 
 type Action =
@@ -41,6 +47,14 @@ type Action =
   | { type: 'SET_FILTER'; filter: string | null }
   | { type: 'SET_ADMIN'; value: boolean }
   | { type: 'SET_PENDING'; posts: Post[] }
+  | { type: 'SET_REGISTRATIONS'; registrations: Registration[] }
+  | { type: 'SET_USER_PROFILES'; profiles: (UserProfile & { updatedAt: string | null })[] }
+  | { type: 'UPDATE_REGISTRATION_STATUS'; id: string; status: RegistrationStatus }
+  | { type: 'DELETE_REGISTRATION'; id: string }
+  | { type: 'DELETE_USER_PROFILE'; uid: string }
+  | { type: 'SET_MY_REGISTRATIONS'; registrations: Registration[] }
+  | { type: 'ADD_MY_REGISTRATION'; registration: Registration }
+  | { type: 'UPDATE_TRIP_PARTICIPANTS'; tripId: string; name: string; action: 'add' | 'remove' }
   | { type: 'APPROVE_POST'; id: string }
   | { type: 'ADD_POST'; post: Post }
   | { type: 'UPDATE_POST'; post: Post }
@@ -68,6 +82,22 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_FILTER': return { ...state, activeFilter: action.filter }
     case 'SET_ADMIN': return { ...state, isAdmin: action.value }
     case 'SET_PENDING': return { ...state, pendingPosts: action.posts }
+    case 'SET_REGISTRATIONS': return { ...state, registrations: action.registrations }
+    case 'SET_USER_PROFILES': return { ...state, userProfiles: action.profiles }
+    case 'UPDATE_REGISTRATION_STATUS': return { ...state, registrations: state.registrations.map(r => r.id === action.id ? { ...r, status: action.status } : r) }
+    case 'DELETE_REGISTRATION': return { ...state, registrations: state.registrations.filter(r => r.id !== action.id) }
+    case 'DELETE_USER_PROFILE': return { ...state, userProfiles: state.userProfiles.filter(u => u.uid !== action.uid) }
+    case 'SET_MY_REGISTRATIONS': return { ...state, myRegistrations: action.registrations }
+    case 'ADD_MY_REGISTRATION': return { ...state, myRegistrations: [...state.myRegistrations, action.registration] }
+    case 'UPDATE_TRIP_PARTICIPANTS': return {
+      ...state,
+      trips: state.trips.map(t => t.id === action.tripId ? {
+        ...t,
+        participants: action.action === 'add'
+          ? t.participants.includes(action.name) ? t.participants : [...t.participants, action.name]
+          : t.participants.filter(p => p !== action.name)
+      } : t)
+    }
     case 'APPROVE_POST': {
       const approved = state.pendingPosts.find(p => p.id === action.id)
       return {
@@ -122,6 +152,13 @@ interface AppContextValue {
   savePageImages: (images: PanelImages, dataUrls: Partial<Record<keyof PanelImages, string | null>>) => Promise<void>
   approvePostFn: (id: string) => Promise<void>
   fetchPending: () => Promise<void>
+  loadRegistrations: () => Promise<void>
+  setRegistrationStatus: (id: string, status: RegistrationStatus) => Promise<void>
+  removeRegistration: (id: string) => Promise<void>
+  removeUserProfile: (uid: string) => Promise<void>
+  loadUserProfiles: () => Promise<void>
+  loadMyRegistrations: () => Promise<void>
+  toggleAdminUid: (uid: string) => Promise<void>
   promoteToAdmin: (appPassword: string) => Promise<boolean>
 }
 
@@ -132,17 +169,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     posts: [], courses: [], submissions: [], trips: [], locations: [],
     settings: DEFAULT_SETTINGS,
     isAdmin: false, activeView: 'home', activeFilter: null, loading: true,
-    pendingPosts: [],
+    pendingPosts: [], registrations: [], userProfiles: [], myRegistrations: [],
   })
 
   // Initial data load
   useEffect(() => {
     async function init() {
       try {
-        const [postsRes, coursesRes, submissionsRes, tripsRes, locationsRes, settingsRes] = await Promise.allSettled([
+        const [postsRes, tripsRes, locationsRes, settingsRes] = await Promise.allSettled([
           fetchPosts(),
-          fetchCourses(),
-          fetchSubmissions(),
           fetchTrips(),
           fetchLocations(),
           fetchSettings(),
@@ -150,14 +185,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dispatch({
           type: 'INIT',
           posts: postsRes.status === 'fulfilled' ? postsRes.value : [],
-          courses: coursesRes.status === 'fulfilled' ? coursesRes.value : [],
-          submissions: submissionsRes.status === 'fulfilled' ? submissionsRes.value : [],
+          courses: [],
+          submissions: [],
           trips: tripsRes.status === 'fulfilled' ? tripsRes.value : [],
           locations: locationsRes.status === 'fulfilled' ? locationsRes.value : [],
           settings: settingsRes.status === 'fulfilled' ? settingsRes.value : DEFAULT_SETTINGS,
         })
       } finally {
         dispatch({ type: 'SET_LOADING', value: false })
+      }
+      // Auto-grant admin if UID is in adminUids list
+      const uid = auth.currentUser?.uid
+      if (uid) {
+        const settings = settingsRes.status === 'fulfilled' ? settingsRes.value : DEFAULT_SETTINGS
+        if (settings.adminUids?.includes(uid)) {
+          dispatch({ type: 'SET_ADMIN', value: true })
+        }
+        fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})
       }
     }
     init()
@@ -184,9 +228,69 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_PENDING', posts })
   }
 
+  async function loadRegistrations(): Promise<void> {
+    const registrations = await fetchRegistrations()
+    dispatch({ type: 'SET_REGISTRATIONS', registrations })
+  }
+
+  async function loadMyRegistrations(): Promise<void> {
+    const uid = auth.currentUser?.uid
+    if (!uid) return
+    const registrations = await fetchMyRegistrations(uid)
+    dispatch({ type: 'SET_MY_REGISTRATIONS', registrations })
+  }
+
+  async function loadUserProfiles(): Promise<void> {
+    const profiles = await fetchAllUserProfiles()
+    dispatch({ type: 'SET_USER_PROFILES', profiles })
+  }
+
+  async function setRegistrationStatus(id: string, status: RegistrationStatus): Promise<void> {
+    const reg = state.registrations.find(r => r.id === id)
+    const prevStatus = reg?.status
+    dispatch({ type: 'UPDATE_REGISTRATION_STATUS', id, status })
+    await updateRegistrationStatus(id, status)
+    if (reg) {
+      const fullName = `${reg.firstName} ${reg.lastName}`.trim()
+      if (status === 'confirmed' && prevStatus !== 'confirmed') {
+        await addTripParticipant(reg.tripId, fullName)
+        dispatch({ type: 'UPDATE_TRIP_PARTICIPANTS', tripId: reg.tripId, name: fullName, action: 'add' })
+      } else if (prevStatus === 'confirmed' && status !== 'confirmed') {
+        await removeTripParticipant(reg.tripId, fullName)
+        dispatch({ type: 'UPDATE_TRIP_PARTICIPANTS', tripId: reg.tripId, name: fullName, action: 'remove' })
+      }
+    }
+  }
+
+  async function removeRegistration(id: string): Promise<void> {
+    await deleteRegistration(id)
+    dispatch({ type: 'DELETE_REGISTRATION', id })
+  }
+
+  async function removeUserProfile(uid: string): Promise<void> {
+    await deleteUserProfile(uid)
+    dispatch({ type: 'DELETE_USER_PROFILE', uid })
+  }
+
+  async function toggleAdminUid(uid: string): Promise<void> {
+    const current = state.settings.adminUids ?? []
+    const updated = current.includes(uid) ? current.filter(u => u !== uid) : [...current, uid]
+    const newSettings = { ...state.settings, adminUids: updated }
+    await setAdminUids(updated)
+    dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
+  }
+
   async function promoteToAdmin(appPassword: string): Promise<boolean> {
     if (appPassword !== state.settings.password) return false
     dispatch({ type: 'SET_ADMIN', value: true })
+    // Also add this UID to adminUids so Firestore rules grant write access
+    const uid = auth.currentUser?.uid
+    if (uid && !state.settings.adminUids?.includes(uid)) {
+      const updated = [...(state.settings.adminUids ?? []), uid]
+      const newSettings = { ...state.settings, adminUids: updated }
+      await setAdminUids(updated)
+      dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
+    }
     return true
   }
 
@@ -293,6 +397,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       images: uploadedImages,
       pinned: false,
       extras: submission.extras,
+      salesNote: submission.salesNote ?? null,
       userId: null,
       status: 'pending',
     }
@@ -349,29 +454,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function completeTrip(trip: Trip): Promise<void> {
-    const loc = state.locations.find(l => l.id === trip.locationId) ?? null
-    const post: Post = {
-      id: crypto.randomUUID(),
-      title: trip.name,
-      staff: trip.participants.join(', ') || '',
-      staffImage: null,
-      review: '',
-      location: { name: loc?.name ?? '', lat: null, lng: null },
-      locationId: trip.locationId,
-      date: trip.date,
-      tags: [],
-      images: trip.image ? [trip.image] : [],
-      pinned: false,
-      extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
-      userId: null,
-      status: 'approved',
-      folder: null,
-    }
-    // insertPost directly so we keep the existing image URL without re-uploading
-    await insertPost(post, [], null)
-    dispatch({ type: 'ADD_POST', post })
-    await removeTrip(trip.id)
-    dispatch({ type: 'DELETE_TRIP', id: trip.id })
+    const completed = { ...trip, completed: true }
+    dispatch({ type: 'UPDATE_TRIP', trip: completed })
+    await markTripComplete(trip.id)
   }
 
   async function addLocation(location: Location): Promise<void> {
@@ -418,7 +503,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addTrip, editTrip, deleteTrip, completeTrip,
       addLocation, editLocation, deleteLocation,
       saveSettings, savePageImages,
-      approvePostFn, fetchPending, promoteToAdmin,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, promoteToAdmin,
     }}>
       {children}
     </AppContext.Provider>

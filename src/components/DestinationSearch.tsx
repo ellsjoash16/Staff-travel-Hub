@@ -11,7 +11,12 @@ interface Result {
   sublabel: string
 }
 
-export function DestinationSearch() {
+interface Props {
+  autoFocus?: boolean
+  onClose?: () => void
+}
+
+export function DestinationSearch({ autoFocus, onClose }: Props) {
   const { state, dispatch } = useApp()
   const { posts, courses, locations } = state
   const [query, setQuery] = useState('')
@@ -59,6 +64,7 @@ export function DestinationSearch() {
   function select(r: Result) {
     setQuery('')
     setOpen(false)
+    onClose?.()
     if (r.type === 'location') dispatch({ type: 'SET_VIEW', view: 'map' })
     else if (r.type === 'post') {
       const tag = posts.find(p => `post-${p.id}` === r.id)?.tags[0] ?? null
@@ -69,42 +75,51 @@ export function DestinationSearch() {
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape') { setQuery(''); setOpen(false); onClose?.(); return }
     if (!open || results.length === 0) return
     if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIdx(i => Math.min(i + 1, results.length - 1)) }
     if (e.key === 'ArrowUp')   { e.preventDefault(); setActiveIdx(i => Math.max(i - 1, -1)) }
     if (e.key === 'Enter' && activeIdx >= 0) { e.preventDefault(); select(results[activeIdx]) }
-    if (e.key === 'Escape') { setQuery(''); setOpen(false) }
   }
 
-  const sections: { type: ResultType; label: string; icon: React.ReactNode }[] = [
-    { type: 'location', label: 'Locations', icon: <MapPin className="h-4 w-4 text-primary flex-shrink-0" /> },
-    { type: 'post',     label: 'Posts',     icon: <Camera className="h-4 w-4 text-primary flex-shrink-0" /> },
-    { type: 'course',   label: 'Courses',   icon: <BookOpen className="h-4 w-4 text-emerald-500 flex-shrink-0" /> },
+  function handleBlur(e: React.FocusEvent) {
+    if (containerRef.current?.contains(e.relatedTarget as Node)) return
+    setOpen(false)
+    if (!query) onClose?.()
+  }
+
+  const typeIcon: Record<ResultType, React.ReactNode> = {
+    location: <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0"><MapPin className="h-4 w-4 text-primary" /></div>,
+    post:     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0"><Camera className="h-4 w-4 text-primary" /></div>,
+    course:   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 flex-shrink-0"><BookOpen className="h-4 w-4 text-emerald-500" /></div>,
+  }
+
+  const sections: { type: ResultType; label: string }[] = [
+    { type: 'location', label: 'Locations' },
+    { type: 'post',     label: 'Posts' },
+    { type: 'course',   label: 'Courses' },
   ]
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full"
-      onBlur={e => { if (!containerRef.current?.contains(e.relatedTarget as Node)) setOpen(false) }}
-    >
+    <div ref={containerRef} className="relative w-full" onBlur={handleBlur}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/60 pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" />
         <input
           ref={inputRef}
+          autoFocus={autoFocus}
           value={query}
           onChange={e => { setQuery(e.target.value); setOpen(true); setActiveIdx(-1) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search posts, locations, courses…"
+          placeholder="Search posts, locations…"
           autoComplete="off"
-          className="w-full h-9 pl-9 pr-8 rounded-xl bg-white/15 border border-white/20 text-white placeholder:text-white/50 text-sm focus:outline-none focus:bg-white/20 focus:border-white/40 transition-all"
+          className="w-full h-9 pl-9 pr-8 rounded-full bg-white/10 border border-white/15 text-white placeholder:text-white/40 text-sm focus:outline-none focus:bg-white/18 focus:border-white/35 transition-all"
         />
         {query && (
           <button
             type="button"
             onClick={() => { setQuery(''); setOpen(false); inputRef.current?.focus() }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -112,38 +127,46 @@ export function DestinationSearch() {
       </div>
 
       {open && query.trim() && (
-        <div className="absolute top-full mt-2 left-0 right-0 bg-card rounded-xl border border-border shadow-2xl overflow-hidden z-50 max-h-72 overflow-y-auto">
+        <div className="absolute top-full mt-2 left-0 right-0 bg-popover rounded-2xl border border-border shadow-[0_8px_40px_rgba(0,0,0,0.18)] overflow-hidden z-50">
           {results.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-muted-foreground">No results for "{query}"</div>
+            <div className="flex items-center gap-3 px-4 py-4">
+              <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <p className="text-sm text-muted-foreground">No results for <span className="font-medium text-foreground">"{query}"</span></p>
+            </div>
           ) : (
-            sections.map(({ type, label, icon }) => {
-              const group = results.filter(r => r.type === type)
-              if (group.length === 0) return null
-              return (
-                <div key={type}>
-                  <div className="px-3 pt-2.5 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground border-t border-border first:border-t-0">
-                    {label}
+            <div className="py-1.5">
+              {sections.map(({ type, label }) => {
+                const group = results.filter(r => r.type === type)
+                if (group.length === 0) return null
+                return (
+                  <div key={type}>
+                    <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+                      {label}
+                    </p>
+                    {group.map(r => {
+                      const idx = results.indexOf(r)
+                      return (
+                        <button
+                          key={r.id}
+                          onMouseDown={() => select(r)}
+                          onMouseEnter={() => setActiveIdx(idx)}
+                          className={`w-full flex items-center gap-3 px-3 py-2 mx-1.5 rounded-xl text-left transition-colors ${
+                            activeIdx === idx ? 'bg-muted' : 'hover:bg-muted'
+                          }`}
+                          style={{ width: 'calc(100% - 12px)' }}
+                        >
+                          {typeIcon[r.type]}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate leading-tight">{r.label}</p>
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">{r.sublabel}</p>
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
-                  {group.map(r => {
-                    const idx = results.indexOf(r)
-                    return (
-                      <button
-                        key={r.id}
-                        onMouseDown={() => select(r)}
-                        onMouseEnter={() => setActiveIdx(idx)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${activeIdx === idx ? 'bg-muted' : 'hover:bg-muted'}`}
-                      >
-                        {icon}
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{r.label}</p>
-                          <p className="text-xs text-muted-foreground truncate">{r.sublabel}</p>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              )
-            })
+                )
+              })}
+            </div>
           )}
         </div>
       )}

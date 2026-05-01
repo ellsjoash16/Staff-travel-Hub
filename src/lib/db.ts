@@ -7,7 +7,8 @@ import {
   ref, uploadBytes, getDownloadURL, deleteObject,
 } from 'firebase/storage'
 import { db, storage } from './firebase'
-import type { Post, Course, Submission, Settings, Trip, Location, PostExtras } from './types'
+import type { Post, Course, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile } from './types'
+import { encryptField, decryptField } from './crypto'
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: Settings = {
   departureAirport: { name: 'LHR', lat: 51.5074, lng: -0.1278 },
   panelImages: { feed: null, map: null, courses: null, years: null, submit: null },
   adminFolders: [],
+  adminUids: [],
 }
 
 // ── Posts ─────────────────────────────────────────────────────────────────
@@ -43,6 +45,7 @@ function docToPost(id: string, d: any): Post {
     images,
     pinned: d.pinned ?? false,
     extras,
+    salesNote: d.salesNote ?? null,
     userId: d.userId ?? null,
     status: d.status ?? 'approved',
     folder: d.folder ?? null,
@@ -84,6 +87,7 @@ export async function submitPendingPost(post: Post, imagePaths: string[]): Promi
     imagePaths,
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
+    salesNote: post.salesNote ?? null,
     userId: post.userId ?? null,
     status: 'pending',
     folder: post.folder ?? null,
@@ -112,6 +116,7 @@ export async function insertPost(
     imagePaths,
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
+    salesNote: post.salesNote ?? null,
     userId: post.userId ?? null,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
@@ -159,6 +164,7 @@ export async function updatePost(
     images: post.images,
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
+    salesNote: post.salesNote ?? null,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
     ...(newImagePaths !== undefined ? { imagePaths: newImagePaths } : {}),
@@ -255,6 +261,7 @@ function docToSubmission(id: string, d: any): Submission {
     images: d.images ?? [],
     showOnMap: d.showOnMap ?? false,
     extras: d.extras ? { ...EMPTY_EXTRAS, ...d.extras } : { ...EMPTY_EXTRAS },
+    salesNote: d.salesNote ?? null,
   }
 }
 
@@ -278,6 +285,7 @@ export async function insertSubmission(
     imagePaths,
     showOnMap: false,
     extras: submission.extras ?? EMPTY_EXTRAS,
+    salesNote: submission.salesNote ?? null,
     submittedAt: serverTimestamp(),
   })
 }
@@ -330,7 +338,12 @@ export async function fetchSettings(): Promise<Settings> {
       ...(d.panelImages ?? {}),
     },
     adminFolders: d.adminFolders ?? [],
+    adminUids: d.adminUids ?? [],
   }
+}
+
+export async function setAdminUids(uids: string[]): Promise<void> {
+  await updateDoc(doc(db, 'settings', 'main'), { adminUids: uids })
 }
 
 export async function updatePanelImages(panelImages: Settings['panelImages']): Promise<void> {
@@ -349,6 +362,7 @@ export async function upsertSettings(settings: Settings): Promise<void> {
     departureLng: settings.departureAirport?.lng ?? -0.1278,
     panelImages: settings.panelImages,
     adminFolders: settings.adminFolders ?? [],
+    adminUids: settings.adminUids ?? [],
   })
 }
 
@@ -397,6 +411,9 @@ function docToTrip(id: string, d: any): Trip {
     image: d.image ?? null,
     locationId: d.locationId ?? null,
     external: d.external ?? false,
+    completed: d.completed ?? false,
+    international: d.international ?? false,
+    showRegisterInterest: d.showRegisterInterest ?? false,
   }
 }
 
@@ -417,8 +434,15 @@ export async function insertTrip(trip: Trip, imagePath: string | null): Promise<
     imagePath,
     locationId: trip.locationId ?? null,
     external: trip.external ?? false,
+    completed: false,
+    international: trip.international ?? false,
+    showRegisterInterest: trip.showRegisterInterest ?? false,
     createdAt: serverTimestamp(),
   })
+}
+
+export async function markTripComplete(id: string): Promise<void> {
+  await updateDoc(doc(db, 'trips', id), { completed: true })
 }
 
 export async function updateTrip(
@@ -439,6 +463,8 @@ export async function updateTrip(
     image: trip.image ?? null,
     locationId: trip.locationId ?? null,
     external: trip.external ?? false,
+    international: trip.international ?? false,
+    showRegisterInterest: trip.showRegisterInterest ?? false,
     ...(newImagePath !== undefined ? { imagePath: newImagePath } : {}),
   })
 }
@@ -448,6 +474,233 @@ export async function removeTrip(id: string): Promise<void> {
   const imagePath: string | null = snap.data()?.imagePath ?? null
   await deleteDoc(doc(db, 'trips', id))
   if (imagePath) await deleteImage(imagePath).catch(() => {})
+}
+
+// ── Registrations ─────────────────────────────────────────────────────────
+
+export async function insertRegistration(reg: Registration): Promise<void> {
+  const [
+    firstName, lastName, email,
+    passportNumber, passportFirstName, passportMiddleNames, passportLastName,
+    dob, medicalInfo,
+  ] = await Promise.all([
+    encryptField(reg.firstName),
+    encryptField(reg.lastName),
+    encryptField(reg.email),
+    encryptField(reg.passportNumber),
+    encryptField(reg.passportFirstName),
+    encryptField(reg.passportMiddleNames),
+    encryptField(reg.passportLastName),
+    encryptField(reg.dob),
+    encryptField(reg.medicalInfo),
+  ])
+  await setDoc(doc(db, 'registrations', reg.id), {
+    tripId: reg.tripId,
+    tripName: reg.tripName,
+    uid: reg.uid ?? null,
+    firstName, lastName, email,
+    passportNumber, passportFirstName, passportMiddleNames, passportLastName,
+    dob, medicalInfo,
+    dataConsent: reg.dataConsent,
+    status: 'requested',
+    submittedAt: serverTimestamp(),
+  })
+}
+
+export async function fetchRegistrations(): Promise<Registration[]> {
+  const snap = await getDocs(collection(db, 'registrations'))
+  const results = await Promise.all(snap.docs.map(async d => {
+    const data = d.data()
+    try {
+      const [
+        firstName, lastName, email,
+        passportNumber, passportFirstName, passportMiddleNames, passportLastName,
+        dob, medicalInfo,
+      ] = await Promise.all([
+        decryptField(data.firstName ?? null),
+        decryptField(data.lastName ?? null),
+        decryptField(data.email ?? data.workEmail ?? null),
+        decryptField(data.passportNumber ?? null),
+        decryptField(data.passportFirstName ?? null),
+        decryptField(data.passportMiddleNames ?? null),
+        decryptField(data.passportLastName ?? data.passportSurname ?? null),
+        decryptField(data.dob ?? null),
+        decryptField(data.medicalInfo ?? data.medicalConditions ?? null),
+      ])
+      return {
+        id: d.id,
+        tripId: data.tripId ?? '',
+        tripName: data.tripName ?? '',
+        uid: data.uid ?? null,
+        firstName: firstName ?? '',
+        lastName: lastName ?? '',
+        email: email ?? '',
+        passportNumber: passportNumber ?? '',
+        passportFirstName: passportFirstName ?? '',
+        passportMiddleNames,
+        passportLastName: passportLastName ?? '',
+        dob: dob ?? '',
+        medicalInfo,
+        dataConsent: data.dataConsent ?? false,
+        status: (data.status ?? 'requested') as RegistrationStatus,
+      } as Registration
+    } catch {
+      // Decryption failed for this doc — return a placeholder so it still shows
+      return {
+        id: d.id,
+        tripId: data.tripId ?? '',
+        tripName: data.tripName ?? '',
+        uid: data.uid ?? null,
+        firstName: '[encrypted]', lastName: '[encrypted]',
+        email: '', passportNumber: '', passportFirstName: '',
+        passportMiddleNames: null, passportLastName: '',
+        dob: '', medicalInfo: null,
+        dataConsent: data.dataConsent ?? false,
+        status: (data.status ?? 'requested') as RegistrationStatus,
+      } as Registration
+    }
+  }))
+  return results
+}
+
+export async function updateRegistrationStatus(id: string, status: RegistrationStatus): Promise<void> {
+  await updateDoc(doc(db, 'registrations', id), { status })
+}
+
+export async function addTripParticipant(tripId: string, name: string): Promise<void> {
+  const ref = doc(db, 'trips', tripId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return
+  const current: string[] = snap.data().participants ?? []
+  if (current.includes(name)) return
+  await updateDoc(ref, { participants: [...current, name] })
+}
+
+export async function removeTripParticipant(tripId: string, name: string): Promise<void> {
+  const ref = doc(db, 'trips', tripId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return
+  const current: string[] = snap.data().participants ?? []
+  await updateDoc(ref, { participants: current.filter(p => p !== name) })
+}
+
+export async function fetchMyRegistrations(uid: string): Promise<Registration[]> {
+  const snap = await getDocs(query(collection(db, 'registrations'), where('uid', '==', uid)))
+  const results = await Promise.all(snap.docs.map(async d => {
+    const data = d.data()
+    try {
+      const [firstName, lastName, email, passportNumber, passportFirstName, passportMiddleNames, passportLastName, dob, medicalInfo] = await Promise.all([
+        decryptField(data.firstName ?? null), decryptField(data.lastName ?? null),
+        decryptField(data.email ?? null), decryptField(data.passportNumber ?? null),
+        decryptField(data.passportFirstName ?? null), decryptField(data.passportMiddleNames ?? null),
+        decryptField(data.passportLastName ?? null), decryptField(data.dob ?? null),
+        decryptField(data.medicalInfo ?? null),
+      ])
+      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: firstName ?? '', lastName: lastName ?? '', email: email ?? '', passportNumber: passportNumber ?? '', passportFirstName: passportFirstName ?? '', passportMiddleNames, passportLastName: passportLastName ?? '', dob: dob ?? '', medicalInfo, dataConsent: data.dataConsent ?? false, status: (data.status ?? 'requested') as RegistrationStatus } as Registration
+    } catch {
+      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: '', lastName: '', email: '', passportNumber: '', passportFirstName: '', passportMiddleNames: null, passportLastName: '', dob: '', medicalInfo: null, dataConsent: false, status: (data.status ?? 'requested') as RegistrationStatus } as Registration
+    }
+  }))
+  return results
+}
+
+export async function deleteRegistration(id: string): Promise<void> {
+  await deleteDoc(doc(db, 'registrations', id))
+}
+
+export async function deleteUserProfile(uid: string): Promise<void> {
+  await deleteDoc(doc(db, 'userProfiles', uid))
+}
+
+export async function fetchUserProfile(uid: string): Promise<UserProfile | null> {
+  const snap = await getDoc(doc(db, 'userProfiles', uid))
+  if (!snap.exists()) return null
+  const data = snap.data()
+  const [
+    firstName, lastName, passportNumber,
+    passportFirstName, passportMiddleNames, passportLastName,
+    dob, medicalInfo,
+  ] = await Promise.all([
+    decryptField(data.firstName ?? null),
+    decryptField(data.lastName ?? null),
+    decryptField(data.passportNumber ?? null),
+    decryptField(data.passportFirstName ?? null),
+    decryptField(data.passportMiddleNames ?? null),
+    decryptField(data.passportLastName ?? null),
+    decryptField(data.dob ?? null),
+    decryptField(data.medicalInfo ?? null),
+  ])
+  return {
+    uid,
+    firstName: firstName ?? '',
+    lastName: lastName ?? '',
+    passportNumber: passportNumber ?? '',
+    passportFirstName: passportFirstName ?? '',
+    passportMiddleNames,
+    passportLastName: passportLastName ?? '',
+    dob: dob ?? '',
+    medicalInfo,
+    dataConsent: data.dataConsent ?? false,
+  }
+}
+
+export async function upsertUserProfile(profile: UserProfile): Promise<void> {
+  const [
+    firstName, lastName, passportNumber,
+    passportFirstName, passportMiddleNames, passportLastName,
+    dob, medicalInfo,
+  ] = await Promise.all([
+    encryptField(profile.firstName),
+    encryptField(profile.lastName),
+    encryptField(profile.passportNumber),
+    encryptField(profile.passportFirstName),
+    encryptField(profile.passportMiddleNames),
+    encryptField(profile.passportLastName),
+    encryptField(profile.dob),
+    encryptField(profile.medicalInfo),
+  ])
+  await setDoc(doc(db, 'userProfiles', profile.uid), {
+    firstName, lastName, passportNumber,
+    passportFirstName, passportMiddleNames, passportLastName,
+    dob, medicalInfo,
+    dataConsent: profile.dataConsent,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function fetchAllUserProfiles(): Promise<UserProfile[]> {
+  const snap = await getDocs(collection(db, 'userProfiles'))
+  const profiles = await Promise.all(snap.docs.map(async d => {
+    const data = d.data()
+    const [
+      firstName, lastName, passportNumber,
+      passportFirstName, passportMiddleNames, passportLastName,
+      dob, medicalInfo,
+    ] = await Promise.all([
+      decryptField(data.firstName ?? null),
+      decryptField(data.lastName ?? null),
+      decryptField(data.passportNumber ?? null),
+      decryptField(data.passportFirstName ?? null),
+      decryptField(data.passportMiddleNames ?? null),
+      decryptField(data.passportLastName ?? null),
+      decryptField(data.dob ?? null),
+      decryptField(data.medicalInfo ?? null),
+    ])
+    return {
+      uid: d.id,
+      firstName: firstName ?? '',
+      lastName: lastName ?? '',
+      passportNumber: passportNumber ?? '',
+      passportFirstName: passportFirstName ?? '',
+      passportMiddleNames,
+      passportLastName: passportLastName ?? '',
+      dob: dob ?? '',
+      medicalInfo,
+      dataConsent: data.dataConsent ?? false,
+      updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null,
+    } as UserProfile & { updatedAt: string | null }
+  }))
+  return profiles
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────

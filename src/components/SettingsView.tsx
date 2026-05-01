@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Shield, Loader2, CheckCircle } from 'lucide-react'
+import { Shield, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useApp } from '@/context/AppContext'
+import { AdminPanel } from './AdminPanel'
 
 function SectionCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
@@ -49,6 +50,10 @@ export function SettingsView() {
     }
   }
 
+  if (isAdmin) {
+    return <AdminPanel inline />
+  }
+
   return (
     <div className="max-w-xl mx-auto space-y-5">
       <div>
@@ -56,41 +61,28 @@ export function SettingsView() {
       </div>
 
       <SectionCard title="Admin Access" icon={Shield}>
-        {isAdmin ? (
-          <div className="flex items-center gap-2.5 py-2">
-            <CheckCircle className="h-5 w-5 text-emerald-500" />
-            <div>
-              <p className="font-medium text-sm">Admin access active</p>
-              <p className="text-xs text-muted-foreground">You have full admin privileges</p>
-            </div>
-            <span className="ml-auto text-xs px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium">
-              Admin
-            </span>
+        <form onSubmit={handlePromote} className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Enter the admin PIN to gain admin privileges.
+          </p>
+          <div className="space-y-1.5">
+            <Label htmlFor="admin-pin">Admin PIN</Label>
+            <Input
+              id="admin-pin"
+              type="password"
+              value={adminPin}
+              onChange={e => setAdminPin(e.target.value)}
+              placeholder="Enter PIN"
+              disabled={promoting}
+            />
           </div>
-        ) : (
-          <form onSubmit={handlePromote} className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Enter the admin PIN to gain admin privileges.
-            </p>
-            <div className="space-y-1.5">
-              <Label htmlFor="admin-pin">Admin PIN</Label>
-              <Input
-                id="admin-pin"
-                type="password"
-                value={adminPin}
-                onChange={e => setAdminPin(e.target.value)}
-                placeholder="Enter PIN"
-                disabled={promoting}
-              />
-            </div>
-            <Button type="submit" variant="outline" disabled={promoting} className="gap-2">
-              {promoting
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Activating…</>
-                : <><Shield className="h-4 w-4" /> Activate Admin Access</>
-              }
-            </Button>
-          </form>
-        )}
+          <Button type="submit" variant="outline" disabled={promoting} className="gap-2">
+            {promoting
+              ? <><Loader2 className="h-4 w-4 animate-spin" /> Activating…</>
+              : <><Shield className="h-4 w-4" /> Activate Admin Access</>
+            }
+          </Button>
+        </form>
       </SectionCard>
     </div>
   )

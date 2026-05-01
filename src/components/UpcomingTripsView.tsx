@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { MapPin, Calendar, Plane } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
+import { RegisterInterestDialog } from './RegisterInterestDialog'
 import type { Trip, Location } from '@/lib/types'
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
@@ -55,10 +55,13 @@ function CountdownTimer({ dateStr }: { dateStr: string }) {
 // ── Featured card (next / soonest trip) ───────────────────────────────────────
 
 function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location | null }) {
+  const [dialogOpen, setDialogOpen] = useState(false)
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-primary/20 bg-card shadow-lg mb-6">
+    <>
+    <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
+    <div className="relative rounded-2xl overflow-hidden bg-card shadow-lg mb-6">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-      <div className="flex flex-col md:flex-row min-h-[300px]">
+      <div className="flex flex-col md:flex-row min-h-[300px] lg:min-h-[340px] xl:min-h-[380px] 2xl:min-h-[420px]">
 
         {/* Image */}
         <div className="relative md:w-2/5 flex-shrink-0 min-h-[200px] md:min-h-0">
@@ -83,7 +86,7 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
           </div>
 
           <div>
-            <h2 className="font-gilbert text-2xl sm:text-3xl 2xl:text-4xl mb-2 leading-tight">{trip.name}</h2>
+            <h2 className="font-gilbert text-2xl sm:text-3xl xl:text-4xl mb-2 leading-tight">{trip.name}</h2>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mb-3">
               {location && (
                 <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 flex-shrink-0" />{location.name}</span>
@@ -93,25 +96,33 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
             {trip.description && (
               <p className="text-sm text-muted-foreground leading-relaxed">{trip.description}</p>
             )}
+            {trip.showRegisterInterest && (
+              <div className="mt-4">
+                <Button onClick={() => setDialogOpen(true)} className="gap-2">
+                  <Plane className="h-4 w-4" /> Register Interest
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
+    </>
   )
 }
 
 // ── Regular trip card ─────────────────────────────────────────────────────────
 
-function TripCard({ trip, location }: { trip: Trip; location: Location | null }) {
-  function registerInterest() {
-    toast.success('Interest registered! The admin team will be in touch.')
-  }
+function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; location: Location | null; showRegisterInterest: boolean }) {
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
-    <div className="flex flex-col sm:flex-row rounded-2xl overflow-hidden border border-border bg-card shadow-sm hover:shadow-md transition-shadow duration-200">
+    <>
+    <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
+    <div className="flex flex-col rounded-2xl overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
 
       {/* Image */}
-      <div className="relative sm:w-[200px] md:w-[240px] 2xl:w-[280px] flex-shrink-0 min-h-[160px] sm:min-h-0">
+      <div className="relative w-full h-44 2xl:h-52 flex-shrink-0">
         {trip.image ? (
           <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
@@ -135,15 +146,20 @@ function TripCard({ trip, location }: { trip: Trip; location: Location | null })
             <p className="text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-2">{trip.description}</p>
           )}
         </div>
-        <div className="flex justify-end">
-          <Button size="sm" onClick={registerInterest} className="gap-1.5">
-            <Plane className="h-3.5 w-3.5" /> Register Interest
-          </Button>
-        </div>
+        {showRegisterInterest && (
+          <div className="flex justify-end">
+            <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1.5">
+              <Plane className="h-3.5 w-3.5" /> Register Interest
+            </Button>
+          </div>
+        )}
       </div>
     </div>
+    </>
   )
 }
+
+const BG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=1920&q=80'
 
 // ── Main view ─────────────────────────────────────────────────────────────────
 
@@ -153,7 +169,7 @@ export function UpcomingTripsView() {
 
   const todayStr = new Date().toISOString().slice(0, 10)
   const upcoming = trips
-    .filter(t => t.date >= todayStr)
+    .filter(t => t.date >= todayStr && !t.completed)
     .sort((a, b) => a.date.localeCompare(b.date))
 
   function getLocation(locationId: string | null): Location | null {
@@ -164,32 +180,42 @@ export function UpcomingTripsView() {
 
   if (upcoming.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 text-muted-foreground">
-        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
-          <Plane className="h-10 w-10 text-primary/50" />
+      <div className="relative h-full overflow-auto">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
         </div>
-        <h3 className="font-gilbert text-xl mb-1 text-foreground">No upcoming trips</h3>
-        <p className="text-sm text-center max-w-xs">Check back soon — new trips will be added by the admin team</p>
+        <div className="relative flex flex-col items-center justify-center h-full text-white/70" style={{ zIndex: 1 }}>
+          <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-5">
+            <Plane className="h-10 w-10 text-white/50" />
+          </div>
+          <h3 className="font-gilbert text-xl mb-1 text-white">No upcoming trips</h3>
+          <p className="text-sm text-center max-w-xs">Check back soon — new trips will be added by the admin team</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="w-full mb-6">
-        <h2 className="font-gilbert text-3xl 2xl:text-4xl text-foreground leading-tight">Upcoming Trips</h2>
-        <p className="text-sm text-muted-foreground mt-1">Register your interest in any of our upcoming adventures</p>
+    <div className="relative h-full overflow-auto">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
       </div>
-
-      {featured && <FeaturedTripCard trip={featured} location={getLocation(featured.locationId)} />}
-
-      {rest.length > 0 && (
-        <div className="flex flex-col gap-4">
-          {rest.map(trip => (
-            <TripCard key={trip.id} trip={trip} location={getLocation(trip.locationId)} />
-          ))}
+      <div className="relative flex flex-col px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-5 lg:py-6 xl:py-8" style={{ zIndex: 1 }}>
+        <div className="w-full mb-6">
+          <h2 className="font-gilbert text-3xl xl:text-4xl text-white leading-tight drop-shadow">Upcoming Trips</h2>
+          <p className="text-sm text-white/70 mt-1">Register your interest in any of our upcoming adventures</p>
         </div>
-      )}
+
+        {featured && <FeaturedTripCard trip={featured} location={getLocation(featured.locationId)} />}
+
+        {rest.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {rest.map(trip => (
+              <TripCard key={trip.id} trip={trip} location={getLocation(trip.locationId)} showRegisterInterest={trip.showRegisterInterest} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash2, Pencil, Loader2, CheckCircle2, X, Eye, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight } from 'lucide-react'
+import { Trash2, Pencil, Loader2, CheckCircle2, X, Eye, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight, CalendarDays, Plus, KeyRound, Users, RefreshCw, ShieldCheck } from 'lucide-react'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
 import { parsePdf, type ParsedReview } from '@/lib/parsePdf'
@@ -26,12 +26,12 @@ interface PostForm {
   title: string; staff: string; staffImage: string | null
   review: string; locName: string; locationId: string | null
   date: string; tags: string; images: string[]
-  extras: PostExtras; folder: string | null
+  extras: PostExtras; salesNote: string; folder: string | null
 }
 
 
 interface TripForm {
-  name: string; description: string; participants: string; date: string; image: string | null; locationId: string | null; external: boolean
+  name: string; description: string; participants: string; date: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean
 }
 
 interface LocationForm {
@@ -42,20 +42,20 @@ const emptyPostForm = (): PostForm => ({
   title: '', staff: '', staffImage: null, review: '', locName: '',
   locationId: null, date: today(), tags: '', images: [],
   extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
-  folder: null,
+  salesNote: '', folder: null,
 })
 
 const emptyTripForm = (): TripForm => ({
-  name: '', description: '', participants: '', date: today(), image: null, locationId: null, external: false,
+  name: '', description: '', participants: '', date: today(), image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false,
 })
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
 
-interface Props { open: boolean; onOpenChange: (open: boolean) => void; initialPost?: Post }
+interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
-export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
-  const { state, togglePin, addPost, editPost, deletePost, deleteSubmission, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip } = useApp()
-  const { posts, courses, submissions, trips, locations, settings } = state
+export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
+  const { state, togglePin, addPost, editPost, deletePost, deleteSubmission, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid } = useApp()
+  const { posts, courses, submissions, trips, locations, settings, registrations, userProfiles } = state
 
   const [tab, setTab] = useState('post')
   const [postForm, setPostForm] = useState<PostForm>(emptyPostForm())
@@ -73,28 +73,30 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
   const [manageFolder, setManageFolder] = useState<string | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
 
-  const [sTitle, setSTitle] = useState(settings.title)
-  const [sHeading, setSHeading] = useState(settings.heading)
-  const [sWelcome, setSWelcome] = useState(settings.welcome)
-  const [sColor, setSColor] = useState(settings.color)
-  const [sHex, setSHex] = useState(settings.color)
   const [sPwd, setSPwd] = useState('')
-  const [sAirportName, setSAirportName] = useState(settings.departureAirport?.name ?? 'LHR')
-  const [sAirportLat, setSAirportLat] = useState(String(settings.departureAirport?.lat ?? 51.5074))
-  const [sAirportLng, setSAirportLng] = useState(String(settings.departureAirport?.lng ?? -0.1278))
 
+
+  const [usersLoaded, setUsersLoaded] = useState(false)
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [userSearch, setUserSearch] = useState('')
+  const [expandedUser, setExpandedUser] = useState<string | null>(null)
+  const [expandedRegTrip, setExpandedRegTrip] = useState<string | null>(null)
 
   useEffect(() => {
-    if (open) {
-      setSTitle(settings.title); setSHeading(settings.heading)
-      setSWelcome(settings.welcome); setSColor(settings.color)
-      setSHex(settings.color); setSPwd('')
-      setSAirportName(settings.departureAirport?.name ?? 'LHR')
-      setSAirportLat(String(settings.departureAirport?.lat ?? 51.5074))
-      setSAirportLng(String(settings.departureAirport?.lng ?? -0.1278))
+    if (open || inline) {
+      setSPwd('')
       if (initialPost) startEditPost(initialPost)
+      loadRegistrations()
     }
-  }, [open])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, inline])
+
+  async function handleLoadUsers() {
+    setUsersLoading(true)
+    try { await loadUserProfiles(); setUsersLoaded(true) }
+    catch { toast.error('Failed to load users') }
+    finally { setUsersLoading(false) }
+  }
 
   function setPost<K extends keyof PostForm>(key: K, value: PostForm[K]) {
     setPostForm((f) => ({ ...f, [key]: value }))
@@ -122,6 +124,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       images: existingImages,
       pinned: editingPostId ? (posts.find(p => p.id === editingPostId)?.pinned ?? false) : false,
       extras: postForm.extras ?? EMPTY_EXTRAS,
+      salesNote: postForm.salesNote.trim() || null,
       userId: null,
       status: 'approved',
       folder: postForm.folder ?? null,
@@ -149,6 +152,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       date: post.date || today(), tags: post.tags.join(', '),
       images: post.images,
       extras: post.extras ?? EMPTY_EXTRAS,
+      salesNote: post.salesNote ?? '',
       folder: post.folder ?? null,
     })
     setEditingPostId(post.id); setTab('post')
@@ -168,6 +172,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       date: sub.date || today(), tags: '',
       images: sub.images,
       extras: sub.extras ?? EMPTY_EXTRAS,
+      salesNote: sub.salesNote ?? '',
       folder: null,
     })
     setEditingPostId(null)
@@ -216,6 +221,7 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       tags: '',
       images: r.images,
       extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
+      salesNote: '',
       folder: null,
     })
     setEditingPostId(null)
@@ -242,6 +248,9 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       image: tripForm.image?.startsWith('https:') ? tripForm.image : null,
       locationId: tripForm.locationId,
       external: tripForm.external,
+      international: tripForm.international,
+      showRegisterInterest: tripForm.showRegisterInterest,
+      completed: tripForm.completed,
     }
     setSubmitting(true)
     try {
@@ -264,6 +273,9 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
       date: trip.date || today(), image: trip.image,
       locationId: trip.locationId ?? null,
       external: trip.external ?? false,
+      international: trip.international ?? false,
+      showRegisterInterest: trip.showRegisterInterest ?? false,
+      completed: trip.completed ?? false,
     })
     setEditingTripId(trip.id); setTab('trips')
   }
@@ -275,10 +287,10 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
   }
 
   async function handleTripComplete(trip: Trip) {
-    if (!confirm(`Mark "${trip.name}" as complete? It will be moved to the feed and By Year tab.`)) return
+    if (!confirm(`Mark "${trip.name}" as complete? It will move to the By Year tab.`)) return
     try {
       await completeTrip(trip)
-      toast.success('Trip complete — it now appears in the feed and By Year tab')
+      toast.success('Trip marked complete — now visible in By Year tab')
     } catch (err) {
       console.error(err); toast.error('Failed to complete trip')
     }
@@ -318,35 +330,13 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
 
   // ── Settings ──────────────────────────────────────────────────────────────
 
-  function handleColorPicker(hex: string) { setSColor(hex); setSHex(hex) }
-
-  function handleHexInput(raw: string) {
-    setSHex(raw)
-    const clean = raw.startsWith('#') ? raw : `#${raw}`
-    if (/^#[0-9a-fA-F]{6}$/.test(clean)) setSColor(clean)
-  }
-
   async function handleSaveSettings() {
-    if (sPwd && sPwd.length !== 4) {
-      toast.error('Admin PIN must be exactly 4 digits')
-      return
-    }
+    if (!sPwd) { toast.error('Enter a new PIN'); return }
+    if (sPwd.length !== 4) { toast.error('PIN must be exactly 4 digits'); return }
     try {
-      await saveSettings({
-        ...settings,
-        title: sTitle || 'Staff Travel Hub',
-        heading: sHeading || 'Latest Staff Adventures',
-        welcome: sWelcome,
-        color: sColor,
-        password: sPwd || settings.password,
-        departureAirport: {
-          name: sAirportName.trim().toUpperCase() || 'LHR',
-          lat: parseFloat(sAirportLat) || 51.5074,
-          lng: parseFloat(sAirportLng) || -0.1278,
-        },
-      })
-      setSPwd(''); toast.success('Settings saved!')
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Failed to save settings') }
+      await saveSettings({ ...settings, password: sPwd })
+      setSPwd(''); toast.success('PIN updated!')
+    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Failed to save') }
   }
 
 
@@ -368,24 +358,31 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
     catch { toast.error('Failed to remove folder') }
   }
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg">
-        <DialogHeader>
-          <DialogTitle>Admin Panel</DialogTitle>
-        </DialogHeader>
-        <DialogBody className="pt-2">
-          <Tabs value={tab} onValueChange={setTab}>
+  const tabsContent = (
+          <Tabs value={tab} onValueChange={(v) => { setTab(v); if (v === 'registrations') loadRegistrations() }}>
             <TabsList className="overflow-x-auto flex-nowrap">
               <TabsTrigger value="post" className="px-3 text-xs">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
               <TabsTrigger value="locations" className="px-3 text-xs">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>
               <TabsTrigger value="trips" className="px-3 text-xs">{editingTripId ? 'Edit Trip' : 'Upcoming Trips'}</TabsTrigger>
+              <TabsTrigger value="years" className="px-3 text-xs">By Year</TabsTrigger>
+              <TabsTrigger value="registrations" className="px-3 text-xs">
+                Registrations
+                {registrations.length > 0 && (
+                  <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{registrations.length}</span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="manage" className="px-3 text-xs">
                 Manage
                 {submissions.length > 0 && (
                   <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">
                     {submissions.length}
                   </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="users" className="px-3 text-xs">
+                Users
+                {userProfiles.length > 0 && (
+                  <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{userProfiles.length}</span>
                 )}
               </TabsTrigger>
               <TabsTrigger value="settings" className="px-3 text-xs">Settings</TabsTrigger>
@@ -471,6 +468,16 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
 
               {/* ── Extras sections ── */}
               <ReviewExtras value={postForm.extras} onChange={(e) => setPost('extras', e)} />
+
+              <div className="space-y-1.5">
+                <Label>Sales Note <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Textarea
+                  placeholder="Internal sales note — tips, highlights or talking points for the sales team…"
+                  value={postForm.salesNote}
+                  onChange={(e) => setPost('salesNote', e.target.value)}
+                  rows={3}
+                />
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
@@ -656,17 +663,55 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
                 </select>
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  id="trip-external"
-                  type="checkbox"
-                  checked={tripForm.external}
-                  onChange={(e) => setTrip('external', e.target.checked)}
-                  className="h-4 w-4 rounded border-input accent-primary"
-                />
-                <label htmlFor="trip-external" className="text-sm font-medium select-none cursor-pointer">
-                  External trip
-                </label>
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    id="trip-external"
+                    type="checkbox"
+                    checked={tripForm.external}
+                    onChange={(e) => setTrip('external', e.target.checked)}
+                    className="h-4 w-4 rounded border-input accent-primary"
+                  />
+                  <label htmlFor="trip-external" className="text-sm font-medium select-none cursor-pointer">
+                    External trip
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="trip-international"
+                    type="checkbox"
+                    checked={tripForm.international}
+                    onChange={(e) => setTrip('international', e.target.checked)}
+                    className="h-4 w-4 rounded border-input accent-primary"
+                  />
+                  <label htmlFor="trip-international" className="text-sm font-medium select-none cursor-pointer">
+                    International
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="trip-completed"
+                    type="checkbox"
+                    checked={tripForm.completed}
+                    onChange={(e) => setTrip('completed', e.target.checked)}
+                    className="h-4 w-4 rounded border-input accent-primary"
+                  />
+                  <label htmlFor="trip-completed" className="text-sm font-medium select-none cursor-pointer">
+                    Mark as completed
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="trip-register-interest"
+                    type="checkbox"
+                    checked={tripForm.showRegisterInterest}
+                    onChange={(e) => setTrip('showRegisterInterest', e.target.checked)}
+                    className="h-4 w-4 rounded border-input accent-primary"
+                  />
+                  <label htmlFor="trip-register-interest" className="text-sm font-medium select-none cursor-pointer">
+                    Show Register Interest
+                  </label>
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -677,12 +722,12 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
               </div>
               {editingTripId && <p className="text-right text-xs text-amber-500">Editing existing trip</p>}
 
-              {trips.length > 0 && (
+              {trips.filter(t => !t.completed).length > 0 && (
                 <>
                   <hr className="border-border" />
-                  <h3 className="font-semibold text-sm">All Trips ({trips.length})</h3>
+                  <h3 className="font-semibold text-sm">Upcoming Trips ({trips.filter(t => !t.completed).length})</h3>
                   <div className="space-y-2">
-                    {[...trips].sort((a, b) => b.date.localeCompare(a.date)).map(t => (
+                    {[...trips].filter(t => !t.completed).sort((a, b) => a.date.localeCompare(b.date)).map(t => (
                       <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/30">
                         {t.image
                           ? <img src={t.image} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
@@ -713,6 +758,277 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
                   </div>
                 </>
               )}
+            </TabsContent>
+
+            {/* ── BY YEAR ── */}
+            <TabsContent value="years" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">Manually add past trips directly to the By Year view</p>
+                <Button size="sm" className="gap-1.5 flex-shrink-0" onClick={() => {
+                  setTripForm({ ...emptyTripForm(), completed: true })
+                  setEditingTripId(null)
+                  setTab('trips')
+                }}>
+                  <Plus className="h-3.5 w-3.5" /> Add Past Trip
+                </Button>
+              </div>
+              {(() => {
+                const completedTrips = [...trips].filter(t => t.completed).sort((a, b) => b.date.localeCompare(a.date))
+                if (completedTrips.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                      <CalendarDays className="h-10 w-10 text-primary/30 mb-3" />
+                      <p className="text-sm font-medium text-foreground">No completed trips yet</p>
+                      <p className="text-xs text-center mt-1">Add a past trip using the button above, or mark upcoming trips as complete</p>
+                    </div>
+                  )
+                }
+                const years = [...new Set(completedTrips.map(t => t.date?.slice(0, 4) || 'Unknown'))].sort((a, b) => b.localeCompare(a))
+                return (
+                  <>
+                    <p className="text-sm text-muted-foreground">{completedTrips.length} completed trip{completedTrips.length !== 1 ? 's' : ''}</p>
+                    {years.map(year => {
+                      const yearTrips = completedTrips.filter(t => (t.date?.slice(0, 4) || 'Unknown') === year)
+                      return (
+                        <div key={year}>
+                          <h3 className="font-gilbert text-base mb-2 text-foreground">{year}</h3>
+                          <div className="space-y-2">
+                            {yearTrips.map(t => {
+                              const loc = t.locationId ? locations.find(l => l.id === t.locationId) : null
+                              return (
+                                <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/30">
+                                  {t.image
+                                    ? <img src={t.image} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                                    : <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Plane className="h-5 w-5 text-primary/50" /></div>
+                                  }
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="font-semibold text-sm truncate">{t.name}</p>
+                                      {t.external && <span className="text-[10px] font-medium bg-primary/10 text-primary rounded-full px-1.5 py-0.5 flex-shrink-0">External</span>}
+                                    </div>
+                                    {loc && <p className="text-xs text-primary flex items-center gap-1 mt-0.5 truncate"><MapPin className="h-3 w-3 flex-shrink-0" />{loc.name}</p>}
+                                    {t.participants.length > 0 && <p className="text-xs text-muted-foreground truncate">{t.participants.join(', ')}</p>}
+                                    {t.date && <p className="text-xs text-muted-foreground">{fmtDate(t.date)}</p>}
+                                  </div>
+                                  <div className="flex gap-1.5 flex-shrink-0">
+                                    <Button size="sm" variant="secondary" onClick={() => { startEditTrip(t); setTab('trips') }}><Pencil className="h-3 w-3" /></Button>
+                                    <Button size="sm" variant="destructive" onClick={() => handleDeleteTrip(t.id)}><Trash2 className="h-3 w-3" /></Button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </>
+                )
+              })()}
+            </TabsContent>
+
+            {/* ── REGISTRATIONS ── */}
+            <TabsContent value="registrations" className="p-0 mt-0">
+              {(() => {
+                const STATUS_LABELS: Record<string, string> = {
+                  requested: 'Requested',
+                  pending_confirmation: 'Pending Confirmation',
+                  confirmed: 'Confirmed',
+                  refused: 'Refused',
+                }
+                const STATUS_STYLES: Record<string, string> = {
+                  requested: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+                  pending_confirmation: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                  confirmed: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+                  refused: 'bg-destructive/10 text-destructive border-destructive/20',
+                }
+
+                const BG_REG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=1920&q=80'
+                const todayStr = new Date().toISOString().slice(0, 10)
+                const upcomingTrips = trips
+                  .filter(t => t.date >= todayStr && !t.completed)
+                  .sort((a, b) => a.date.localeCompare(b.date))
+
+                const regsByTrip = new Map<string, typeof registrations>()
+                for (const r of registrations) {
+                  if (!regsByTrip.has(r.tripId)) regsByTrip.set(r.tripId, [])
+                  regsByTrip.get(r.tripId)!.push(r)
+                }
+
+                function getLocation(locationId: string | null) {
+                  return locationId ? (locations.find(l => l.id === locationId) ?? null) : null
+                }
+
+                // ── Detail page ──────────────────────────────────────────────
+                if (expandedRegTrip) {
+                  const trip = trips.find(t => t.id === expandedRegTrip)
+                  const items = regsByTrip.get(expandedRegTrip) ?? []
+                  const loc = trip ? getLocation(trip.locationId) : null
+                  return (
+                    <div className="space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => setExpandedRegTrip(null)}
+                          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                          <ChevronRight className="h-4 w-4 rotate-180" /> Back
+                        </button>
+                      </div>
+
+                      {trip && (
+                        <div className="rounded-2xl overflow-hidden bg-card border border-border/60">
+                          <div className="flex gap-3 p-3 items-center">
+                            {trip.image
+                              ? <img src={trip.image} alt={trip.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                              : <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Plane className="h-6 w-6 text-primary/40" /></div>
+                            }
+                            <div className="min-w-0">
+                              <h3 className="font-gilbert text-lg leading-tight">{trip.name}</h3>
+                              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
+                                {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
+                                <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <p className="text-sm text-muted-foreground">{items.length} registration{items.length !== 1 ? 's' : ''}</p>
+
+                      {items.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                          <Users className="h-8 w-8 mb-2 opacity-30" />
+                          <p className="text-sm">No registrations for this trip yet</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {items.map(r => (
+                            <div key={r.id} className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <p className="font-semibold text-sm">{r.firstName} {r.lastName}</p>
+                                  {r.email && <p className="text-xs text-muted-foreground mt-0.5">{r.email}</p>}
+                                  {r.passportNumber && <p className="text-xs text-muted-foreground mt-0.5">Passport: {r.passportNumber}</p>}
+                                  {r.passportFirstName && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                      {r.passportFirstName}{r.passportMiddleNames ? ` ${r.passportMiddleNames}` : ''} {r.passportLastName}
+                                      {r.dob ? ` · DOB: ${new Date(r.dob).toLocaleDateString('en-GB')}` : ''}
+                                    </p>
+                                  )}
+                                  {r.medicalInfo && <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Medical: {r.medicalInfo}</p>}
+                                  {r.dataConsent && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">✓ Data consent</p>}
+                                </div>
+                                <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status]}`}>
+                                  {STATUS_LABELS[r.status]}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {(['requested', 'pending_confirmation', 'confirmed', 'refused'] as const).map(s => (
+                                  <button key={s} onClick={() => setRegistrationStatus(r.id, s)} disabled={r.status === s}
+                                    className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-colors disabled:opacity-40 disabled:cursor-default ${r.status === s ? STATUS_STYLES[s] : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'}`}>
+                                    {STATUS_LABELS[s]}
+                                  </button>
+                                ))}
+                                <button onClick={() => { if (confirm('Delete this registration?')) removeRegistration(r.id) }}
+                                  className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Delete">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+
+                // ── Trip list page ───────────────────────────────────────────
+                const [featured, ...rest] = upcomingTrips
+
+                return (
+                  <div className="relative min-h-[400px]">
+                    <div className="absolute inset-0 overflow-hidden rounded-b-lg pointer-events-none">
+                      <div style={{ position:'absolute', inset:0, backgroundImage:`url(${BG_REG})`, backgroundSize:'cover', backgroundPosition:'center', filter:'blur(14px) brightness(0.4) saturate(1.1)', transform:'scale(1.1)' }} />
+                    </div>
+
+                    <div className="relative p-4 space-y-4" style={{ zIndex: 1 }}>
+                      <p className="text-white/70 text-xs">{registrations.length} registration{registrations.length !== 1 ? 's' : ''} across {upcomingTrips.length} upcoming trip{upcomingTrips.length !== 1 ? 's' : ''}</p>
+
+                      {upcomingTrips.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-16 text-white/60">
+                          <Plane className="h-10 w-10 mb-3 opacity-40" />
+                          <p className="text-sm font-medium text-white">No upcoming trips</p>
+                        </div>
+                      )}
+
+                      {featured && (() => {
+                        const loc = getLocation(featured.locationId)
+                        const regs = regsByTrip.get(featured.id) ?? []
+                        return (
+                          <div className="rounded-2xl overflow-hidden bg-card shadow-lg">
+                            <div className="flex flex-col sm:flex-row min-h-[180px]">
+                              <div className="relative sm:w-2/5 flex-shrink-0 min-h-[140px] sm:min-h-0">
+                                {featured.image
+                                  ? <img src={featured.image} alt={featured.name} className="absolute inset-0 w-full h-full object-cover" />
+                                  : <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><Plane className="h-10 w-10 text-primary/30" /></div>
+                                }
+                                <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-full">Next Trip</div>
+                              </div>
+                              <div className="flex-1 p-4 flex flex-col justify-between gap-3">
+                                <div>
+                                  <h3 className="font-gilbert text-lg leading-tight mb-1">{featured.name}</h3>
+                                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                                    {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
+                                    <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{new Date(featured.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
+                                  </div>
+                                </div>
+                                <button onClick={() => setExpandedRegTrip(featured.id)}
+                                  className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors self-start">
+                                  <Users className="h-4 w-4" />
+                                  Registrations ({regs.length})
+                                  <ChevronRight className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })()}
+
+                      {rest.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {rest.map(trip => {
+                            const loc = getLocation(trip.locationId)
+                            const regs = regsByTrip.get(trip.id) ?? []
+                            return (
+                              <div key={trip.id} className="rounded-2xl overflow-hidden bg-card shadow-sm flex flex-col">
+                                <div className="relative w-full h-32 flex-shrink-0">
+                                  {trip.image
+                                    ? <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
+                                    : <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center"><Plane className="h-8 w-8 text-primary/25" /></div>
+                                  }
+                                </div>
+                                <div className="flex-1 p-3 flex flex-col gap-2">
+                                  <div>
+                                    <h3 className="font-gilbert text-base leading-tight mb-0.5">{trip.name}</h3>
+                                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                                      {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
+                                      <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
+                                    </div>
+                                  </div>
+                                  <button onClick={() => setExpandedRegTrip(trip.id)}
+                                    className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors self-start">
+                                    <Users className="h-3.5 w-3.5" />
+                                    Registrations ({regs.length})
+                                    <ChevronRight className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })()}
             </TabsContent>
 
             {/* ── MANAGE ── */}
@@ -960,80 +1276,214 @@ export function AdminPanel({ open, onOpenChange, initialPost }: Props) {
               })()}
             </TabsContent>
 
+            {/* ── USERS ── */}
+            <TabsContent value="users" className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <input
+                    type="search"
+                    placeholder="Search by email address…"
+                    value={userSearch}
+                    onChange={e => setUserSearch(e.target.value)}
+                    className="w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+                <Button size="sm" variant="secondary" className="gap-1.5 flex-shrink-0" onClick={handleLoadUsers} disabled={usersLoading}>
+                  {usersLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  {usersLoaded ? 'Refresh' : 'Load Users'}
+                </Button>
+              </div>
+
+              {!usersLoaded ? (
+                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                  <Users className="h-10 w-10 text-primary/30 mb-3" />
+                  <p className="text-sm font-medium text-foreground">User accounts</p>
+                  <p className="text-xs mt-1 text-center">Click "Load Users" to fetch all registered accounts</p>
+                </div>
+              ) : (() => {
+                const q = userSearch.toLowerCase()
+                const emailMatchUids = q
+                  ? new Set(registrations.filter(r => r.email.toLowerCase().includes(q)).map(r => r.uid).filter(Boolean) as string[])
+                  : null
+                const filtered = userProfiles.filter(u =>
+                  !q || emailMatchUids?.has(u.uid)
+                )
+
+                if (filtered.length === 0) return (
+                  <p className="text-center text-sm text-muted-foreground py-8">
+                    {userProfiles.length === 0 ? 'No registered users yet' : 'No users match your search'}
+                  </p>
+                )
+
+                return (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">{filtered.length} user{filtered.length !== 1 ? 's' : ''}{filtered.length !== userProfiles.length ? ` of ${userProfiles.length}` : ''}</p>
+                    {filtered.map(u => {
+                      const isExpanded = expandedUser === u.uid
+                      const userRegistrations = registrations.filter(r => r.uid === u.uid)
+                      return (
+                        <div key={u.uid} className="rounded-xl border border-border/60 bg-card overflow-hidden">
+                          <button
+                            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 transition-colors"
+                            onClick={() => setExpandedUser(isExpanded ? null : u.uid)}
+                          >
+                            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-sm font-semibold text-primary">
+                                {u.firstName?.[0]}{u.lastName?.[0]}
+                              </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm">{u.firstName} {u.lastName}</p>
+                              {(() => {
+                                const email = registrations.find(r => r.uid === u.uid)?.email
+                                return email ? <p className="text-xs text-muted-foreground truncate">{email}</p> : null
+                              })()}
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {(settings.adminUids ?? []).includes(u.uid) && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Admin</span>
+                              )}
+                              {u.dataConsent && <ShieldCheck className="h-4 w-4 text-emerald-500" title="Data consent given" />}
+                              {userRegistrations.length > 0 && (
+                                <span className="text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">{userRegistrations.length} trip{userRegistrations.length !== 1 ? 's' : ''}</span>
+                              )}
+                              <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                            </div>
+                          </button>
+
+                          {isExpanded && (
+                            <div className="border-t border-border/60 px-4 py-4 space-y-4 bg-muted/20">
+                              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-0.5">Full name</p>
+                                  <p className="font-medium">{u.firstName} {u.lastName}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-0.5">Date of birth</p>
+                                  <p className="font-medium">{u.dob ? new Date(u.dob).toLocaleDateString('en-GB') : '—'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-0.5">Passport name</p>
+                                  <p className="font-medium">{u.passportFirstName} {u.passportMiddleNames ? `${u.passportMiddleNames} ` : ''}{u.passportLastName}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-0.5">Passport number</p>
+                                  <p className="font-medium font-mono">{u.passportNumber || '—'}</p>
+                                </div>
+                                {u.medicalInfo && (
+                                  <div className="col-span-2">
+                                    <p className="text-xs text-muted-foreground mb-0.5">Medical info</p>
+                                    <p className="font-medium text-amber-600 dark:text-amber-400">{u.medicalInfo}</p>
+                                  </div>
+                                )}
+                                <div className="col-span-2">
+                                  <p className="text-xs text-muted-foreground mb-0.5">Data consent</p>
+                                  <p className={`font-medium text-sm ${u.dataConsent ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                                    {u.dataConsent ? '✓ Consented' : 'Not given'}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {userRegistrations.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Trip Registrations</p>
+                                  <div className="space-y-1.5">
+                                    {userRegistrations.map(r => (
+                                      <div key={r.id} className="flex items-center justify-between gap-2 rounded-lg bg-card border border-border/60 px-3 py-2 text-sm">
+                                        <span className="font-medium truncate">{r.tripName}</span>
+                                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${
+                                          r.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                                          r.status === 'pending_confirmation' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
+                                          r.status === 'refused' ? 'bg-destructive/10 text-destructive border-destructive/20' :
+                                          'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                                        }`}>{r.status.replace('_', ' ')}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              <p className="text-[10px] text-muted-foreground font-mono">UID: {u.uid}</p>
+                              <div className="flex items-center justify-between gap-2 pt-1">
+                                {(() => {
+                                  const isAdmin = (settings.adminUids ?? []).includes(u.uid)
+                                  return (
+                                    <Button
+                                      size="sm"
+                                      variant={isAdmin ? 'secondary' : 'default'}
+                                      onClick={() => toggleAdminUid(u.uid)}
+                                      className="gap-1.5"
+                                    >
+                                      <ShieldCheck className="h-3.5 w-3.5" />
+                                      {isAdmin ? 'Revoke Admin Access' : 'Grant Admin Access'}
+                                    </Button>
+                                  )
+                                })()}
+                                <Button
+                                  size="sm" variant="destructive"
+                                  onClick={() => { if (confirm(`Delete account for ${u.firstName} ${u.lastName}? This removes their saved profile but not their login.`)) removeUserProfile(u.uid) }}
+                                  className="gap-1.5"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" /> Delete Profile
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+            </TabsContent>
+
             {/* ── SETTINGS ── */}
-            <TabsContent value="settings" className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Site Title</Label>
-                  <Input placeholder="Staff Travel Hub" value={sTitle} onChange={(e) => setSTitle(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Feed Heading</Label>
-                  <Input placeholder="Latest Staff Adventures" value={sHeading} onChange={(e) => setSHeading(e.target.value)} />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Welcome Message</Label>
-                <Input placeholder="Explore our team's adventures!" value={sWelcome} onChange={(e) => setSWelcome(e.target.value)} />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Primary Colour</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {PALETTE.map((c) => (
-                    <button key={c} type="button" onClick={() => handleColorPicker(c)}
-                      className={`w-8 h-8 rounded-full transition-all border-2 ${sColor === c ? 'border-foreground scale-110' : 'border-transparent'}`}
-                      style={{ background: c }} />
-                  ))}
-                </div>
-                <div className="flex gap-2 items-center">
-                  <input type="color" value={sColor} onChange={(e) => handleColorPicker(e.target.value)}
-                    className="h-10 w-12 rounded-md border border-input cursor-pointer flex-shrink-0" />
-                  <Input placeholder="#0077b6" value={sHex} onChange={(e) => handleHexInput(e.target.value)} className="font-mono" maxLength={7} />
-                </div>
-              </div>
-
-              <hr className="border-border" />
-
-              <div className="space-y-2">
-                <Label>Departure Airport</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">IATA Code</Label>
-                    <Input placeholder="LHR" value={sAirportName} onChange={(e) => setSAirportName(e.target.value)} maxLength={4} />
+            <TabsContent value="settings" className="space-y-3">
+              <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <KeyRound className="h-4 w-4 text-primary" />
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Latitude</Label>
-                    <Input type="number" step="0.0001" placeholder="51.5074" value={sAirportLat} onChange={(e) => setSAirportLat(e.target.value)} />
+                  <div>
+                    <p className="font-semibold text-sm">Security</p>
+                    <p className="text-xs text-muted-foreground">Change the admin PIN — leave blank to keep existing</p>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Longitude</Label>
-                    <Input type="number" step="0.0001" placeholder="-0.1278" value={sAirportLng} onChange={(e) => setSAirportLng(e.target.value)} />
+                </div>
+                <div className="p-5">
+                  <div className="max-w-[180px] space-y-1.5">
+                    <Label>New Admin PIN</Label>
+                    <Input
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      placeholder="••••"
+                      value={sPwd}
+                      onChange={(e) => setSPwd(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className="font-mono tracking-[0.5em] text-center text-lg"
+                    />
                   </div>
                 </div>
               </div>
 
-              <hr className="border-border" />
-
-              <div className="space-y-1.5">
-                <Label>New Admin PIN <span className="font-normal text-muted-foreground">(4 digits — leave blank to keep current)</span></Label>
-                <Input
-                  type="password"
-                  inputMode="numeric"
-                  maxLength={4}
-                  placeholder="••••"
-                  value={sPwd}
-                  onChange={(e) => setSPwd(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <Button onClick={handleSaveSettings}>Save Settings</Button>
+              <div className="flex justify-end pt-1 pb-1">
+                <Button onClick={handleSaveSettings} className="px-6">Save PIN</Button>
               </div>
             </TabsContent>
 
           </Tabs>
+  )
+
+  if (inline) return tabsContent
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent size="lg">
+        <DialogHeader>
+          <DialogTitle>Admin Panel</DialogTitle>
+        </DialogHeader>
+        <DialogBody className="pt-2">
+          {tabsContent}
         </DialogBody>
       </DialogContent>
     </Dialog>

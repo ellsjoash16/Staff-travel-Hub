@@ -94,7 +94,9 @@
 }
 
 .font-gilbert {
-  font-family: 'Gilbert', sans-serif;
+  font-family: 'Barlow Semi Condensed', sans-serif;
+  font-weight: 700;
+  font-style: italic;
 }
 
 .btn-gradient {
@@ -166,3 +168,6 @@
 /* Hide scrollbar */
 .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Hide Mapbox logo */
+.mapboxgl-ctrl-logo { display: none !important; }

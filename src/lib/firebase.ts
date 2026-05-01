@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { initializeFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
+import { getAuth, OAuthProvider } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
@@ -17,3 +18,5 @@ export const db = initializeFirestore(app, {
   experimentalAutoDetectLongPolling: true,
 })
 export const storage = getStorage(app)
+export const auth = getAuth(app)
+export const microsoftProvider = new OAuthProvider('microsoft.com')

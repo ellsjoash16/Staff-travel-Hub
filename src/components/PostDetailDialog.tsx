@@ -172,6 +172,16 @@ export function PostDetailDialog({ post, onOpenChange }: Props) {
               </div>
             )}
 
+            {/* ── Sales Note ── */}
+            {post.salesNote && (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 overflow-hidden">
+                <div className="px-4 py-3 border-b border-amber-500/15 bg-amber-500/8">
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400">Sales Note</h2>
+                </div>
+                <p className="px-4 py-3 text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{post.salesNote}</p>
+              </div>
+            )}
+
             {/* ── Review body ── */}
             <div className="space-y-5">
               {blocks.map((block, i) =>

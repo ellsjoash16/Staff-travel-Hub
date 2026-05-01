@@ -61,7 +61,7 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
 
         <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <Avatar className="h-9 w-9 2xl:h-11 2xl:w-11 ring-2 ring-white/80 flex-shrink-0 shadow-md">
+            <Avatar className="h-9 w-9 xl:h-10 xl:w-10 2xl:h-11 2xl:w-11 ring-2 ring-white/80 flex-shrink-0 shadow-md">
               {post.staffImage && <AvatarImage src={post.staffImage} alt={post.staff} className="object-cover" />}
               <AvatarFallback className="text-[10px] bg-primary text-primary-foreground font-semibold">
                 {initials(post.staff)}
@@ -82,10 +82,10 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
       </div>
 
       {/* Body with destination watermark */}
-      <div className="relative px-4 2xl:px-5 pt-3 2xl:pt-4 pb-2 2xl:pb-3 overflow-hidden">
+      <div className="relative px-4 xl:px-5 pt-3 xl:pt-4 pb-2 xl:pb-3 overflow-hidden">
         {post.location.name && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-            <span className="text-[4.5rem] font-black text-foreground/[0.04] whitespace-nowrap -rotate-12 leading-none tracking-widest uppercase">
+            <span className="text-[3.5rem] xl:text-[4.5rem] font-black text-foreground/[0.04] whitespace-nowrap -rotate-12 leading-none tracking-widest uppercase">
               {post.location.name}
             </span>
           </div>

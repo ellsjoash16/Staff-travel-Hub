@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { CalendarDays, MapPin, Plane } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
+
+const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -11,160 +13,135 @@ const MONTH_NAMES = [
 export function YearsView() {
   const { state } = useApp()
   const { trips, locations } = state
-
   const [externalOnly, setExternalOnly] = useState(false)
 
-  const visibleTrips = externalOnly ? trips.filter((t) => t.external) : trips
+  const completedTrips = trips.filter((t) => t.completed)
+  const visibleTrips = externalOnly ? completedTrips.filter((t) => t.external) : completedTrips
 
-  const years = [...new Set(
-    visibleTrips.map((t) => t.date?.slice(0, 4) || 'Unknown')
-  )].sort((a, b) => b.localeCompare(a))
+  const sorted = [...visibleTrips].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
 
-  const [activeYear, setActiveYear] = useState(years[0] || '')
-
-  useEffect(() => {
-    if (!years.includes(activeYear)) setActiveYear(years[0] || '')
-  }, [years, activeYear])
+  // Group by year → month
+  const yearMap = new Map<string, Map<string, typeof sorted>>()
+  sorted.forEach(trip => {
+    const year  = trip.date?.slice(0, 4) || 'Unknown'
+    const month = trip.date?.length >= 7 ? trip.date.slice(0, 7) : 'unknown'
+    if (!yearMap.has(year)) yearMap.set(year, new Map())
+    const mMap = yearMap.get(year)!
+    if (!mMap.has(month)) mMap.set(month, [])
+    mMap.get(month)!.push(trip)
+  })
+  const yearKeys = [...yearMap.keys()].sort((a, b) => b.localeCompare(a))
 
   if (trips.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 text-muted-foreground">
-        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
-          <CalendarDays className="h-10 w-10 text-primary/50" />
+      <div className="relative h-full overflow-auto">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
         </div>
-        <h3 className="font-gilbert text-xl mb-1 text-foreground">No trips yet</h3>
-        <p className="text-sm">An admin can add trips in the Admin Panel → Trips tab</p>
+        <div className="relative flex flex-col items-center justify-center h-full text-white/70">
+          <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-5">
+            <CalendarDays className="h-10 w-10 text-white/50" />
+          </div>
+          <h3 className="font-gilbert text-xl mb-1 text-white">No completed trips yet</h3>
+          <p className="text-sm">Trips will appear here once marked as complete</p>
+        </div>
       </div>
     )
   }
 
-  const yearTrips = [...visibleTrips]
-    .filter((t) => (t.date?.slice(0, 4) || 'Unknown') === activeYear)
-    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-
-  const monthMap = new Map<string, typeof yearTrips>()
-  yearTrips.forEach(trip => {
-    const key = trip.date?.length >= 7 ? trip.date.slice(0, 7) : 'unknown'
-    if (!monthMap.has(key)) monthMap.set(key, [])
-    monthMap.get(key)!.push(trip)
-  })
-  const monthKeys = [...monthMap.keys()].sort()
-
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between gap-4 mb-1">
-        <h2 className="font-gilbert text-3xl text-foreground">By Year</h2>
-        <button
-          onClick={() => setExternalOnly((v) => !v)}
-          className={`flex items-center gap-1.5 flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all border ${
-            externalOnly
-              ? 'bg-primary/10 border-primary/30 text-primary'
-              : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
-          }`}
-        >
-          External only
-        </button>
-      </div>
-      <p className="text-muted-foreground text-sm mb-6">
-        {visibleTrips.length} trip{visibleTrips.length !== 1 ? 's' : ''} across {years.length} year{years.length !== 1 ? 's' : ''}
-      </p>
-
-      {visibleTrips.length === 0 && externalOnly ? (
-        <p className="text-muted-foreground text-center py-12">No external trips found</p>
-      ) : null}
-
-      {/* Year pills */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        {years.map((year) => (
-          <button
-            key={year}
-            onClick={() => setActiveYear(year)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-all ${
-              activeYear === year
-                ? 'btn-gradient text-white shadow-sm'
-                : 'bg-card border border-border text-foreground hover:border-primary hover:text-primary'
-            }`}
-          >
-            {year}
-          </button>
-        ))}
+    <div className="relative h-full overflow-auto">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `url(${BG})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(14px) brightness(0.45) saturate(1.2)',
+          transform: 'scale(1.1)',
+        }} />
       </div>
 
-      {/* Timeline */}
-      {monthKeys.length === 0 ? (
-        <p className="text-muted-foreground text-center py-12">No trips in {activeYear}</p>
-      ) : (
-        <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
+      <div className="relative flex justify-center py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+        <div className="w-full max-w-[680px]">
 
-          <div className="space-y-8">
-            {monthKeys.map(monthKey => {
-              const mTrips = monthMap.get(monthKey)!
-              const monthName = monthKey === 'unknown'
-                ? 'Unknown Date'
-                : MONTH_NAMES[parseInt(monthKey.split('-')[1], 10) - 1]
+          {/* Header */}
+          <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-5 mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="font-gilbert text-2xl text-foreground leading-tight">By Year</h2>
+              <p className="text-muted-foreground text-sm mt-0.5">
+                {visibleTrips.length} trip{visibleTrips.length !== 1 ? 's' : ''} across {yearKeys.length} year{yearKeys.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <button
+              onClick={() => setExternalOnly((v) => !v)}
+              className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-all ${
+                externalOnly
+                  ? 'bg-primary/10 border-primary/30 text-primary'
+                  : 'bg-card/60 border-border text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              External only
+            </button>
+          </div>
 
+          {/* Timeline */}
+          <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-5 space-y-8">
+            {yearKeys.map(year => {
+              const mMap   = yearMap.get(year)!
+              const mKeys  = [...mMap.keys()].sort((a, b) => b.localeCompare(a))
               return (
-                <div key={monthKey}>
-                  {/* Month marker */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-primary/15 flex-shrink-0 z-10" />
-                    <h3 className="font-gilbert text-base text-foreground">{monthName}</h3>
-                    <div className="flex-1 h-px bg-border" />
-                    <span className="text-xs text-muted-foreground flex-shrink-0">
-                      {mTrips.length} trip{mTrips.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-
-                  {/* Trip cards */}
-                  <div className="ml-7 space-y-3">
-                    {mTrips.map(trip => {
-                      const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
+                <div key={year}>
+                  <h3 className="font-gilbert text-xl text-foreground mb-4">{year}</h3>
+                  <div className="space-y-6 pl-4 border-l-2 border-primary/30">
+                    {mKeys.map(monthKey => {
+                      const mTrips    = mMap.get(monthKey)!
+                      const monthName = monthKey === 'unknown'
+                        ? 'Unknown Date'
+                        : MONTH_NAMES[parseInt(monthKey.split('-')[1], 10) - 1]
                       return (
-                        <div
-                          key={trip.id}
-                          className="flex items-center gap-3 p-3 bg-card rounded-2xl border border-border/60"
-                        >
-                          {/* Thumbnail */}
-                          <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden">
-                            {trip.image ? (
-                              <img
-                                src={trip.image}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                                <Plane className="h-6 w-6 text-primary/50" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <p className="font-semibold text-sm text-foreground truncate leading-tight">{trip.name}</p>
-                              {trip.external && (
-                                <span className="inline-flex items-center flex-shrink-0 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 rounded px-1.5 py-0.5">
-                                  External
-                                </span>
-                              )}
-                            </div>
-                            {loc && (
-                              <p className="text-xs text-primary flex items-center gap-1 mt-0.5 truncate">
-                                <MapPin className="h-3 w-3 flex-shrink-0" />
-                                {loc.name}, {loc.country}
-                              </p>
-                            )}
-                            {trip.participants.length > 0 && (
-                              <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                                {trip.participants.join(', ')}
-                              </p>
-                            )}
-                            {trip.date && (
-                              <p className="text-[11px] text-muted-foreground/70 mt-0.5">{fmtDate(trip.date)}</p>
-                            )}
+                        <div key={monthKey}>
+                          <p className="text-xs font-semibold uppercase tracking-widest text-primary/70 mb-3">{monthName}</p>
+                          <div className="space-y-2">
+                            {mTrips.map(trip => {
+                              const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
+                              return (
+                                <div key={trip.id} className="flex items-center gap-3 p-3 bg-background/50 rounded-xl border border-border/30">
+                                  <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden">
+                                    {trip.image ? (
+                                      <img src={trip.image} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                        <Plane className="h-5 w-5 text-primary/50" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="font-semibold text-sm text-foreground truncate">{trip.name}</p>
+                                      {trip.external && (
+                                        <span className="flex-shrink-0 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 rounded px-1.5 py-0.5">
+                                          External
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                                      {loc && (
+                                        <span className="text-xs text-primary flex items-center gap-1">
+                                          <MapPin className="h-3 w-3" />{loc.name}, {loc.country}
+                                        </span>
+                                      )}
+                                      {trip.participants.length > 0 && (
+                                        <span className="text-xs text-muted-foreground">{trip.participants.join(', ')}</span>
+                                      )}
+                                      {trip.date && (
+                                        <span className="text-[11px] text-muted-foreground/60">{fmtDate(trip.date)}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
                           </div>
                         </div>
                       )
@@ -174,8 +151,9 @@ export function YearsView() {
               )
             })}
           </div>
+
         </div>
-      )}
+      </div>
     </div>
   )
 }

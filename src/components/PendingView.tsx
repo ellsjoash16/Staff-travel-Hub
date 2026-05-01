@@ -56,7 +56,7 @@ export function PendingView() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-5">
         <div className="flex items-center gap-3">
@@ -93,7 +93,7 @@ export function PendingView() {
 
       {/* List */}
       {!loading && pendingPosts.length > 0 && (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
           {pendingPosts.map(post => (
             <div
               key={post.id}

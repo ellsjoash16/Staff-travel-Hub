@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react'
-import { Shield, Menu, Sun, Moon, Settings } from 'lucide-react'
+import { Shield, Menu, Sun, Moon, Settings, Search, LogOut } from 'lucide-react'
+import { signOut } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 import { useApp } from '@/context/AppContext'
-import { AdminPanel } from './AdminPanel'
 import { DestinationSearch } from './DestinationSearch'
 
 interface Props {
   showMenuButton?: boolean
   onMenuClick?: () => void
+  showSidebar?: boolean
+  sidebarCollapsed?: boolean
 }
 
 
-export function Header({ showMenuButton, onMenuClick }: Props) {
+export function Header({ showMenuButton, onMenuClick, showSidebar, sidebarCollapsed }: Props) {
   const { state, dispatch } = useApp()
-  const { settings, isAdmin } = state
-  const [adminOpen, setAdminOpen] = useState(false)
+  const { isAdmin } = state
   const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
+  const [searchOpen, setSearchOpen] = useState(false)
 
   const logoOffset = (() => { try { const s = localStorage.getItem('logo-offset'); return s ? JSON.parse(s) : { x: 0, y: 0 } } catch { return { x: 0, y: 0 } } })()
 
-  // Close dropdown on outside click
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
     localStorage.setItem('theme', dark ? 'dark' : 'light')
@@ -27,14 +29,20 @@ export function Header({ showMenuButton, onMenuClick }: Props) {
   return (
     <>
       <header
-        className="sticky top-0 z-40 header-gradient"
-        style={{ boxShadow: '0 2px 24px hsl(var(--primary) / 0.45)' }}
+        className="sticky top-0 z-40 border-b border-white/10"
+        style={{ background: '#064e5a' }}
       >
         {/* ── Main row ── */}
-        <div className="mx-auto flex h-14 sm:h-16 2xl:h-20 max-w-[1440px] items-center px-4 sm:px-6 2xl:px-10 gap-3 2xl:gap-4">
+        <div className="flex h-14 sm:h-16 2xl:h-20 items-center pr-4 sm:pr-6 2xl:pr-10 gap-3 2xl:gap-4">
 
-          {/* Left: Hamburger + Logo + Title */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Left: Hamburger + Logo + Title — width matches sidebar */}
+          <div className={`flex items-center gap-2 flex-shrink-0 px-4 sm:px-3 ${
+            showSidebar
+              ? sidebarCollapsed
+                ? 'lg:w-16 xl:w-20 lg:justify-center lg:px-0'
+                : 'lg:w-60 xl:w-72 lg:px-4'
+              : ''
+          }`}>
             {showMenuButton && (
               <button
                 type="button"
@@ -48,57 +56,64 @@ export function Header({ showMenuButton, onMenuClick }: Props) {
             <img
               src="/daf-logo.png"
               alt="DAF"
-              className="h-7 sm:h-8 2xl:h-11 w-auto flex-shrink-0 drop-shadow-sm select-none"
+              className="h-[1.125rem] sm:h-6 2xl:h-[1.875rem] w-auto flex-shrink-0 drop-shadow-sm select-none"
               style={{ transform: `translate(${logoOffset.x}px, ${logoOffset.y}px)` }}
             />
             <button
               type="button"
               onClick={() => dispatch({ type: 'SET_VIEW', view: 'home' })}
-              className="hover:opacity-85 transition-opacity"
+              className={`hover:opacity-85 transition-opacity ${showSidebar && sidebarCollapsed ? 'lg:hidden' : ''}`}
             >
               <span className="font-gilbert text-white text-lg sm:text-2xl 2xl:text-3xl leading-none drop-shadow-sm whitespace-nowrap">
-                {settings.title}
+                DAFAGRAM
               </span>
             </button>
           </div>
 
-          {/* Centre: Search — desktop only */}
-          <div className="hidden sm:block h-6 w-px bg-white/20 flex-shrink-0" />
-          <div className="hidden sm:flex flex-1 min-w-0 max-w-md mx-auto">
-            <DestinationSearch />
-          </div>
-          <div className="hidden sm:block h-6 w-px bg-white/20 flex-shrink-0" />
+          {/* Centre: Search — desktop */}
+          {searchOpen ? (
+            <div className="hidden sm:flex flex-1 min-w-0 max-w-md mx-auto">
+              <DestinationSearch autoFocus onClose={() => setSearchOpen(false)} />
+            </div>
+          ) : (
+            <div className="hidden sm:flex flex-1" />
+          )}
 
-          {/* Right: Theme + Settings + Admin */}
-          <div className="ml-auto sm:ml-0 flex items-center gap-2 flex-shrink-0">
+          {/* Right: Search icon + Theme + Admin */}
+          <div className="ml-auto sm:ml-0 flex items-center gap-1 flex-shrink-0">
+            {!searchOpen && (
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="hidden sm:flex p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Search"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+            )}
+
             <button
               onClick={() => setDark(d => !d)}
-              className="flex items-center justify-center rounded-xl border border-white/25 bg-white/10 p-1.5 text-white transition-all hover:bg-white/20 hover:border-white/40 backdrop-blur-sm"
+              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Toggle theme"
             >
-              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
 
-            {!isAdmin && (
-              <button
-                onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}
-                className="flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-2.5 py-1.5 text-white transition-all hover:bg-white/20 hover:border-white/40 backdrop-blur-sm text-sm font-medium"
-                aria-label="Admin Access"
-              >
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Admin Access</span>
-              </button>
-            )}
+            <button
+              onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}
+              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label={isAdmin ? 'Admin' : 'Settings'}
+            >
+              {isAdmin ? <Shield className="h-5 w-5" /> : <Settings className="h-5 w-5" />}
+            </button>
 
-            {isAdmin && (
-              <button
-                onClick={() => setAdminOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-2.5 py-1.5 text-white transition-all hover:bg-white/20 hover:border-white/40 backdrop-blur-sm text-sm font-medium"
-              >
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Admin</span>
-              </button>
-            )}
+            <button
+              onClick={() => signOut(auth)}
+              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Sign out"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
           </div>
         </div>
 
@@ -108,7 +123,6 @@ export function Header({ showMenuButton, onMenuClick }: Props) {
         </div>
       </header>
 
-      <AdminPanel open={adminOpen} onOpenChange={setAdminOpen} />
     </>
   )
 }

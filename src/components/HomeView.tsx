@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import type { GlobeMethods } from 'react-globe.gl'
-import { Camera, Plane, CalendarDays, Send, ArrowRight, Globe2 } from 'lucide-react'
+import { Camera, Plane, CalendarDays, Send, ArrowRight, Globe2, ClipboardCheck } from 'lucide-react'
 
 const Globe = lazy(() => import('react-globe.gl'))
 import { useApp } from '@/context/AppContext'
@@ -15,10 +15,11 @@ interface PanelConfig {
 }
 
 const PANEL_IMAGES: Partial<Record<string, string>> = {
-  feed:    'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-feed-1777296695807.jpg?alt=media&token=078c590d-47cf-425d-b29a-97df70829b49',
-  upcoming: 'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-courses-1777296696827.jpg?alt=media&token=bd530e62-64ea-4fbf-b7eb-7ab02f622393',
-  years:   'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-years-1777296697735.jpg?alt=media&token=804fe1e5-38c5-4157-bc8b-2849939bed75',
-  submit:  'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-submit-1777296698453.jpg?alt=media&token=dd03c0ed-40db-4b92-badf-944c08d69409',
+  feed:     'https://images.unsplash.com/photo-1746125047145-d6698eef563a?auto=format&fit=crop&crop=center&w=1920&h=600&q=80',
+  upcoming: 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=1920&q=80',
+  interest: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80',
+  years:    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1920&q=80',
+  submit:   'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-submit-1777296698453.jpg?alt=media&token=dd03c0ed-40db-4b92-badf-944c08d69409',
 }
 
 const PANELS: PanelConfig[] = [
@@ -42,6 +43,13 @@ const PANELS: PanelConfig[] = [
     title: () => 'By Year',
     subtitle: 'Browse by year',
     color: 'from-violet-500/30 to-purple-600/20',
+  },
+  {
+    key: 'interest',
+    icon: <ClipboardCheck className="h-5 w-5 text-white" />,
+    title: () => 'My Registrations',
+    subtitle: 'Track your registered interest status',
+    color: 'from-sky-500/30 to-blue-600/20',
   },
   {
     key: 'submit',
@@ -241,26 +249,24 @@ export function HomeView() {
   }
 
   return (
-    <div className="h-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 2xl:gap-4 [grid-template-rows:repeat(5,minmax(0,1fr))] sm:[grid-template-rows:repeat(3,minmax(0,1fr))] md:[grid-template-rows:repeat(2,minmax(0,1fr))]">
-      <PanelCard
-        panel={PANELS[0]}
-        className="sm:col-span-2 md:col-span-2"
-        onClick={() => navigate('feed')}
-        bgImage={PANEL_IMAGES.feed ?? null}
-        headingText={settings.heading}
-        large
-      />
-      <MapPanel onClick={() => navigate('map')} />
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 2xl:gap-4
+      [grid-auto-rows:180px]
+      sm:h-full sm:[grid-auto-rows:unset] sm:[grid-template-rows:repeat(4,minmax(0,1fr))]
+      md:[grid-template-rows:repeat(3,minmax(0,1fr))]">
 
-      {PANELS.slice(1).map(panel => (
-        <PanelCard
-          key={panel.key}
-          panel={panel}
-          onClick={() => navigate(panel.key)}
-          bgImage={PANEL_IMAGES[panel.key] ?? null}
-          headingText={settings.heading}
-        />
-      ))}
+      {/* Row 1: Feed (2/3) + Map (1/3) */}
+      <PanelCard panel={PANELS[0]} className="sm:col-span-2 md:col-span-4" onClick={() => navigate('feed')} bgImage={PANEL_IMAGES.feed ?? null} headingText={settings.heading} large />
+      <div className="md:col-span-2 h-full">
+        <MapPanel onClick={() => navigate('map')} />
+      </div>
+
+      {/* Row 2: Upcoming + My Registrations */}
+      <PanelCard panel={PANELS[1]} className="md:col-span-3" onClick={() => navigate('upcoming')} bgImage={PANEL_IMAGES.upcoming ?? null} headingText={settings.heading} />
+      <PanelCard panel={PANELS[2]} className="md:col-span-3" onClick={() => navigate('interest')} bgImage={PANEL_IMAGES.interest ?? null} headingText={settings.heading} />
+
+      {/* Row 3: By Year + Submit */}
+      <PanelCard panel={PANELS[3]} className="md:col-span-3" onClick={() => navigate('years')} bgImage={PANEL_IMAGES.years ?? null} headingText={settings.heading} />
+      <PanelCard panel={PANELS[4]} className="md:col-span-3" onClick={() => navigate('submit')} bgImage={PANEL_IMAGES.submit ?? null} headingText={settings.heading} />
     </div>
   )
 }

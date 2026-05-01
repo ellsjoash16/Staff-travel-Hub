@@ -3,11 +3,12 @@ import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
 import {
   Send, Loader2, CheckCircle, Plane, ChevronRight, ChevronLeft,
-  User, MapPin, Camera, PenLine, Star,
+  User, MapPin, Camera, PenLine, Star, NotebookPen,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { MultiImageUpload } from './MultiImageUpload'
 import { DatePicker } from './DatePicker'
 import { ReviewExtras } from './ReviewExtras'
@@ -18,12 +19,22 @@ import type { PostExtras } from '@/lib/types'
 
 const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
 
+const STEP_TIPS: Record<number, { heading: string; bullets: string[] }> = {
+  1: { heading: 'Getting started', bullets: ['Your name will appear on the published post', 'Make sure it matches how you would like to be credited', 'Both first and last name are required'] },
+  2: { heading: 'Trip details', bullets: ['Use a descriptive title e.g. Bali 2026', 'Set the date you travelled, not today', 'The destination helps us pin it on the world map'] },
+  3: { heading: 'Photo tips', bullets: ['Minimum 4 photos, up to 10', 'Landscape photos work best for the hero image', 'Your first photo becomes the cover of your post', 'High quality images make a big difference'] },
+  4: { heading: 'Ratings are optional', bullets: ['Only add what is relevant to your trip', 'Be honest — these help the sales team', 'You can rate airlines, hotels, cruises, DMCs and activities'] },
+  5: { heading: 'Sales note tips', bullets: ['This is for the sales team, not published publicly', 'Include anything useful for selling this destination', 'Price points, unique experiences, best time to go'] },
+  6: { heading: 'Writing your review', bullets: ['Write in first person — share your personal experience', 'Aim for at least 3 or 4 paragraphs', 'Use Insert photo to break up the text with images', 'Spell check before submitting'] },
+}
+
 const STEPS = [
-  { id: 1, label: 'You',     icon: User,    title: "Who's submitting?",    subtitle: 'Just your name so we know who to credit' },
-  { id: 2, label: 'Trip',    icon: MapPin,  title: 'Where did you go?',    subtitle: 'Tell us about your trip' },
-  { id: 3, label: 'Photos',  icon: Camera,  title: 'Add some photos',      subtitle: 'Between 4 and 10 photos of your trip' },
-  { id: 4, label: 'Ratings', icon: Star,    title: 'Rate your experience', subtitle: 'Hotels, airlines & more — all optional' },
-  { id: 5, label: 'Review',  icon: PenLine, title: 'Your overall review',  subtitle: 'A summary of your trip experience' },
+  { id: 1, label: 'You',        icon: User,         title: "Who's submitting?",    subtitle: 'Just your name so we know who to credit' },
+  { id: 2, label: 'Trip',       icon: MapPin,        title: 'Where did you go?',    subtitle: 'Tell us about your trip' },
+  { id: 3, label: 'Photos',     icon: Camera,        title: 'Add some photos',      subtitle: 'Between 4 and 10 photos of your trip' },
+  { id: 4, label: 'Ratings',    icon: Star,          title: 'Rate your experience', subtitle: 'Hotels, airlines & more — all optional' },
+  { id: 5, label: 'Sales Note', icon: NotebookPen,   title: 'Sales note',           subtitle: 'Any tips or highlights for the sales team' },
+  { id: 6, label: 'Review',     icon: PenLine,       title: 'Your overall review',  subtitle: 'A summary of your trip experience' },
 ]
 
 // ── Progress indicator ───────────────────────────────────────────────────────
@@ -65,6 +76,8 @@ function StepProgress({ current }: { current: number }) {
 
 // ── Main component ───────────────────────────────────────────────────────────
 
+const BG = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1920&q=80'
+
 export function SubmitView() {
   const { submitReview } = useApp()
 
@@ -77,6 +90,7 @@ export function SubmitView() {
   const [review,     setReview]     = useState('')
   const [images,     setImages]     = useState<string[]>([])
   const [extras,     setExtras]     = useState<PostExtras>(EMPTY_EXTRAS)
+  const [salesNote,  setSalesNote]  = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted,  setSubmitted]  = useState(false)
 
@@ -120,6 +134,7 @@ export function SubmitView() {
           images: [],
           showOnMap: false,
           extras,
+          salesNote: salesNote.trim() || null,
         },
         newDataUrls
       )
@@ -152,7 +167,7 @@ export function SubmitView() {
             setStep(1)
             setFirstName(''); setLastName('')
             setTitle(''); setLocation(''); setDate(today())
-            setReview(''); setImages([]); setExtras(EMPTY_EXTRAS)
+            setReview(''); setImages([]); setExtras(EMPTY_EXTRAS); setSalesNote('')
             setSubmitted(false)
           }}
         >
@@ -162,9 +177,26 @@ export function SubmitView() {
     )
   }
 
+  const tips = STEP_TIPS[step]
+
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-full max-w-[520px]">
+    <div className="relative h-full overflow-auto">
+      {/* Background — absolute so it's clipped by this container, no fixed/z-index fights */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${BG})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(14px) brightness(0.45) saturate(1.2)',
+            transform: 'scale(1.1)',
+          }}
+        />
+      </div>
+      <div className="relative flex justify-center gap-8 xl:gap-12 py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <div className="w-full max-w-[620px] rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-6">
 
         {/* Header card */}
         <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 mb-6 text-center">
@@ -265,6 +297,19 @@ export function SubmitView() {
 
         {step === 5 && (
           <div className="space-y-1.5">
+            <Label>Sales Note <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Textarea
+              placeholder="Any tips, highlights or talking points for the sales team…"
+              value={salesNote}
+              onChange={e => setSalesNote(e.target.value)}
+              rows={5}
+              autoFocus
+            />
+          </div>
+        )}
+
+        {step === 6 && (
+          <div className="space-y-1.5">
             <Label>Your Review <span className="text-destructive">*</span></Label>
             <BlogEditor
               review={review}
@@ -285,13 +330,13 @@ export function SubmitView() {
             </Button>
           )}
 
-          {step < 5 && (
+          {step < 6 && (
             <Button onClick={next} className="gap-1.5">
               Next <ChevronRight className="h-4 w-4" />
             </Button>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <Button onClick={handleSubmit} disabled={submitting} className="gap-2">
               {submitting
                 ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
@@ -302,6 +347,28 @@ export function SubmitView() {
         </div>
 
       </div>
+
+      {/* ── Desktop tips panel ── */}
+      <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0 pt-2">
+        <div className="sticky top-6 rounded-2xl p-5 space-y-4 bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Step {step} of 6</p>
+            <h3 className="font-gilbert text-base text-foreground">{tips.heading}</h3>
+          </div>
+          <ul className="space-y-2.5">
+            {tips.bullets.map((b, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                <span className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary/60" />
+                <span className="text-xs text-muted-foreground leading-relaxed">{b}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="pt-2 border-t border-border">
+            <p className="text-[11px] text-muted-foreground/60">All submissions are reviewed by an admin before going live.</p>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   )
 }

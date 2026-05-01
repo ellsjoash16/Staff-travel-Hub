@@ -37,6 +37,7 @@ export interface Post {
   images: string[]
   pinned: boolean
   extras: PostExtras
+  salesNote: string | null
   userId: string | null
   status: 'pending' | 'approved'
   folder?: string | null
@@ -62,6 +63,7 @@ export interface Submission {
   images: string[]
   showOnMap: boolean
   extras: PostExtras
+  salesNote: string | null
 }
 
 export interface PanelImages {
@@ -81,6 +83,7 @@ export interface Settings {
   departureAirport: { name: string; lat: number; lng: number }
   panelImages: PanelImages
   adminFolders: string[]
+  adminUids: string[]
 }
 
 export interface Trip {
@@ -92,6 +95,42 @@ export interface Trip {
   image: string | null
   locationId: string | null
   external: boolean
+  completed: boolean
+  international: boolean
+  showRegisterInterest: boolean
 }
 
-export type View = 'home' | 'feed' | 'map' | 'upcoming' | 'years' | 'submit' | 'settings' | 'pending'
+export type RegistrationStatus = 'requested' | 'pending_confirmation' | 'confirmed' | 'refused'
+
+export interface UserProfile {
+  uid: string
+  firstName: string
+  lastName: string
+  passportNumber: string
+  passportFirstName: string
+  passportMiddleNames: string | null
+  passportLastName: string
+  dob: string
+  medicalInfo: string | null
+  dataConsent: boolean
+}
+
+export interface Registration {
+  id: string
+  tripId: string
+  tripName: string
+  uid: string | null
+  firstName: string
+  lastName: string
+  email: string
+  passportNumber: string
+  passportFirstName: string
+  passportMiddleNames: string | null
+  passportLastName: string
+  dob: string
+  medicalInfo: string | null
+  dataConsent: boolean
+  status: RegistrationStatus
+}
+
+export type View = 'home' | 'feed' | 'map' | 'upcoming' | 'years' | 'submit' | 'settings' | 'pending' | 'interest'

@@ -1,13 +1,14 @@
-import { Camera, Globe2, Plane, CalendarDays, Send, ChevronLeft, ChevronRight, Home, Settings, Clock } from 'lucide-react'
+import { Camera, Globe2, Plane, CalendarDays, Send, ChevronLeft, ChevronRight, Settings, Clock, ClipboardCheck } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import type { View } from '@/lib/types'
 
-const NAV: { id: View; label: string; sub: string; Icon: React.ElementType }[] = [
-  { id: 'feed',     label: 'Feed',           sub: 'Staff adventures',     Icon: Camera },
-  { id: 'map',      label: 'World Map',      sub: 'Explore destinations', Icon: Globe2 },
-  { id: 'upcoming', label: 'Upcoming Trips', sub: 'See what\'s next',     Icon: Plane },
-  { id: 'years',    label: 'By Year',        sub: 'Browse by year',       Icon: CalendarDays },
-  { id: 'submit',   label: 'Submit Trip',    sub: 'Share your adventure',  Icon: Send },
+const NAV: { id: View; label: string; Icon: React.ElementType }[] = [
+  { id: 'feed',     label: 'Feed',                    Icon: Camera },
+  { id: 'map',      label: 'World Map',               Icon: Globe2 },
+  { id: 'upcoming', label: 'Upcoming Trips',          Icon: Plane },
+  { id: 'interest', label: 'Registered Interest',     Icon: ClipboardCheck },
+  { id: 'years',    label: 'By Year',                 Icon: CalendarDays },
+  { id: 'submit',   label: 'Submit Trip',             Icon: Send },
 ]
 
 interface Props {
@@ -36,42 +37,18 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
         />
       )}
 
-      {/* Sidebar panel */}
       <aside
         className={`
           fixed top-14 sm:top-16 2xl:top-20 bottom-0 left-0 z-40 flex flex-col
-          bg-card border-r border-border
+          bg-background border-r border-border
           transition-all duration-300 ease-in-out
           ${collapsed ? 'w-16 xl:w-20' : 'w-60 xl:w-72'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        {/* Home shortcut */}
-        <div className={`px-3 pt-4 pb-2 ${collapsed ? 'flex justify-center' : ''}`}>
-          <button
-            onClick={() => { dispatch({ type: 'SET_VIEW', view: 'home' }); onMobileClose() }}
-            title={collapsed ? 'Home' : undefined}
-            className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-lg hover:bg-muted w-full"
-          >
-            <Home className="h-4 w-4 flex-shrink-0" />
-            {!collapsed && <span className="text-sm font-medium">Home</span>}
-          </button>
-        </div>
-
-        <div className={`mx-3 mb-3 ${collapsed ? 'mx-2' : ''}`}>
-          <hr className="border-border" />
-        </div>
-
-        {/* Nav label */}
-        {!collapsed && (
-          <p className="px-5 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Sections
-          </p>
-        )}
-
-        {/* Main Nav items */}
-        <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
-          {NAV.map(({ id, label, sub, Icon }) => {
+        {/* Main nav */}
+        <nav className="flex-1 px-2 pt-4 space-y-0.5 overflow-y-auto">
+          {NAV.map(({ id, label, Icon }) => {
             const active = activeView === id
             return (
               <button
@@ -79,80 +56,58 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
                 onClick={() => go(id)}
                 title={collapsed ? label : undefined}
                 className={`
-                  relative w-full flex items-center rounded-xl transition-all duration-150
-                  ${collapsed ? 'justify-center p-3 xl:p-4' : 'gap-3 px-3 xl:px-4 py-2.5 xl:py-3'}
+                  w-full flex items-center transition-colors duration-150
+                  ${collapsed ? 'justify-center p-3 xl:p-4' : 'gap-3 px-3 py-2.5'}
                   ${active
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
                   }
                 `}
               >
-                {active && !collapsed && (
-                  <span className="absolute left-0 inset-y-2 w-0.5 bg-primary rounded-full" />
-                )}
-                <div className={`flex-shrink-0 w-8 h-8 xl:w-10 xl:h-10 rounded-lg flex items-center justify-center ${active ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  <Icon className="h-4 w-4 xl:h-5 xl:w-5" />
-                </div>
+                <Icon className="h-5 w-5 xl:h-[1.375rem] xl:w-[1.375rem] flex-shrink-0" />
                 {!collapsed && (
-                  <>
-                    <div className="flex-1 text-left min-w-0">
-                      <p className={`text-sm xl:text-base font-medium leading-none ${active ? 'text-primary' : ''}`}>
-                        {label}
-                      </p>
-                      <p className="text-[11px] xl:text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>
-                    </div>
-                  </>
+                  <span className="text-sm font-medium">{label}</span>
                 )}
               </button>
             )
           })}
         </nav>
 
-        {/* Bottom nav: Profile, Settings, Pending (admin) */}
-        <div className="px-2 pb-2 space-y-0.5 border-t border-border pt-2">
-          {!collapsed && (
-            <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Account
-            </p>
-          )}
-
-          {/* Settings */}
+        {/* Bottom: Settings + Pending */}
+        <div className="px-2 pb-2 pt-2 border-t border-border space-y-0.5">
           <button
             onClick={() => go('settings')}
             title={collapsed ? 'Settings' : undefined}
             className={`
-              w-full flex items-center rounded-xl transition-all duration-150
-              ${collapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2'}
+              w-full flex items-center transition-colors duration-150
+              ${collapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2.5'}
               ${activeView === 'settings'
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-foreground'
               }
             `}
           >
-            <div className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center ${activeView === 'settings' ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-              <Settings className="h-3.5 w-3.5" />
-            </div>
+            <Settings className="h-5 w-5 flex-shrink-0" />
             {!collapsed && <span className="text-sm font-medium">Settings</span>}
           </button>
 
-          {/* Pending — admin only */}
           {isAdmin && (
             <button
               onClick={() => go('pending')}
               title={collapsed ? 'Pending' : undefined}
               className={`
-                w-full flex items-center rounded-xl transition-all duration-150
-                ${collapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2'}
+                w-full flex items-center transition-colors duration-150
+                ${collapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2.5'}
                 ${activeView === 'pending'
-                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'text-amber-500'
+                  : 'text-muted-foreground hover:text-foreground'
                 }
               `}
             >
-              <div className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center relative ${activeView === 'pending' ? 'bg-amber-500/20 text-amber-500' : 'bg-muted text-muted-foreground'}`}>
-                <Clock className="h-3.5 w-3.5" />
+              <div className="relative flex-shrink-0">
+                <Clock className="h-5 w-5" />
                 {pendingPosts.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[9px] flex items-center justify-center font-bold">
+                  <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-amber-500 text-white text-[8px] flex items-center justify-center font-bold">
                     {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
                   </span>
                 )}
@@ -171,7 +126,7 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
           )}
         </div>
 
-        {/* Collapse toggle — desktop only */}
+        {/* Collapse toggle */}
         <div className={`px-3 py-3 border-t border-border hidden lg:flex ${collapsed ? 'justify-center' : 'justify-end'}`}>
           <button
             onClick={() => onCollapsedChange(!collapsed)}

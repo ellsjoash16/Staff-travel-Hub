@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
+import { saveAccountRecord } from '@/lib/db'
 import { AppProvider, useApp } from '@/context/AppContext'
 import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
@@ -103,6 +104,7 @@ export default function App() {
     return onAuthStateChanged(auth, user => {
       setSignedIn(!!user)
       setAuthReady(true)
+      if (user) saveAccountRecord(user.uid, user.email, user.displayName).catch(() => {})
     })
   }, [])
 

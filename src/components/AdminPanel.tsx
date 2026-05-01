@@ -85,7 +85,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     if (open || inline) {
       setSPwd('')
       if (initialPost) startEditPost(initialPost)
-      loadRegistrations()
+      loadRegistrations().catch(() => {})
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, inline])
@@ -1329,15 +1329,16 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           >
                             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                               <span className="text-sm font-semibold text-primary">
-                                {u.firstName?.[0]}{u.lastName?.[0]}
+                                {(u.firstName?.[0] || u.authDisplayName?.[0] || u.authEmail?.[0] || '?').toUpperCase()}
                               </span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm">{u.firstName} {u.lastName}</p>
-                              {(() => {
-                                const email = registrations.find(r => r.uid === u.uid)?.email
-                                return email ? <p className="text-xs text-muted-foreground truncate">{email}</p> : null
-                              })()}
+                              <p className="font-semibold text-sm">
+                                {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.authDisplayName || 'No name yet')}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {u.authEmail ?? registrations.find(r => r.uid === u.uid)?.email ?? ''}
+                              </p>
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
                               {(settings.adminUids ?? []).includes(u.uid) && (

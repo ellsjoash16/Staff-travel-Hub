@@ -104,6 +104,8 @@ export type RegistrationStatus = 'requested' | 'pending_confirmation' | 'confirm
 
 export interface UserProfile {
   uid: string
+  authEmail: string | null
+  authDisplayName: string | null
   firstName: string
   lastName: string
   passportNumber: string

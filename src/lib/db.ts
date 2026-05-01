@@ -668,6 +668,14 @@ export async function upsertUserProfile(profile: UserProfile): Promise<void> {
   })
 }
 
+export async function saveAccountRecord(uid: string, email: string | null, displayName: string | null): Promise<void> {
+  await setDoc(doc(db, 'userProfiles', uid), {
+    authEmail: email ?? null,
+    authDisplayName: displayName ?? null,
+    lastSignIn: serverTimestamp(),
+  }, { merge: true })
+}
+
 export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt: string | null })[]> {
   const snap = await getDocs(collection(db, 'userProfiles'))
   const profiles = await Promise.all(snap.docs.map(async d => {
@@ -688,6 +696,8 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
     ])
     return {
       uid: d.id,
+      authEmail: data.authEmail ?? null,
+      authDisplayName: data.authDisplayName ?? null,
       firstName: firstName ?? '',
       lastName: lastName ?? '',
       passportNumber: passportNumber ?? '',

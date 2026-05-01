@@ -2,8 +2,13 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
-      allow read: if true;
-      allow write: if true;
+      // Anyone authenticated can read images (trip photos, post images, panel images)
+      allow read: if request.auth != null;
+
+      // Only admins can upload or delete
+      allow write: if request.auth != null &&
+        firestore.exists(/databases/(default)/documents/settings/main) &&
+        request.auth.uid in firestore.get(/databases/(default)/documents/settings/main).data.adminUids;
     }
   }
 }

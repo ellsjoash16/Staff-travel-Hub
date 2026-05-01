@@ -13,10 +13,12 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
 }
 const app = initializeApp(firebaseConfig)
-initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('6Letu9MsAAAAANUTDPt0LiCx_czyUxle648WwvfM'),
-  isTokenAutoRefreshEnabled: true,
-})
+if (import.meta.env.PROD) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider('6Letu9MsAAAAANUTDPt0LiCx_czyUxle648WwvfM'),
+    isTokenAutoRefreshEnabled: true,
+  })
+}
 // experimentalAutoDetectLongPolling: falls back from WebChannel to HTTP polling
 // when the environment blocks streaming connections (e.g. some CDN/proxy setups)
 export const db = initializeFirestore(app, {

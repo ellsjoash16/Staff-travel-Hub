@@ -1413,16 +1413,25 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               <p className="text-[10px] text-muted-foreground font-mono">UID: {u.uid}</p>
                               <div className="flex items-center justify-between gap-2 pt-1">
                                 {(() => {
-                                  const isAdmin = (settings.adminUids ?? []).includes(u.uid)
+                                  const isUserAdmin = (settings.adminUids ?? []).includes(u.uid)
                                   return (
                                     <Button
+                                      type="button"
                                       size="sm"
-                                      variant={isAdmin ? 'secondary' : 'default'}
-                                      onClick={() => toggleAdminUid(u.uid).then(() => toast.success(isAdmin ? 'Admin access revoked' : 'Admin access granted')).catch(() => toast.error('Failed to update admin access'))}
+                                      variant={isUserAdmin ? 'secondary' : 'default'}
+                                      onClick={async (e) => {
+                                        e.stopPropagation()
+                                        try {
+                                          await toggleAdminUid(u.uid)
+                                          toast.success(isUserAdmin ? 'Admin access revoked' : 'Admin access granted')
+                                        } catch {
+                                          toast.error('Failed to update admin access')
+                                        }
+                                      }}
                                       className="gap-1.5"
                                     >
                                       <ShieldCheck className="h-3.5 w-3.5" />
-                                      {isAdmin ? 'Revoke Admin Access' : 'Grant Admin Access'}
+                                      {isUserAdmin ? 'Revoke Admin Access' : 'Grant Admin Access'}
                                     </Button>
                                   )
                                 })()}

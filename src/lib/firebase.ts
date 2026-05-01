@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app'
 import { initializeFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 import { getAuth, OAuthProvider } from 'firebase/auth'
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
@@ -12,6 +13,10 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
 }
 const app = initializeApp(firebaseConfig)
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6Letu9MsAAAAANUTDPt0LiCx_czyUxle648WwvfM'),
+  isTokenAutoRefreshEnabled: true,
+})
 // experimentalAutoDetectLongPolling: falls back from WebChannel to HTTP polling
 // when the environment blocks streaming connections (e.g. some CDN/proxy setups)
 export const db = initializeFirestore(app, {

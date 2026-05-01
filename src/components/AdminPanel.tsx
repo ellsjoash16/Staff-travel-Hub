@@ -1420,12 +1420,14 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                       size="sm"
                                       variant={isUserAdmin ? 'secondary' : 'default'}
                                       onClick={async (e) => {
+                                        e.preventDefault()
                                         e.stopPropagation()
+                                        toast.info('Updating…')
                                         try {
                                           await toggleAdminUid(u.uid)
                                           toast.success(isUserAdmin ? 'Admin access revoked' : 'Admin access granted')
-                                        } catch {
-                                          toast.error('Failed to update admin access')
+                                        } catch (err: unknown) {
+                                          toast.error((err as Error)?.message ?? 'Failed to update admin access')
                                         }
                                       }}
                                       className="gap-1.5"

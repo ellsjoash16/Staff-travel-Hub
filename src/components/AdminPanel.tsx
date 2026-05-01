@@ -1377,7 +1377,13 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     <p className="font-medium text-amber-600 dark:text-amber-400">{u.medicalInfo}</p>
                                   </div>
                                 )}
-                                <div className="col-span-2">
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-0.5">Admin access</p>
+                                  <p className={`font-medium text-sm ${(settings.adminUids ?? []).includes(u.uid) ? 'text-primary' : 'text-muted-foreground'}`}>
+                                    {(settings.adminUids ?? []).includes(u.uid) ? '✓ Admin' : 'No'}
+                                  </p>
+                                </div>
+                                <div>
                                   <p className="text-xs text-muted-foreground mb-0.5">Data consent</p>
                                   <p className={`font-medium text-sm ${u.dataConsent ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                                     {u.dataConsent ? '✓ Consented' : 'Not given'}

@@ -668,7 +668,7 @@ export async function upsertUserProfile(profile: UserProfile): Promise<void> {
   })
 }
 
-export async function fetchAllUserProfiles(): Promise<UserProfile[]> {
+export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt: string | null })[]> {
   const snap = await getDocs(collection(db, 'userProfiles'))
   const profiles = await Promise.all(snap.docs.map(async d => {
     const data = d.data()

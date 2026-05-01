@@ -18,7 +18,6 @@ import { useApp } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
 
-const PALETTE = ['#0077b6', '#6366f1', '#ec4899', '#f97316', '#10b981', '#dc2626', '#7c3aed', '#0f766e']
 
 const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
 
@@ -1344,7 +1343,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               {(settings.adminUids ?? []).includes(u.uid) && (
                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Admin</span>
                               )}
-                              {u.dataConsent && <ShieldCheck className="h-4 w-4 text-emerald-500" title="Data consent given" />}
+                              {u.dataConsent && <span title="Data consent given"><ShieldCheck className="h-4 w-4 text-emerald-500" /></span>}
                               {userRegistrations.length > 0 && (
                                 <span className="text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">{userRegistrations.length} trip{userRegistrations.length !== 1 ? 's' : ''}</span>
                               )}

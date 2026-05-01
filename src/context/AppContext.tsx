@@ -7,7 +7,7 @@ import {
 } from 'react'
 import type { Post, Course, Submission, Settings, View, PanelImages, Trip, Location, Registration, RegistrationStatus, UserProfile } from '@/lib/types'
 import {
-  fetchPosts, fetchCourses, fetchSettings, fetchSubmissions, fetchTrips, fetchLocations,
+  fetchPosts, fetchSettings, fetchTrips, fetchLocations,
   insertPost, updatePost, removePost, togglePinPost,
   insertCourse, updateCourse, removeCourse,
   updateSubmission, removeSubmission,
@@ -175,6 +175,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Initial data load
   useEffect(() => {
     async function init() {
+      let resolvedSettings: Settings = DEFAULT_SETTINGS
       try {
         const [postsRes, tripsRes, locationsRes, settingsRes] = await Promise.allSettled([
           fetchPosts(),
@@ -182,6 +183,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           fetchLocations(),
           fetchSettings(),
         ])
+        resolvedSettings = settingsRes.status === 'fulfilled' ? settingsRes.value : DEFAULT_SETTINGS
         dispatch({
           type: 'INIT',
           posts: postsRes.status === 'fulfilled' ? postsRes.value : [],
@@ -189,7 +191,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           submissions: [],
           trips: tripsRes.status === 'fulfilled' ? tripsRes.value : [],
           locations: locationsRes.status === 'fulfilled' ? locationsRes.value : [],
-          settings: settingsRes.status === 'fulfilled' ? settingsRes.value : DEFAULT_SETTINGS,
+          settings: resolvedSettings,
         })
       } finally {
         dispatch({ type: 'SET_LOADING', value: false })
@@ -197,8 +199,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Auto-grant admin if UID is in adminUids list
       const uid = auth.currentUser?.uid
       if (uid) {
-        const settings = settingsRes.status === 'fulfilled' ? settingsRes.value : DEFAULT_SETTINGS
-        if (settings.adminUids?.includes(uid)) {
+        if (resolvedSettings.adminUids?.includes(uid)) {
           dispatch({ type: 'SET_ADMIN', value: true })
         }
         fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})

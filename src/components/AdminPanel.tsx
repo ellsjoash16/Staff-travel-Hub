@@ -1412,7 +1412,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     <Button
                                       size="sm"
                                       variant={isAdmin ? 'secondary' : 'default'}
-                                      onClick={() => toggleAdminUid(u.uid)}
+                                      onClick={() => toggleAdminUid(u.uid).then(() => toast.success(isAdmin ? 'Admin access revoked' : 'Admin access granted')).catch(() => toast.error('Failed to update admin access'))}
                                       className="gap-1.5"
                                     >
                                       <ShieldCheck className="h-3.5 w-3.5" />

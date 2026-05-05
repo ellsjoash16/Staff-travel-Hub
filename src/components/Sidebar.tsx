@@ -1,5 +1,6 @@
 import { Camera, Globe2, Plane, CalendarDays, Send, ChevronLeft, ChevronRight, Settings, Clock, ClipboardCheck } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
+import { auth } from '@/lib/firebase'
 import type { View } from '@/lib/types'
 
 const NAV: { id: View; label: string; Icon: React.ElementType }[] = [
@@ -125,6 +126,20 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
             </button>
           )}
         </div>
+
+        {/* Account */}
+        {!collapsed && (
+          <div className="px-3 py-3 border-t border-border">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-semibold text-primary">
+                  {(auth.currentUser?.email?.[0] ?? '?').toUpperCase()}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground truncate">{auth.currentUser?.email}</p>
+            </div>
+          </div>
+        )}
 
         {/* Collapse toggle */}
         <div className={`px-3 py-3 border-t border-border hidden lg:flex ${collapsed ? 'justify-center' : 'justify-end'}`}>

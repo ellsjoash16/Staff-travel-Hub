@@ -43,9 +43,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       pageToken = result.pageToken
     } while (pageToken)
 
+    console.log(`[list-users] returning ${users.length} users for admin ${decoded.uid}`)
     res.status(200).json({ users })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Internal error'
+    console.error('[list-users] error:', msg)
     res.status(500).json({ error: msg })
   }
 }

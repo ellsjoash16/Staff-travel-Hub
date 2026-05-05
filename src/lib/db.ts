@@ -689,7 +689,10 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
   if (!token) return []
 
   const apiRes = await fetch('/api/list-users', { headers: { Authorization: `Bearer ${token}` } })
-  if (!apiRes.ok) throw new Error('Failed to load users from API')
+  if (!apiRes.ok) {
+    const body = await apiRes.json().catch(() => ({})) as { error?: string }
+    throw new Error(body.error ?? `API error ${apiRes.status}`)
+  }
   const { users } = await apiRes.json() as { users: { uid: string; email: string | null; displayName: string | null }[] }
 
   // 2. Get all Firestore profiles (for passport/medical/consent data)

@@ -6,7 +6,7 @@ import {
 import {
   ref, uploadBytes, getDownloadURL, deleteObject,
 } from 'firebase/storage'
-import { db, storage } from './firebase'
+import { db, storage, auth } from './firebase'
 import type { Post, Course, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile } from './types'
 import { encryptField, decryptField } from './crypto'
 
@@ -684,9 +684,35 @@ export async function saveAccountRecord(uid: string, email: string | null, displ
 }
 
 export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt: string | null })[]> {
+  // 1. Get all Firebase Auth users via Admin API (lists every account, not just those with Firestore profiles)
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) return []
+
+  const apiRes = await fetch('/api/list-users', { headers: { Authorization: `Bearer ${token}` } })
+  if (!apiRes.ok) throw new Error('Failed to load users from API')
+  const { users } = await apiRes.json() as { users: { uid: string; email: string | null; displayName: string | null }[] }
+
+  // 2. Get all Firestore profiles (for passport/medical/consent data)
   const snap = await getDocs(collection(db, 'userProfiles'))
-  const profiles = await Promise.all(snap.docs.map(async d => {
-    const data = d.data()
+  const profileDataMap = new Map<string, ReturnType<typeof snap.docs[0]['data']>>()
+  for (const d of snap.docs) profileDataMap.set(d.id, d.data())
+
+  // 3. Merge: every Auth user gets a row; Firestore profile data attached where it exists
+  const results = await Promise.all(users.map(async authUser => {
+    const data = profileDataMap.get(authUser.uid)
+    if (!data) {
+      return {
+        uid: authUser.uid,
+        authEmail: authUser.email,
+        authDisplayName: authUser.displayName,
+        firstName: '', lastName: '',
+        passportNumber: '', passportFirstName: '',
+        passportMiddleNames: null, passportLastName: '',
+        dob: '', medicalInfo: null,
+        dataConsent: false, banned: false,
+        updatedAt: null,
+      } as UserProfile & { updatedAt: string | null }
+    }
     const [
       firstName, lastName, passportNumber,
       passportFirstName, passportMiddleNames, passportLastName,
@@ -702,9 +728,9 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
       decryptField(data.medicalInfo ?? null),
     ])
     return {
-      uid: d.id,
-      authEmail: data.authEmail ?? null,
-      authDisplayName: data.authDisplayName ?? null,
+      uid: authUser.uid,
+      authEmail: data.authEmail ?? authUser.email,
+      authDisplayName: data.authDisplayName ?? authUser.displayName,
       firstName: firstName ?? '',
       lastName: lastName ?? '',
       passportNumber: passportNumber ?? '',
@@ -718,7 +744,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
       updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null,
     } as UserProfile & { updatedAt: string | null }
   }))
-  return profiles
+  return results
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────

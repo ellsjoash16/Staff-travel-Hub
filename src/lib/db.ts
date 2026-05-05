@@ -691,9 +691,13 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
   const apiRes = await fetch('/api/list-users', { headers: { Authorization: `Bearer ${token}` } })
   if (!apiRes.ok) {
     const text = await apiRes.text()
-    let msg = `API error ${apiRes.status}`
-    try { msg = (JSON.parse(text) as { error?: string }).error ?? msg } catch { /* non-JSON */ }
-    throw new Error(msg + (text && !text.startsWith('{') ? `: ${text.slice(0, 300)}` : ''))
+    let detail = text.slice(0, 400)
+    try {
+      const j = JSON.parse(text) as { error?: string | { message?: string }; message?: string }
+      const e = j.error
+      detail = (typeof e === 'string' ? e : (e as { message?: string })?.message) ?? j.message ?? detail
+    } catch { /* non-JSON */ }
+    throw new Error(`API ${apiRes.status}: ${detail}`)
   }
   const { users } = await apiRes.json() as { users: { uid: string; email: string | null; displayName: string | null }[] }
   console.log(`[fetchAllUsers] API returned ${users.length} auth users`)

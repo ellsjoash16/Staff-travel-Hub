@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { createSign, createVerify } from 'node:crypto'
+import { createSign, createVerify } from 'crypto'
 
 interface ServiceAccount {
   client_email: string

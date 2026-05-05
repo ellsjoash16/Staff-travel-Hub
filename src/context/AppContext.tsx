@@ -279,9 +279,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   async function toggleAdminUid(uid: string): Promise<void> {
     const current = state.settings.adminUids ?? []
     const updated = current.includes(uid) ? current.filter(u => u !== uid) : [...current, uid]
-    const newSettings = { ...state.settings, adminUids: updated }
-    await setAdminUids(updated)
-    dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
+    // Use server-side API to bypass Firestore rules (which require the caller to already be in adminUids)
+    const token = await auth.currentUser?.getIdToken()
+    if (!token) throw new Error('Not authenticated')
+    const apiRes = await fetch('/api/set-admin-uids', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminUids: updated }),
+    })
+    if (!apiRes.ok) {
+      const body = await apiRes.json().catch(() => ({})) as { error?: string }
+      throw new Error(body.error ?? `API error ${apiRes.status}`)
+    }
+    dispatch({ type: 'UPDATE_SETTINGS', settings: { ...state.settings, adminUids: updated } })
   }
 
   async function banUser(uid: string, banned: boolean): Promise<void> {

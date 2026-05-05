@@ -104,7 +104,7 @@ export default function App() {
     return onAuthStateChanged(auth, user => {
       setSignedIn(!!user)
       setAuthReady(true)
-      if (user) saveAccountRecord(user.uid, user.email, user.displayName).catch(() => {})
+      if (user) saveAccountRecord(user.uid, user.email, user.displayName).catch(console.error)
     })
   }, [])
 

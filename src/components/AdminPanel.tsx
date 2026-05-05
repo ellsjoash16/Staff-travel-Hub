@@ -92,9 +92,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
   async function handleLoadUsers() {
     setUsersLoading(true)
-    try { await loadUserProfiles(); setUsersLoaded(true) }
-    catch { toast.error('Failed to load users') }
-    finally { setUsersLoading(false) }
+    try {
+      await loadUserProfiles()
+      setUsersLoaded(true)
+    } catch (err: unknown) {
+      toast.error(`Failed to load users: ${(err as Error)?.message ?? 'unknown error'}`)
+    } finally { setUsersLoading(false) }
   }
 
   function setPost<K extends keyof PostForm>(key: K, value: PostForm[K]) {

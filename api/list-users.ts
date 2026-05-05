@@ -1,13 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { initializeApp, cert, getApps } from 'firebase-admin/app'
-import { getAuth } from 'firebase-admin/auth'
-import { getFirestore } from 'firebase-admin/firestore'
+import * as admin from 'firebase-admin'
 
-function getAdminApp() {
-  if (getApps().length > 0) return getApps()[0]
+function getAdminApp(): admin.app.App {
+  if (admin.apps.length > 0) return admin.apps[0]!
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
   if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON env var is not set')
-  return initializeApp({ credential: cert(JSON.parse(raw)) })
+  const credential = admin.credential.cert(JSON.parse(raw) as admin.ServiceAccount)
+  return admin.initializeApp({ credential })
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -18,14 +17,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const app = getAdminApp()
-    const auth = getAuth(app)
-    const db = getFirestore(app)
 
     // Verify the caller is authenticated
-    const decoded = await auth.verifyIdToken(token)
+    const decoded = await app.auth().verifyIdToken(token)
 
     // Check they are an admin
-    const settings = await db.collection('settings').doc('main').get()
+    const settings = await app.firestore().collection('settings').doc('main').get()
     const adminUids: string[] = settings.data()?.adminUids ?? []
     if (!adminUids.includes(decoded.uid)) {
       return res.status(403).json({ error: 'Forbidden' })
@@ -36,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let pageToken: string | undefined
 
     do {
-      const result = await auth.listUsers(1000, pageToken)
+      const result = await app.auth().listUsers(1000, pageToken)
       for (const u of result.users) {
         users.push({ uid: u.uid, email: u.email ?? null, displayName: u.displayName ?? null })
       }

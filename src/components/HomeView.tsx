@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import type { GlobeMethods } from 'react-globe.gl'
-import { Camera, Plane, CalendarDays, Send, ArrowRight, Globe2, ClipboardCheck } from 'lucide-react'
+import { Camera, Plane, CalendarDays, Send, ArrowRight, ClipboardCheck } from 'lucide-react'
 
 const Globe = lazy(() => import('react-globe.gl'))
 import { useApp } from '@/context/AppContext'
+import { auth } from '@/lib/firebase'
 import type { View } from '@/lib/types'
 
 interface PanelConfig {
@@ -157,9 +158,6 @@ function MapPanel({ onClick }: { onClick: () => void }) {
         <div className="relative h-full flex flex-col justify-end p-4 sm:p-5 2xl:p-7 pointer-events-none">
           <div className="flex items-end justify-between">
             <div className="space-y-1.5 2xl:space-y-2">
-              <div className="w-9 h-9 2xl:w-11 2xl:h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                <Globe2 className="h-5 w-5 2xl:h-6 2xl:w-6 text-white" />
-              </div>
               <h2 className="font-gilbert text-white text-2xl sm:text-3xl 2xl:text-4xl drop-shadow-lg leading-none">
                 World Map
               </h2>
@@ -218,9 +216,6 @@ function PanelCard({
         <div className="relative h-full flex flex-col justify-end p-4 sm:p-5 2xl:p-7">
           <div className="flex items-end justify-between gap-3">
             <div className="space-y-1.5 2xl:space-y-2 min-w-0">
-              <div className="w-9 h-9 2xl:w-11 2xl:h-11 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
-                {panel.icon}
-              </div>
               <h2 className={`font-gilbert text-white drop-shadow-lg leading-none ${
                 large ? 'text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl' : 'text-lg sm:text-xl 2xl:text-2xl'
               }`}>
@@ -243,16 +238,24 @@ function PanelCard({
 export function HomeView() {
   const { state, dispatch } = useApp()
   const { settings } = state
+  const firstName = auth.currentUser?.displayName?.split(' ')[0] ?? null
 
   function navigate(view: Exclude<View, 'home'>) {
     dispatch({ type: 'SET_VIEW', view })
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 2xl:gap-4
+    <div className="flex flex-col gap-3 2xl:gap-4 sm:h-full">
+      {firstName && (
+        <p className="text-3xl font-semibold text-foreground leading-none capitalize">
+          Hello, {firstName}
+        </p>
+      )}
+    <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 2xl:gap-4
       [grid-auto-rows:180px]
-      sm:h-full sm:[grid-auto-rows:unset] sm:[grid-template-rows:repeat(4,minmax(0,1fr))]
-      md:[grid-template-rows:repeat(3,minmax(0,1fr))]">
+      sm:[grid-auto-rows:unset] sm:[grid-template-rows:repeat(4,minmax(0,1fr))]
+      md:[grid-template-rows:repeat(3,minmax(0,1fr))]
+      ${firstName ? 'flex-1 min-h-0' : 'sm:h-full'}`}>
 
       {/* Row 1: Feed (2/3) + Map (1/3) */}
       <PanelCard panel={PANELS[0]} className="sm:col-span-2 md:col-span-4" onClick={() => navigate('feed')} bgImage={PANEL_IMAGES.feed ?? null} headingText={settings.heading} large />
@@ -267,6 +270,7 @@ export function HomeView() {
       {/* Row 3: By Year + Submit */}
       <PanelCard panel={PANELS[3]} className="md:col-span-3" onClick={() => navigate('years')} bgImage={PANEL_IMAGES.years ?? null} headingText={settings.heading} />
       <PanelCard panel={PANELS[4]} className="md:col-span-3" onClick={() => navigate('submit')} bgImage={PANEL_IMAGES.submit ?? null} headingText={settings.heading} />
+    </div>
     </div>
   )
 }

@@ -59,10 +59,10 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // User profiles — users manage their own; admins can read and delete
+    // User profiles — users manage their own; admins can read, write and delete
     match /userProfiles/{uid} {
       allow read, write: if isAuthenticated() && request.auth.uid == uid;
-      allow read, delete: if isAdmin();
+      allow read, write, delete: if isAdmin();
     }
   }
 }

@@ -115,6 +115,7 @@ export interface UserProfile {
   dob: string
   medicalInfo: string | null
   dataConsent: boolean
+  banned?: boolean
 }
 
 export interface Registration {

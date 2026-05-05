@@ -133,10 +133,12 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
                 <span className="text-xs font-semibold text-primary">
-                  {(auth.currentUser?.email?.[0] ?? '?').toUpperCase()}
+                  {(auth.currentUser?.displayName?.[0] ?? auth.currentUser?.email?.[0] ?? '?').toUpperCase()}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground truncate">{auth.currentUser?.email}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {auth.currentUser?.displayName || auth.currentUser?.email}
+              </p>
             </div>
           </div>
         )}

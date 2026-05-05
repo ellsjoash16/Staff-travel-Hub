@@ -16,7 +16,7 @@ import {
   upsertSettings, updatePanelImages, setAdminUids, uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
   fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, deleteUserProfile,
-  fetchAllUserProfiles,
+  fetchAllUserProfiles, setUserBanned,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
 import { auth } from '@/lib/firebase'
@@ -52,6 +52,7 @@ type Action =
   | { type: 'UPDATE_REGISTRATION_STATUS'; id: string; status: RegistrationStatus }
   | { type: 'DELETE_REGISTRATION'; id: string }
   | { type: 'DELETE_USER_PROFILE'; uid: string }
+  | { type: 'SET_USER_BANNED'; uid: string; banned: boolean }
   | { type: 'SET_MY_REGISTRATIONS'; registrations: Registration[] }
   | { type: 'ADD_MY_REGISTRATION'; registration: Registration }
   | { type: 'UPDATE_TRIP_PARTICIPANTS'; tripId: string; name: string; action: 'add' | 'remove' }
@@ -87,6 +88,7 @@ function reducer(state: AppState, action: Action): AppState {
     case 'UPDATE_REGISTRATION_STATUS': return { ...state, registrations: state.registrations.map(r => r.id === action.id ? { ...r, status: action.status } : r) }
     case 'DELETE_REGISTRATION': return { ...state, registrations: state.registrations.filter(r => r.id !== action.id) }
     case 'DELETE_USER_PROFILE': return { ...state, userProfiles: state.userProfiles.filter(u => u.uid !== action.uid) }
+    case 'SET_USER_BANNED': return { ...state, userProfiles: state.userProfiles.map(u => u.uid === action.uid ? { ...u, banned: action.banned } : u) }
     case 'SET_MY_REGISTRATIONS': return { ...state, myRegistrations: action.registrations }
     case 'ADD_MY_REGISTRATION': return { ...state, myRegistrations: [...state.myRegistrations, action.registration] }
     case 'UPDATE_TRIP_PARTICIPANTS': return {
@@ -160,6 +162,7 @@ interface AppContextValue {
   loadMyRegistrations: () => Promise<void>
   toggleAdminUid: (uid: string) => Promise<void>
   promoteToAdmin: (appPassword: string) => Promise<boolean>
+  banUser: (uid: string, banned: boolean) => Promise<void>
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -279,6 +282,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const newSettings = { ...state.settings, adminUids: updated }
     await setAdminUids(updated)
     dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
+  }
+
+  async function banUser(uid: string, banned: boolean): Promise<void> {
+    await setUserBanned(uid, banned)
+    dispatch({ type: 'SET_USER_BANNED', uid, banned })
   }
 
   async function promoteToAdmin(appPassword: string): Promise<boolean> {
@@ -504,7 +512,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addTrip, editTrip, deleteTrip, completeTrip,
       addLocation, editLocation, deleteLocation,
       saveSettings, savePageImages,
-      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, promoteToAdmin,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, promoteToAdmin, banUser,
     }}>
       {children}
     </AppContext.Provider>

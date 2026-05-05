@@ -343,7 +343,11 @@ export async function fetchSettings(): Promise<Settings> {
 }
 
 export async function setAdminUids(uids: string[]): Promise<void> {
-  await updateDoc(doc(db, 'settings', 'main'), { adminUids: uids })
+  await setDoc(doc(db, 'settings', 'main'), { adminUids: uids }, { merge: true })
+}
+
+export async function setUserBanned(uid: string, banned: boolean): Promise<void> {
+  await setDoc(doc(db, 'userProfiles', uid), { banned }, { merge: true })
 }
 
 export async function updatePanelImages(panelImages: Settings['panelImages']): Promise<void> {
@@ -643,6 +647,7 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     dob: dob ?? '',
     medicalInfo,
     dataConsent: data.dataConsent ?? false,
+    banned: data.banned ?? false,
   }
 }
 
@@ -709,6 +714,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
       dob: dob ?? '',
       medicalInfo,
       dataConsent: data.dataConsent ?? false,
+      banned: data.banned ?? false,
       updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null,
     } as UserProfile & { updatedAt: string | null }
   }))

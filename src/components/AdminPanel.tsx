@@ -53,7 +53,7 @@ const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
 interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
 export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
-  const { state, togglePin, addPost, editPost, deletePost, deleteSubmission, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid } = useApp()
+  const { state, togglePin, addPost, editPost, deletePost, deleteSubmission, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser } = useApp()
   const { posts, courses, submissions, trips, locations, settings, registrations, userProfiles } = state
 
   const [tab, setTab] = useState('post')
@@ -1306,7 +1306,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   ? new Set(registrations.filter(r => r.email.toLowerCase().includes(q)).map(r => r.uid).filter(Boolean) as string[])
                   : null
                 const filtered = userProfiles.filter(u =>
-                  !q || emailMatchUids?.has(u.uid)
+                  !q || emailMatchUids?.has(u.uid) || u.authEmail?.toLowerCase().includes(q) || u.authDisplayName?.toLowerCase().includes(q)
                 )
 
                 if (filtered.length === 0) return (
@@ -1341,6 +1341,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               </p>
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
+                              {u.banned && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">Banned</span>
+                              )}
                               {(settings.adminUids ?? []).includes(u.uid) && (
                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Admin</span>
                               )}
@@ -1411,39 +1414,61 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               )}
 
                               <p className="text-[10px] text-muted-foreground font-mono">UID: {u.uid}</p>
-                              <div className="flex items-center justify-between gap-2 pt-1">
+                              <div className="flex flex-wrap items-center gap-2 pt-1">
                                 {(() => {
                                   const isUserAdmin = (settings.adminUids ?? []).includes(u.uid)
+                                  const isBanned = u.banned ?? false
                                   return (
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant={isUserAdmin ? 'secondary' : 'default'}
-                                      onClick={async (e) => {
-                                        e.preventDefault()
-                                        e.stopPropagation()
-                                        toast.info('Updating…')
-                                        try {
-                                          await toggleAdminUid(u.uid)
-                                          toast.success(isUserAdmin ? 'Admin access revoked' : 'Admin access granted')
-                                        } catch (err: unknown) {
-                                          toast.error((err as Error)?.message ?? 'Failed to update admin access')
-                                        }
-                                      }}
-                                      className="gap-1.5"
-                                    >
-                                      <ShieldCheck className="h-3.5 w-3.5" />
-                                      {isUserAdmin ? 'Revoke Admin Access' : 'Grant Admin Access'}
-                                    </Button>
+                                    <>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant={isUserAdmin ? 'secondary' : 'default'}
+                                        onClick={async (e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          toast.info('Updating…')
+                                          try {
+                                            await toggleAdminUid(u.uid)
+                                            toast.success(isUserAdmin ? 'Admin access revoked' : 'Admin access granted')
+                                          } catch (err: unknown) {
+                                            toast.error((err as Error)?.message ?? 'Failed to update admin access')
+                                          }
+                                        }}
+                                        className="gap-1.5"
+                                      >
+                                        <ShieldCheck className="h-3.5 w-3.5" />
+                                        {isUserAdmin ? 'Revoke Admin' : 'Grant Admin'}
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant={isBanned ? 'default' : 'secondary'}
+                                        onClick={async (e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          toast.info('Updating…')
+                                          try {
+                                            await banUser(u.uid, !isBanned)
+                                            toast.success(isBanned ? 'User unbanned' : 'User banned from registering interest')
+                                          } catch (err: unknown) {
+                                            toast.error((err as Error)?.message ?? 'Failed to update ban status')
+                                          }
+                                        }}
+                                        className={`gap-1.5 ${!isBanned ? 'text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10' : ''}`}
+                                      >
+                                        {isBanned ? 'Unban User' : 'Ban from Registering'}
+                                      </Button>
+                                      <Button
+                                        size="sm" variant="destructive"
+                                        onClick={() => { if (confirm(`Delete account for ${u.firstName} ${u.lastName}? This removes their saved profile but not their login.`)) removeUserProfile(u.uid) }}
+                                        className="gap-1.5 ml-auto"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" /> Delete Profile
+                                      </Button>
+                                    </>
                                   )
                                 })()}
-                                <Button
-                                  size="sm" variant="destructive"
-                                  onClick={() => { if (confirm(`Delete account for ${u.firstName} ${u.lastName}? This removes their saved profile but not their login.`)) removeUserProfile(u.uid) }}
-                                  className="gap-1.5"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" /> Delete Profile
-                                </Button>
                               </div>
                             </div>
                           )}

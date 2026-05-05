@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
-import { CheckCircle, ChevronLeft, ChevronRight, Send, Loader2, Plane } from 'lucide-react'
+import { CheckCircle, ChevronLeft, ChevronRight, Send, Loader2, Plane, Ban } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,7 +12,7 @@ import { insertRegistration, fetchUserProfile, upsertUserProfile } from '@/lib/d
 import { useApp } from '@/context/AppContext'
 import type { Trip } from '@/lib/types'
 
-type Phase = 'loading' | 'confirm' | 'passport' | 'medical'
+type Phase = 'loading' | 'confirm' | 'passport' | 'medical' | 'banned'
 
 interface Props {
   trip: Trip
@@ -57,6 +57,10 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     setSavedProfile(null)
 
     fetchUserProfile(user.uid).then(profile => {
+      if (profile?.banned) {
+        setPhase('banned' as Phase)
+        return
+      }
       if (profile && profile.dataConsent) {
         setSavedProfile(profile)
         setPhase('confirm')
@@ -256,6 +260,18 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
               {phase === 'loading' && (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              )}
+
+              {/* Banned */}
+              {phase === ('banned' as Phase) && (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+                    <Ban className="h-8 w-8 text-destructive" />
+                  </div>
+                  <h3 className="font-gilbert text-xl mb-1">Registration Unavailable</h3>
+                  <p className="text-sm text-muted-foreground mb-5">You are not permitted to register interest in trips. Please contact an admin if you think this is a mistake.</p>
+                  <Button variant="secondary" onClick={() => handleOpenChange(false)}>Close</Button>
                 </div>
               )}
 

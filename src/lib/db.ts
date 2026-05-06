@@ -370,8 +370,7 @@ export async function upsertSettings(settings: Settings): Promise<void> {
     departureLng: settings.departureAirport?.lng ?? -0.1278,
     panelImages: settings.panelImages,
     adminFolders: settings.adminFolders ?? [],
-    adminUids: settings.adminUids ?? [],
-  })
+  }, { merge: true })
 }
 
 // ── Locations ─────────────────────────────────────────────────────────────

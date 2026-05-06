@@ -9,6 +9,9 @@ Internal web app for DAF/Dial a Flight staff to share travel experiences, browse
 **Storage:** Firebase Storage
 **Deployment:** Vercel (frontend) + Vercel serverless functions (`api/`)
 
+## Project Context
+This is a TypeScript project. Always check existing file structure and imports before making changes. Do not guess file locations — use Glob/Grep to find the correct file first.
+
 ## Key Files
 - `src/App.tsx` — root shell, auth state, lazy view routing
 - `src/context/AppContext.tsx` — all app state, Firestore read/write functions
@@ -31,22 +34,23 @@ Internal web app for DAF/Dial a Flight staff to share travel experiences, browse
 - Passport/medical data is AES-GCM encrypted via `src/lib/crypto.ts` before Firestore storage
 
 ## General Rules
-- Never ask clarifying questions for straightforward requests — just implement it
-- When I describe a UI change, implement the most sensible interpretation and note your assumption
+- Never ask clarifying questions for straightforward feature requests — just start implementing. Only ask if there's a genuine ambiguity that would lead to wasted work.
+- When I request a feature, implement ALL parts I mentioned in a single pass. Do not leave out sub-features that were explicitly requested.
 - Run `npm run build` after changes and fix any errors before finishing
 - Always use `git add [specific files]` — never `git add -A` or `git add .`
 - Find files with Glob/Grep before editing — never guess file locations
-- Implement ALL parts of a multi-part request in one pass — don't drop sub-features
 - Don't add comments, docstrings, or type annotations to code you didn't change
 
 ## UI & Layout
+- When I describe a UI change (sizing, layout, spacing, colors), implement it literally and use common sense for related visual adjustments. Do not require me to specify every pixel — infer reasonable defaults from context.
 - Use existing Tailwind classes and the established spacing scale
 - Mobile-first; follow existing responsive patterns in the file you're editing
 - When fixing a visual issue, list exactly what changed so I can verify without reading code
 - Never swap image assignments between components without asking
 - Keep `font-gilbert` only for the DAFAGRAM logo — all other headings use `font-semibold`
 
-## Commits & Deployment
+## Tools & Commands
+- Run git commands directly — do not ask me to run them manually. You have Bash access.
 - Commit with descriptive messages and always include the Co-Authored-By trailer
 - Push immediately after committing unless told otherwise — Vercel auto-deploys on push
 - Never force push, never skip hooks

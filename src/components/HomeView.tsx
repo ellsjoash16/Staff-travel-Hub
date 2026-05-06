@@ -20,7 +20,7 @@ const PANEL_IMAGES: Partial<Record<string, string>> = {
   upcoming: 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=1920&q=80',
   interest: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80',
   years:    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1920&q=80',
-  submit:   'https://firebasestorage.googleapis.com/v0/b/daf-fam-trips.firebasestorage.app/o/images%2Fpanel-submit-1777296698453.jpg?alt=media&token=dd03c0ed-40db-4b92-badf-944c08d69409',
+  submit:   'https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?auto=format&fit=crop&w=1920&q=80',
 }
 
 const PANELS: PanelConfig[] = [
@@ -158,7 +158,7 @@ function MapPanel({ onClick }: { onClick: () => void }) {
         <div className="relative h-full flex flex-col justify-end p-4 sm:p-5 2xl:p-7 pointer-events-none">
           <div className="flex items-end justify-between">
             <div className="space-y-1.5 2xl:space-y-2">
-              <h2 className="font-gilbert text-white text-2xl sm:text-3xl 2xl:text-4xl drop-shadow-lg leading-none">
+              <h2 className="font-semibold tracking-tight text-white text-2xl sm:text-3xl 2xl:text-4xl drop-shadow-lg leading-none">
                 World Map
               </h2>
               <p className="text-white/70 text-sm 2xl:text-base tracking-wide">Explore destinations</p>
@@ -216,7 +216,7 @@ function PanelCard({
         <div className="relative h-full flex flex-col justify-end p-4 sm:p-5 2xl:p-7">
           <div className="flex items-end justify-between gap-3">
             <div className="space-y-1.5 2xl:space-y-2 min-w-0">
-              <h2 className={`font-gilbert text-white drop-shadow-lg leading-none ${
+              <h2 className={`font-semibold tracking-tight text-white drop-shadow-lg leading-none ${
                 large ? 'text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl' : 'text-lg sm:text-xl 2xl:text-2xl'
               }`}>
                 {panel.title(headingText)}
@@ -238,24 +238,30 @@ function PanelCard({
 export function HomeView() {
   const { state, dispatch } = useApp()
   const { settings } = state
-  const firstName = auth.currentUser?.displayName?.split(' ')[0] ?? null
+  const rawFirst = auth.currentUser?.displayName?.split(' ')[0] ?? null
+  const firstName = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1) : null
 
   function navigate(view: Exclude<View, 'home'>) {
     dispatch({ type: 'SET_VIEW', view })
   }
 
   return (
-    <div className="flex flex-col gap-3 2xl:gap-4 sm:h-full">
+    <div className="flex flex-col gap-3 2xl:gap-4 h-full min-h-0">
       {firstName && (
-        <p className="text-3xl font-semibold text-foreground leading-none capitalize">
-          Hello, {firstName}
-        </p>
+        <div className="flex items-baseline justify-between gap-4 flex-shrink-0">
+          <p className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground leading-none">
+            Hello, {firstName}
+          </p>
+          <p className="text-sm text-muted-foreground hidden sm:block flex-shrink-0">
+            {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+        </div>
       )}
-    <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 2xl:gap-4
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 2xl:gap-4
+      flex-1 min-h-0
       [grid-auto-rows:180px]
       sm:[grid-auto-rows:unset] sm:[grid-template-rows:repeat(4,minmax(0,1fr))]
-      md:[grid-template-rows:repeat(3,minmax(0,1fr))]
-      ${firstName ? 'flex-1 min-h-0' : 'sm:h-full'}`}>
+      md:[grid-template-rows:repeat(3,minmax(0,1fr))]">
 
       {/* Row 1: Feed (2/3) + Map (1/3) */}
       <PanelCard panel={PANELS[0]} className="sm:col-span-2 md:col-span-4" onClick={() => navigate('feed')} bgImage={PANEL_IMAGES.feed ?? null} headingText={settings.heading} large />
@@ -263,12 +269,12 @@ export function HomeView() {
         <MapPanel onClick={() => navigate('map')} />
       </div>
 
-      {/* Row 2: Upcoming + My Registrations */}
+      {/* Row 2: Upcoming + By Year */}
       <PanelCard panel={PANELS[1]} className="md:col-span-3" onClick={() => navigate('upcoming')} bgImage={PANEL_IMAGES.upcoming ?? null} headingText={settings.heading} />
-      <PanelCard panel={PANELS[2]} className="md:col-span-3" onClick={() => navigate('interest')} bgImage={PANEL_IMAGES.interest ?? null} headingText={settings.heading} />
+      <PanelCard panel={PANELS[2]} className="md:col-span-3" onClick={() => navigate('years')} bgImage={PANEL_IMAGES.interest ?? null} headingText={settings.heading} />
 
-      {/* Row 3: By Year + Submit */}
-      <PanelCard panel={PANELS[3]} className="md:col-span-3" onClick={() => navigate('years')} bgImage={PANEL_IMAGES.years ?? null} headingText={settings.heading} />
+      {/* Row 3: My Registrations + Submit */}
+      <PanelCard panel={PANELS[3]} className="md:col-span-3" onClick={() => navigate('interest')} bgImage={PANEL_IMAGES.years ?? null} headingText={settings.heading} />
       <PanelCard panel={PANELS[4]} className="md:col-span-3" onClick={() => navigate('submit')} bgImage={PANEL_IMAGES.submit ?? null} headingText={settings.heading} />
     </div>
     </div>

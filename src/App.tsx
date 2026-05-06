@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plane } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { saveAccountRecord } from '@/lib/db'
@@ -9,6 +9,41 @@ import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
 import { LoginScreen } from '@/components/LoginScreen'
 import type { Post } from '@/lib/types'
+
+const LOADING_BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80'
+
+const QUOTES = [
+  'The world is a book, and those who do not travel read only one page.',
+  'Not all those who wander are lost.',
+  'Travel is the only thing you buy that makes you richer.',
+  'Life is short and the world is wide.',
+  'Adventure is worthwhile in itself.',
+]
+
+function SplashScreen() {
+  const quote = QUOTES[Math.floor(Date.now() / 5000) % QUOTES.length]
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+      <div className="absolute inset-0" style={{
+        backgroundImage: `url(${LOADING_BG})`,
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        filter: 'blur(12px) brightness(0.35) saturate(1.1)',
+        transform: 'scale(1.1)',
+      }} />
+      <div className="relative z-10 flex flex-col items-center gap-6 text-center px-6">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 backdrop-blur-sm">
+          <Plane className="h-8 w-8 text-primary" />
+        </div>
+        <div>
+          <h1 className="font-gilbert text-4xl text-white drop-shadow mb-1">DAFAGRAM</h1>
+          <p className="text-white/50 text-sm tracking-widest uppercase">Staff Travel Hub</p>
+        </div>
+        <Loader2 className="h-5 w-5 animate-spin text-primary/70 mt-2" />
+        <p className="text-white/40 text-sm italic max-w-xs leading-relaxed mt-2">"{quote}"</p>
+      </div>
+    </div>
+  )
+}
 
 const HomeView      = lazy(() => import('@/components/HomeView').then(m => ({ default: m.HomeView })))
 const FeedView      = lazy(() => import('@/components/FeedView').then(m => ({ default: m.FeedView })))
@@ -29,16 +64,7 @@ function AppShell() {
 
   const showSidebar = state.activeView !== 'home'
 
-  if (state.loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm">Loading…</p>
-        </div>
-      </div>
-    )
-  }
+  if (state.loading) return <SplashScreen />
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden bg-background">
@@ -69,7 +95,7 @@ function AppShell() {
         }`}
       >
         <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
-          <div key={state.activeView} className={`view-enter ${['home', 'map', 'submit', 'years', 'upcoming', 'interest'].includes(state.activeView) ? 'h-full' : ''}`}>
+          <div key={state.activeView} className={`view-enter ${['home', 'map', 'submit', 'years', 'upcoming', 'interest'].includes(state.activeView) ? 'h-full min-h-0' : ''}`}>
             {state.activeView === 'home' && <HomeView />}
             {state.activeView === 'feed' && <FeedView />}
             {state.activeView === 'map' && (
@@ -108,13 +134,7 @@ export default function App() {
     })
   }, [])
 
-  if (!authReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
+  if (!authReady) return <SplashScreen />
 
   if (!signedIn) {
     return (

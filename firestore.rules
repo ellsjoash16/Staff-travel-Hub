@@ -45,12 +45,6 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Courses — authenticated read, admin write
-    match /courses/{id} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-
     // Trips — authenticated read, admin write
     match /trips/{id} {
       allow read: if isAuthenticated();

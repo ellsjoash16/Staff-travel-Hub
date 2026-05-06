@@ -319,8 +319,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function addPost(post: Post, newDataUrls: string[], staffImageDataUrl: string | null): Promise<void> {
-    const uploaded: { url: string; path: string }[] = []
-    for (const url of newDataUrls) uploaded.push(await uploadImage(url, post.id))
+    const uploaded = await Promise.all(newDataUrls.map(url => uploadImage(url, post.id)))
     let finalPost = { ...post, images: uploaded.map((r) => r.url) }
     let staffImagePath: string | null = null
     if (staffImageDataUrl?.startsWith('data:')) {
@@ -336,8 +335,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const keptPaths = post.images
       .map((url) => extractStoragePath(url, BUCKET))
       .filter((p): p is string => p !== null)
-    const uploaded: { url: string; path: string }[] = []
-    for (const url of newDataUrls) uploaded.push(await uploadImage(url, post.id))
+    const uploaded = await Promise.all(newDataUrls.map(url => uploadImage(url, post.id)))
     let finalPost = { ...post, images: [...post.images, ...uploaded.map((r) => r.url)] }
     let newStaffImagePath: string | null | undefined = undefined
     if (staffImageDataUrl?.startsWith('data:')) {
@@ -394,13 +392,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function submitReview(submission: Submission, imageDataUrls: string[]): Promise<void> {
-    const uploadedImages: string[] = []
-    const uploadedPaths: string[] = []
-    for (let i = 0; i < imageDataUrls.length; i++) {
-      const result = await uploadImage(imageDataUrls[i], `${submission.id}-${i}`)
-      uploadedImages.push(result.url)
-      uploadedPaths.push(result.path)
-    }
+    const uploadedResults = await Promise.all(imageDataUrls.map((url, i) => uploadImage(url, `${submission.id}-${i}`)))
+    const uploadedImages = uploadedResults.map(r => r.url)
+    const uploadedPaths = uploadedResults.map(r => r.path)
 
     // Build a Post from the Submission and insert as pending
     const post: Post = {
@@ -426,8 +420,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function editSubmission(submission: Submission, newDataUrls: string[]): Promise<void> {
-    const uploaded: { url: string; path: string }[] = []
-    for (const url of newDataUrls) uploaded.push(await uploadImage(url, submission.id))
+    const uploaded = await Promise.all(newDataUrls.map(url => uploadImage(url, submission.id)))
     const finalSubmission = {
       ...submission,
       images: [...submission.images, ...uploaded.map((r) => r.url)],

@@ -23,7 +23,7 @@ service cloud.firestore {
     // Posts — authenticated users can submit (pending only), admins manage all
     match /posts/{id} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.status == 'pending';
+      allow create: if (isAuthenticated() && request.resource.data.status == 'pending') || isAdmin();
       allow update, delete: if isAdmin();
     }
 

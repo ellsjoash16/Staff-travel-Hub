@@ -21,7 +21,7 @@ export const COUNTRIES = [
   'Norway', 'Oman', 'Pakistan', 'Palestine', 'Panama', 'Papua New Guinea',
   'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Puerto Rico',
   'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saudi Arabia', 'Senegal', 'Serbia',
-  'Sierra Leone', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia',
+  'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia',
   'Somaliland', 'South Africa', 'South Korea', 'South Sudan', 'Spain',
   'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria',
   'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo',

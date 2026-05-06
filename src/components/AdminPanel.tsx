@@ -361,7 +361,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   }
 
   const tabsContent = (
-          <Tabs value={tab} onValueChange={(v) => { setTab(v); if (v === 'registrations') loadRegistrations() }}>
+          <Tabs value={tab} onValueChange={(v) => { setTab(v); setSubmitting(false); if (v === 'registrations') loadRegistrations() }}>
             <TabsList className="overflow-x-auto flex-nowrap">
               <TabsTrigger value="post" className="px-3 text-xs">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
               <TabsTrigger value="locations" className="px-3 text-xs">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>

@@ -142,7 +142,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       }
       setPostForm(emptyPostForm()); setEditingPostId(null)
     } catch (err) {
-      console.error(err); toast.error('Something went wrong.')
+      console.error(err); toast.error((err as Error)?.message || 'Failed to save post')
     } finally { setSubmitting(false) }
   }
 
@@ -263,7 +263,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       }
       setTripForm(emptyTripForm()); setEditingTripId(null)
     } catch (err) {
-      console.error(err); toast.error(err instanceof Error ? err.message : 'Something went wrong.')
+      console.error(err); toast.error((err as Error)?.message || 'Failed to save trip')
     } finally { setSubmitting(false) }
   }
 
@@ -315,7 +315,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       }
       setLocationForm(emptyLocationForm()); setEditingLocationId(null)
     } catch (err) {
-      console.error(err); toast.error('Something went wrong saving location.')
+      console.error(err); toast.error((err as Error)?.message || 'Failed to save location')
     } finally { setSubmitting(false) }
   }
 

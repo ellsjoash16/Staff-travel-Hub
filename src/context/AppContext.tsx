@@ -327,8 +327,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       finalPost = { ...finalPost, staffImage: result.url }
       staffImagePath = result.path
     }
-    dispatch({ type: 'ADD_POST', post: finalPost })
     await insertPost(finalPost, uploaded.map((r) => r.path), staffImagePath)
+    dispatch({ type: 'ADD_POST', post: finalPost })
   }
 
   async function editPost(post: Post, newDataUrls: string[], staffImageDataUrl: string | null): Promise<void> {
@@ -442,8 +442,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       finalTrip = { ...trip, image: result.url }
       imagePath = result.path
     }
-    dispatch({ type: 'ADD_TRIP', trip: finalTrip })
     await insertTrip(finalTrip, imagePath)
+    dispatch({ type: 'ADD_TRIP', trip: finalTrip })
   }
 
   async function editTrip(trip: Trip, imageDataUrl: string | null): Promise<void> {
@@ -472,8 +472,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function addLocation(location: Location): Promise<void> {
-    dispatch({ type: 'ADD_LOCATION', location })
     await insertLocation(location)
+    dispatch({ type: 'ADD_LOCATION', location })
   }
 
   async function editLocation(location: Location): Promise<void> {

@@ -16,11 +16,11 @@ interface PanelConfig {
 }
 
 const PANEL_IMAGES: Partial<Record<string, string>> = {
-  feed:     'https://images.unsplash.com/photo-1746125047145-d6698eef563a?auto=format&fit=crop&crop=center&w=1920&h=600&q=80',
-  upcoming: 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=1920&q=80',
-  interest: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80',
-  years:    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1920&q=80',
-  submit:   'https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?auto=format&fit=crop&w=1920&q=80',
+  feed:     'https://images.unsplash.com/photo-1746125047145-d6698eef563a?auto=format&fit=crop&crop=center&w=1200&h=500&q=75',
+  upcoming: 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=800&q=75',
+  interest: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=75',
+  years:    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=75',
+  submit:   'https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?auto=format&fit=crop&w=800&q=75',
 }
 
 const PANELS: PanelConfig[] = [
@@ -204,6 +204,7 @@ function PanelCard({
           <img
             src={bgImage}
             alt=""
+            fetchPriority="high"
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-600"
           />
         ) : (

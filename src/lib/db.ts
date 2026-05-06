@@ -1,7 +1,7 @@
 import {
   collection, doc, getDoc, getDocs,
   setDoc, updateDoc, deleteDoc,
-  query, where, serverTimestamp,
+  query, where, limit, serverTimestamp,
 } from 'firebase/firestore'
 import {
   ref, uploadBytes, getDownloadURL, deleteObject,
@@ -53,7 +53,7 @@ function docToPost(id: string, d: any): Post {
 }
 
 export async function fetchPosts(): Promise<Post[]> {
-  const q = query(collection(db, 'posts'), where('status', '==', 'approved'))
+  const q = query(collection(db, 'posts'), where('status', '==', 'approved'), limit(150))
   const snap = await getDocs(q)
   return snap.docs
     .map((d) => docToPost(d.id, d.data()))

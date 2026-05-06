@@ -238,9 +238,19 @@ function PanelCard({
 
 export function HomeView() {
   const { state, dispatch } = useApp()
-  const { settings } = state
+  const { settings, posts, trips, locations } = state
   const rawFirst = auth.currentUser?.displayName?.split(' ')[0] ?? null
   const firstName = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1) : null
+
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const postCount = posts.length
+  const countryCount = new Set(
+    posts.map(p => {
+      const loc = p.locationId ? locations.find(l => l.id === p.locationId) : null
+      return loc?.country
+    }).filter(Boolean)
+  ).size
+  const upcomingCount = trips.filter(t => !t.completed && t.date >= todayStr).length
 
   function navigate(view: Exclude<View, 'home'>) {
     dispatch({ type: 'SET_VIEW', view })
@@ -248,19 +258,37 @@ export function HomeView() {
 
   return (
     <div className="flex flex-col gap-3 2xl:gap-4 h-full min-h-0">
-      {firstName && (
-        <div className="flex items-baseline justify-between gap-4 flex-shrink-0">
-          <p className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground leading-none">
-            Hello, {firstName}
-          </p>
-          <p className="text-sm text-muted-foreground hidden sm:block flex-shrink-0">
-            {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
+      <div className="flex items-center justify-between gap-4 flex-shrink-0">
+        <p className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground leading-none">
+          {firstName ? `Hello, ${firstName}` : 'Welcome'}
+        </p>
+        <p className="text-sm text-muted-foreground hidden sm:block flex-shrink-0">
+          {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+        </p>
+      </div>
+
+      {/* Stats strip */}
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 flex-wrap">
+        <div className="flex items-center gap-1.5 rounded-full bg-primary/8 border border-primary/15 px-3 py-1.5 text-xs font-medium text-foreground/80">
+          <Camera className="h-3 w-3 text-primary flex-shrink-0" />
+          <span>{postCount} adventure{postCount !== 1 ? 's' : ''}</span>
         </div>
-      )}
+        {countryCount > 0 && (
+          <div className="flex items-center gap-1.5 rounded-full bg-primary/8 border border-primary/15 px-3 py-1.5 text-xs font-medium text-foreground/80">
+            <span className="text-primary text-[11px] font-bold leading-none">🌍</span>
+            <span>{countryCount} countr{countryCount !== 1 ? 'ies' : 'y'}</span>
+          </div>
+        )}
+        {upcomingCount > 0 && (
+          <div className="flex items-center gap-1.5 rounded-full bg-primary/8 border border-primary/15 px-3 py-1.5 text-xs font-medium text-foreground/80">
+            <Plane className="h-3 w-3 text-primary flex-shrink-0" />
+            <span>{upcomingCount} upcoming trip{upcomingCount !== 1 ? 's' : ''}</span>
+          </div>
+        )}
+      </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 2xl:gap-4
       flex-1 min-h-0
-      [grid-auto-rows:180px]
+      [grid-auto-rows:160px]
       sm:[grid-auto-rows:unset] sm:[grid-template-rows:repeat(4,minmax(0,1fr))]
       md:[grid-template-rows:repeat(3,minmax(0,1fr))]">
 

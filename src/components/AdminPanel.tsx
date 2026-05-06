@@ -64,7 +64,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [locationForm, setLocationForm] = useState<LocationForm>(emptyLocationForm())
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
   const [viewingSubId, setViewingSubId] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const [postSaving, setPostSaving] = useState(false)
+  const [tripSaving, setTripSaving] = useState(false)
+  const [locationSaving, setLocationSaving] = useState(false)
   const [manageSearch, setManageSearch] = useState('')
   const [pdfParsing, setPdfParsing] = useState(false)
   const [pdfReviews, setPdfReviews] = useState<ParsedReview[]>([])
@@ -131,7 +133,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       status: 'approved',
       folder: postForm.folder ?? null,
     }
-    setSubmitting(true)
+    setPostSaving(true)
     try {
       if (editingPostId) {
         await editPost(post, newDataUrls, staffImageDataUrl)
@@ -143,7 +145,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       setPostForm(emptyPostForm()); setEditingPostId(null)
     } catch (err) {
       console.error(err); toast.error((err as Error)?.message || 'Failed to save post')
-    } finally { setSubmitting(false) }
+    } finally { setPostSaving(false) }
   }
 
   function startEditPost(post: Post) {
@@ -254,7 +256,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       showRegisterInterest: tripForm.showRegisterInterest,
       completed: tripForm.completed,
     }
-    setSubmitting(true)
+    setTripSaving(true)
     try {
       if (editingTripId) {
         await editTrip(trip, imageDataUrl); toast.success('Trip updated!')
@@ -264,7 +266,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       setTripForm(emptyTripForm()); setEditingTripId(null)
     } catch (err) {
       console.error(err); toast.error((err as Error)?.message || 'Failed to save trip')
-    } finally { setSubmitting(false) }
+    } finally { setTripSaving(false) }
   }
 
   function startEditTrip(trip: Trip) {
@@ -306,7 +308,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     }
     const id = editingLocationId || crypto.randomUUID()
     const location: Location = { id, name: locationForm.name, country: locationForm.country }
-    setSubmitting(true)
+    setLocationSaving(true)
     try {
       if (editingLocationId) {
         await editLocation(location); toast.success('Location updated!')
@@ -316,7 +318,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       setLocationForm(emptyLocationForm()); setEditingLocationId(null)
     } catch (err) {
       console.error(err); toast.error((err as Error)?.message || 'Failed to save location')
-    } finally { setSubmitting(false) }
+    } finally { setLocationSaving(false) }
   }
 
   function startEditLocation(loc: Location) {
@@ -361,7 +363,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   }
 
   const tabsContent = (
-          <Tabs value={tab} onValueChange={(v) => { setTab(v); setSubmitting(false); if (v === 'registrations') loadRegistrations() }}>
+          <Tabs value={tab} onValueChange={(v) => { setTab(v); if (v === 'registrations') loadRegistrations() }}>
             <TabsList className="overflow-x-auto flex-nowrap">
               <TabsTrigger value="post" className="px-3 text-xs">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
               <TabsTrigger value="locations" className="px-3 text-xs">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>
@@ -556,9 +558,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               )}
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="secondary" onClick={() => { setPostForm(emptyPostForm()); setEditingPostId(null) }} disabled={submitting}>Clear</Button>
-                <Button onClick={submitPost} disabled={submitting}>
-                  {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingPostId ? 'Update Post' : 'Publish Post'}
+                <Button variant="secondary" onClick={() => { setPostForm(emptyPostForm()); setEditingPostId(null) }} disabled={postSaving}>Clear</Button>
+                <Button onClick={submitPost} disabled={postSaving}>
+                  {postSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingPostId ? 'Update Post' : 'Publish Post'}
                 </Button>
               </div>
               {editingPostId && <p className="text-right text-xs text-amber-500">Editing existing post</p>}
@@ -591,9 +593,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="secondary" onClick={() => { setLocationForm(emptyLocationForm()); setEditingLocationId(null) }} disabled={submitting}>Clear</Button>
-                <Button onClick={submitLocation} disabled={submitting}>
-                  {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingLocationId ? 'Update Location' : 'Add Location'}
+                <Button variant="secondary" onClick={() => { setLocationForm(emptyLocationForm()); setEditingLocationId(null) }} disabled={locationSaving}>Clear</Button>
+                <Button onClick={submitLocation} disabled={locationSaving}>
+                  {locationSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingLocationId ? 'Update Location' : 'Add Location'}
                 </Button>
               </div>
               {editingLocationId && <p className="text-right text-xs text-amber-500">Editing existing location</p>}
@@ -717,9 +719,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="secondary" onClick={() => { setTripForm(emptyTripForm()); setEditingTripId(null) }} disabled={submitting}>Clear</Button>
-                <Button onClick={submitTrip} disabled={submitting}>
-                  {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingTripId ? 'Update Trip' : 'Add Trip'}
+                <Button variant="secondary" onClick={() => { setTripForm(emptyTripForm()); setEditingTripId(null) }} disabled={tripSaving}>Clear</Button>
+                <Button onClick={submitTrip} disabled={tripSaving}>
+                  {tripSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingTripId ? 'Update Trip' : 'Add Trip'}
                 </Button>
               </div>
               {editingTripId && <p className="text-right text-xs text-amber-500">Editing existing trip</p>}

@@ -301,8 +301,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   async function promoteToAdmin(appPassword: string): Promise<boolean> {
     if (appPassword !== state.settings.password) return false
-    dispatch({ type: 'SET_ADMIN', value: true })
-    // Also add this UID to adminUids so Firestore rules grant write access
     const uid = auth.currentUser?.uid
     if (uid && !state.settings.adminUids?.includes(uid)) {
       const updated = [...(state.settings.adminUids ?? []), uid]
@@ -310,6 +308,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await setAdminUids(updated)
       dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
     }
+    dispatch({ type: 'SET_ADMIN', value: true })
     return true
   }
 

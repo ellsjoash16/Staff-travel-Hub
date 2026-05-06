@@ -21,6 +21,7 @@ export const DEFAULT_SETTINGS: Settings = {
   color: '#05979a',
   password: '1111',
   welcome: '',
+  notice: '',
   departureAirport: { name: 'LHR', lat: 51.5074, lng: -0.1278 },
   panelImages: { feed: null, map: null, courses: null, years: null, submit: null },
   adminFolders: [],
@@ -329,6 +330,7 @@ export async function fetchSettings(): Promise<Settings> {
     color: d.color ?? DEFAULT_SETTINGS.color,
     password: d.password ?? DEFAULT_SETTINGS.password,
     welcome: d.welcome ?? DEFAULT_SETTINGS.welcome,
+    notice: d.notice ?? '',
     departureAirport: {
       name: d.departureName ?? 'LHR',
       lat: d.departureLat ?? 51.5074,
@@ -362,6 +364,7 @@ export async function upsertSettings(settings: Settings): Promise<void> {
     color: settings.color,
     password: settings.password,
     welcome: settings.welcome,
+    notice: settings.notice ?? '',
     departureName: settings.departureAirport?.name ?? 'LHR',
     departureLat: settings.departureAirport?.lat ?? 51.5074,
     departureLng: settings.departureAirport?.lng ?? -0.1278,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import type { GlobeMethods } from 'react-globe.gl'
-import { Camera, Plane, CalendarDays, Send, ArrowRight, ClipboardCheck } from 'lucide-react'
+import { Camera, Plane, CalendarDays, Send, ArrowRight, ClipboardCheck, X, Megaphone } from 'lucide-react'
 
 const Globe = lazy(() => import('react-globe.gl'))
 import { useApp } from '@/context/AppContext'
@@ -242,6 +242,17 @@ export function HomeView() {
   const rawFirst = auth.currentUser?.displayName?.split(' ')[0] ?? null
   const firstName = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1) : null
 
+  const notice = settings.notice?.trim() ?? ''
+  const dismissKey = notice ? `notice-dismissed-${btoa(encodeURIComponent(notice)).slice(0, 20)}` : ''
+  const [noticeDismissed, setNoticeDismissed] = useState(() =>
+    dismissKey ? localStorage.getItem(dismissKey) === '1' : true
+  )
+
+  function dismissNotice() {
+    if (dismissKey) localStorage.setItem(dismissKey, '1')
+    setNoticeDismissed(true)
+  }
+
   function navigate(view: Exclude<View, 'home'>) {
     dispatch({ type: 'SET_VIEW', view })
   }
@@ -256,6 +267,17 @@ export function HomeView() {
           <p className="text-sm text-muted-foreground hidden sm:block flex-shrink-0">
             {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
+        </div>
+      )}
+
+      {/* Notice board */}
+      {notice && !noticeDismissed && (
+        <div className="flex-shrink-0 flex items-start gap-3 rounded-2xl border border-primary/25 bg-primary/8 px-4 py-3">
+          <Megaphone className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+          <p className="flex-1 text-sm text-foreground/90 leading-relaxed">{notice}</p>
+          <button onClick={dismissNotice} className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors mt-0.5">
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 2xl:gap-4

@@ -74,6 +74,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [newFolderName, setNewFolderName] = useState('')
 
   const [sPwd, setSPwd] = useState('')
+  const [sNotice, setSNotice] = useState('')
 
 
   const [usersLoaded, setUsersLoaded] = useState(false)
@@ -85,6 +86,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   useEffect(() => {
     if (open || inline) {
       setSPwd('')
+      setSNotice(settings.notice ?? '')
       if (initialPost) startEditPost(initialPost)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1365,6 +1367,38 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
             {/* ── SETTINGS ── */}
             <TabsContent value="settings" className="space-y-3">
+
+              {/* Notice board */}
+              <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Globe className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Notice Board</p>
+                    <p className="text-xs text-muted-foreground">Shown as a banner on the home screen — leave blank to hide it</p>
+                  </div>
+                </div>
+                <div className="p-5 space-y-3">
+                  <Textarea
+                    placeholder="e.g. ✈️ Bali 2026 registrations are now open — head to Upcoming Trips to register your interest!"
+                    value={sNotice}
+                    onChange={(e) => setSNotice(e.target.value)}
+                    rows={3}
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs text-muted-foreground">Supports plain text and emoji. Changing the text resets dismissals for all users.</p>
+                    <Button size="sm" onClick={async () => {
+                      try {
+                        await saveSettings({ ...settings, notice: sNotice.trim() })
+                        toast.success(sNotice.trim() ? 'Notice updated!' : 'Notice cleared')
+                      } catch { toast.error('Failed to save notice') }
+                    }}>Save Notice</Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* PIN */}
               <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 <div className="px-5 py-4 border-b border-border flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">

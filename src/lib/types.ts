@@ -80,6 +80,7 @@ export interface Settings {
   color: string
   password: string
   welcome: string
+  notice: string
   departureAirport: { name: string; lat: number; lng: number }
   panelImages: PanelImages
   adminFolders: string[]

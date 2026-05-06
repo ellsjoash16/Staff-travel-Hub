@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
-import { Plane, MapPin, Calendar, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Plane, MapPin, Calendar, CheckCircle, Clock, XCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
 import type { Registration } from '@/lib/types'
 
-const BG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=1920&q=80'
+const BG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=400&q=40'
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; className: string }> = {
   requested:            { label: 'Requested',           icon: Clock,         className: 'bg-blue-500/15 text-blue-600 border-blue-500/25 dark:text-blue-400' },
@@ -64,9 +64,10 @@ function RegistrationCard({ reg, trip }: { reg: Registration; trip: { name: stri
 export function MyRegistrationsView() {
   const { state, loadMyRegistrations } = useApp()
   const { myRegistrations, trips, locations } = state
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadMyRegistrations()
+    loadMyRegistrations().finally(() => setLoading(false))
   }, [])
 
   function getTripInfo(reg: Registration) {
@@ -76,8 +77,6 @@ export function MyRegistrationsView() {
     return { name: trip.name, date: trip.date, image: trip.image, locationName: loc?.name ?? null }
   }
 
-  const empty = myRegistrations.length === 0
-
   return (
     <div className="relative h-full overflow-auto">
       {/* Background */}
@@ -85,7 +84,11 @@ export function MyRegistrationsView() {
         <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
       </div>
 
-      {empty ? (
+      {loading ? (
+        <div className="relative flex items-center justify-center h-full" style={{ zIndex: 1 }}>
+          <Loader2 className="h-6 w-6 animate-spin text-white/50" />
+        </div>
+      ) : myRegistrations.length === 0 ? (
         <div className="relative flex flex-col items-center justify-center h-full text-white/70" style={{ zIndex: 1 }}>
           <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-5">
             <Plane className="h-10 w-10 text-white/50" />

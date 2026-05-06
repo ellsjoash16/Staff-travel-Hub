@@ -159,7 +159,7 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
   )
 }
 
-const BG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=1920&q=80'
+const BG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=400&q=40'
 
 // ── Main view ─────────────────────────────────────────────────────────────────
 

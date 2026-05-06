@@ -3,7 +3,7 @@ import { CalendarDays, MapPin, Plane } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
 
-const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80'
+const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=40'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -32,7 +32,7 @@ export function YearsView() {
   })
   const yearKeys = [...yearMap.keys()].sort((a, b) => b.localeCompare(a))
 
-  if (trips.length === 0) {
+  if (completedTrips.length === 0) {
     return (
       <div className="relative h-full overflow-auto">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">

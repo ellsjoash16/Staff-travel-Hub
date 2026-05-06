@@ -223,8 +223,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
   async function approvePostFn(id: string): Promise<void> {
-    dispatch({ type: 'APPROVE_POST', id })
     await approvePost(id)
+    dispatch({ type: 'APPROVE_POST', id })
   }
 
   async function fetchPending(): Promise<void> {
@@ -492,14 +492,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function savePageImages(images: PanelImages, dataUrls: Partial<Record<keyof PanelImages, string | null>>): Promise<void> {
+    const keys = ['feed', 'map', 'courses', 'years', 'submit'] as const
+    const results = await Promise.all(
+      keys.map(key => {
+        const dataUrl = dataUrls[key]
+        return dataUrl?.startsWith('data:') ? uploadImage(dataUrl, `panel-${key}`) : Promise.resolve(null)
+      })
+    )
     const uploaded = { ...images }
-    for (const key of ['feed', 'map', 'courses', 'years', 'submit'] as const) {
-      const dataUrl = dataUrls[key]
-      if (dataUrl?.startsWith('data:')) {
-        const result = await uploadImage(dataUrl, `panel-${key}`)
-        uploaded[key] = result.url
-      }
-    }
+    keys.forEach((key, i) => { if (results[i]) uploaded[key] = results[i]!.url })
     const newSettings = { ...state.settings, panelImages: uploaded }
     dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
     await updatePanelImages(uploaded)

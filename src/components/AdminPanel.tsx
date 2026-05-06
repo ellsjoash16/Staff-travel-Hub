@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash2, Pencil, Loader2, CheckCircle2, X, Eye, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight, CalendarDays, Plus, KeyRound, Users, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Trash2, Pencil, Loader2, CheckCircle2, X, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight, CalendarDays, Plus, KeyRound, Users, RefreshCw, ShieldCheck } from 'lucide-react'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
 import { parsePdf, type ParsedReview } from '@/lib/parsePdf'
@@ -53,8 +53,8 @@ const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
 interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
 export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
-  const { state, togglePin, addPost, editPost, deletePost, deleteSubmission, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser } = useApp()
-  const { posts, courses, submissions, trips, locations, settings, registrations, userProfiles } = state
+  const { state, togglePin, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser } = useApp()
+  const { posts, courses, trips, locations, settings, registrations, userProfiles } = state
 
   const [tab, setTab] = useState('post')
   const [postForm, setPostForm] = useState<PostForm>(emptyPostForm())
@@ -63,7 +63,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [editingTripId, setEditingTripId] = useState<string | null>(null)
   const [locationForm, setLocationForm] = useState<LocationForm>(emptyLocationForm())
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
-  const [viewingSubId, setViewingSubId] = useState<string | null>(null)
   const [postSaving, setPostSaving] = useState(false)
   const [tripSaving, setTripSaving] = useState(false)
   const [locationSaving, setLocationSaving] = useState(false)
@@ -87,7 +86,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     if (open || inline) {
       setSPwd('')
       if (initialPost) startEditPost(initialPost)
-      loadRegistrations().catch(() => {})
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, inline])
@@ -166,28 +164,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     if (!confirm('Delete this post?')) return
     try { await deletePost(id); toast.success('Post deleted') }
     catch { toast.error('Failed to delete post') }
-  }
-
-  function useSubmission(sub: typeof submissions[0]) {
-    setPostForm({
-      title: '', staff: sub.name, staffImage: null,
-      review: sub.review, locName: sub.location.name,
-      locationId: null,
-      date: sub.date || today(), tags: '',
-      images: sub.images,
-      extras: sub.extras ?? EMPTY_EXTRAS,
-      salesNote: sub.salesNote ?? '',
-      folder: null,
-    })
-    setEditingPostId(null)
-    setTab('post')
-    toast.success('Submission loaded — add a title and publish')
-  }
-
-  async function handleDeleteSubmission(id: string) {
-    if (!confirm('Discard this submission?')) return
-    try { await deleteSubmission(id); toast.success('Submission discarded') }
-    catch { toast.error('Failed to discard') }
   }
 
   // ── PDF Import ────────────────────────────────────────────────────────────
@@ -375,14 +351,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{registrations.length}</span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="manage" className="px-3 text-xs">
-                Manage
-                {submissions.length > 0 && (
-                  <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">
-                    {submissions.length}
-                  </span>
-                )}
-              </TabsTrigger>
+              <TabsTrigger value="manage" className="px-3 text-xs">Manage</TabsTrigger>
               <TabsTrigger value="users" className="px-3 text-xs">
                 Users
                 {userProfiles.length > 0 && (
@@ -846,7 +815,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   refused: 'bg-destructive/10 text-destructive border-destructive/20',
                 }
 
-                const BG_REG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=1920&q=80'
+                const BG_REG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=400&q=40'
                 const todayStr = new Date().toISOString().slice(0, 10)
                 const upcomingTrips = trips
                   .filter(t => t.date >= todayStr && !t.completed)
@@ -1132,97 +1101,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                         >
                           Unassigned
                         </button>
-                      </div>
-                    )}
-
-                    {/* Pending Submissions */}
-                    {submissions.length > 0 && (
-                      <div>
-                        <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                          Pending Submissions ({submissions.length})
-                        </h3>
-                        <div className="space-y-3">
-                          {submissions.map((sub) => (
-                            <div key={sub.id} className="rounded-xl border border-border/60 overflow-hidden">
-                              <div className="flex items-start gap-3 p-3 bg-muted/40">
-                                {sub.images[0]
-                                  ? <img src={sub.images[0]} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                                  : <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0"><Globe className="h-5 w-5 text-muted-foreground/50" /></div>
-                                }
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-sm">{sub.name}</p>
-                                  {sub.location.name && (
-                                    <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{sub.location.name}</p>
-                                  )}
-                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{sub.review}</p>
-                                  <p className="text-xs text-muted-foreground">{fmtDate(sub.date)}</p>
-                                </div>
-                                <div className="flex flex-col gap-1.5 flex-shrink-0">
-                                  <Button size="sm" onClick={() => useSubmission(sub)} className="gap-1 text-xs">
-                                    <CheckCircle2 className="h-3 w-3" /> Post
-                                  </Button>
-                                  <Button
-                                    size="sm" variant="secondary"
-                                    onClick={() => setViewingSubId(viewingSubId === sub.id ? null : sub.id)}
-                                    className="text-xs gap-1"
-                                  >
-                                    {viewingSubId === sub.id ? <X className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                                  </Button>
-                                  <Button size="sm" variant="destructive" onClick={() => handleDeleteSubmission(sub.id)} className="text-xs">
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                              {viewingSubId === sub.id && (
-                                <div className="border-t border-border bg-background">
-                                  {/* Hero image */}
-                                  {sub.images[0] && (
-                                    <img src={sub.images[0]} alt="" className="w-full aspect-video object-cover" />
-                                  )}
-                                  <div className="p-4 space-y-4">
-                                    {/* Meta */}
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                      {sub.location.name && (
-                                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-primary" />{sub.location.name}</span>
-                                      )}
-                                      {sub.date && <span>{fmtDate(sub.date)}</span>}
-                                    </div>
-                                    {/* Review text */}
-                                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/85">{sub.review}</p>
-                                    {/* Remaining images */}
-                                    {sub.images.length > 1 && (
-                                      <div className="flex gap-2 overflow-x-auto pb-1">
-                                        {sub.images.slice(1).map((img, i) => (
-                                          <img key={i} src={img} alt="" className="h-24 w-24 flex-shrink-0 rounded-xl object-cover border border-border" />
-                                        ))}
-                                      </div>
-                                    )}
-                                    {/* Extras summary */}
-                                    {sub.extras && Object.values(sub.extras).some(arr => arr.length > 0) && (
-                                      <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1.5">
-                                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ratings submitted</p>
-                                        {(['airlines','hotels','cruises','activities','dmcs'] as const).map(key => {
-                                          const items = sub.extras?.[key] ?? []
-                                          if (!items.length) return null
-                                          return (
-                                            <div key={key} className="text-xs text-muted-foreground">
-                                              <span className="font-medium capitalize text-foreground">{key}</span>: {items.map(i => `${i.name} (${'★'.repeat(i.rating)})`).join(', ')}
-                                            </div>
-                                          )
-                                        })}
-                                      </div>
-                                    )}
-                                    <Button size="sm" onClick={() => { useSubmission(sub); setViewingSubId(null) }} className="gap-1 w-full">
-                                      <CheckCircle2 className="h-3.5 w-3.5" /> Use this submission → Post tab
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <hr className="border-border mt-4" />
                       </div>
                     )}
 

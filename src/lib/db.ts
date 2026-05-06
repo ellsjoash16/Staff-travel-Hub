@@ -2,6 +2,7 @@ import {
   collection, doc, getDoc, getDocs,
   setDoc, updateDoc, deleteDoc,
   query, where, limit, serverTimestamp,
+  arrayUnion, arrayRemove,
 } from 'firebase/firestore'
 import {
   ref, uploadBytes, getDownloadURL, deleteObject,
@@ -573,20 +574,11 @@ export async function updateRegistrationStatus(id: string, status: RegistrationS
 }
 
 export async function addTripParticipant(tripId: string, name: string): Promise<void> {
-  const ref = doc(db, 'trips', tripId)
-  const snap = await getDoc(ref)
-  if (!snap.exists()) return
-  const current: string[] = snap.data().participants ?? []
-  if (current.includes(name)) return
-  await updateDoc(ref, { participants: [...current, name] })
+  await updateDoc(doc(db, 'trips', tripId), { participants: arrayUnion(name) })
 }
 
 export async function removeTripParticipant(tripId: string, name: string): Promise<void> {
-  const ref = doc(db, 'trips', tripId)
-  const snap = await getDoc(ref)
-  if (!snap.exists()) return
-  const current: string[] = snap.data().participants ?? []
-  await updateDoc(ref, { participants: current.filter(p => p !== name) })
+  await updateDoc(doc(db, 'trips', tripId), { participants: arrayRemove(name) })
 }
 
 export async function fetchMyRegistrations(uid: string): Promise<Registration[]> {

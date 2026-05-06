@@ -252,8 +252,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   async function setRegistrationStatus(id: string, status: RegistrationStatus): Promise<void> {
     const reg = state.registrations.find(r => r.id === id)
     const prevStatus = reg?.status
-    dispatch({ type: 'UPDATE_REGISTRATION_STATUS', id, status })
     await updateRegistrationStatus(id, status)
+    dispatch({ type: 'UPDATE_REGISTRATION_STATUS', id, status })
     if (reg) {
       const fullName = `${reg.firstName} ${reg.lastName}`.trim()
       if (status === 'confirmed' && prevStatus !== 'confirmed') {
@@ -314,8 +314,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function togglePin(id: string, pinned: boolean): Promise<void> {
-    dispatch({ type: 'UPDATE_POST', post: { ...state.posts.find(p => p.id === id)!, pinned } })
     await togglePinPost(id, pinned)
+    dispatch({ type: 'UPDATE_POST', post: { ...state.posts.find(p => p.id === id)!, pinned } })
   }
 
   async function addPost(post: Post, newDataUrls: string[], staffImageDataUrl: string | null): Promise<void> {
@@ -356,8 +356,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function deletePost(id: string): Promise<void> {
-    dispatch({ type: 'DELETE_POST', id })
     await removePost(id)
+    dispatch({ type: 'DELETE_POST', id })
   }
 
   async function addCourse(course: Course, imageDataUrl: string | null): Promise<void> {
@@ -368,8 +368,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       finalCourse = { ...course, image: result.url }
       imagePath = result.path
     }
-    dispatch({ type: 'ADD_COURSE', course: finalCourse })
     await insertCourse(finalCourse, imagePath)
+    dispatch({ type: 'ADD_COURSE', course: finalCourse })
   }
 
   async function editCourse(course: Course, imageDataUrl: string | null): Promise<void> {
@@ -387,8 +387,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function deleteCourse(id: string): Promise<void> {
-    dispatch({ type: 'DELETE_COURSE', id })
     await removeCourse(id)
+    dispatch({ type: 'DELETE_COURSE', id })
   }
 
   async function submitReview(submission: Submission, imageDataUrls: string[]): Promise<void> {
@@ -430,8 +430,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function deleteSubmission(id: string): Promise<void> {
-    dispatch({ type: 'DELETE_SUBMISSION', id })
     await removeSubmission(id)
+    dispatch({ type: 'DELETE_SUBMISSION', id })
   }
 
   async function addTrip(trip: Trip, imageDataUrl: string | null): Promise<void> {
@@ -461,14 +461,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function deleteTrip(id: string): Promise<void> {
-    dispatch({ type: 'DELETE_TRIP', id })
     await removeTrip(id)
+    dispatch({ type: 'DELETE_TRIP', id })
   }
 
   async function completeTrip(trip: Trip): Promise<void> {
     const completed = { ...trip, completed: true }
-    dispatch({ type: 'UPDATE_TRIP', trip: completed })
     await markTripComplete(trip.id)
+    dispatch({ type: 'UPDATE_TRIP', trip: completed })
   }
 
   async function addLocation(location: Location): Promise<void> {
@@ -477,18 +477,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function editLocation(location: Location): Promise<void> {
-    dispatch({ type: 'UPDATE_LOCATION', location })
     await updateLocation(location)
+    dispatch({ type: 'UPDATE_LOCATION', location })
   }
 
   async function deleteLocation(id: string): Promise<void> {
-    dispatch({ type: 'DELETE_LOCATION', id })
     await removeLocation(id)
+    dispatch({ type: 'DELETE_LOCATION', id })
   }
 
   async function saveSettings(settings: Settings): Promise<void> {
-    dispatch({ type: 'UPDATE_SETTINGS', settings })
     await upsertSettings(settings)
+    dispatch({ type: 'UPDATE_SETTINGS', settings })
   }
 
   async function savePageImages(images: PanelImages, dataUrls: Partial<Record<keyof PanelImages, string | null>>): Promise<void> {
@@ -502,8 +502,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const uploaded = { ...images }
     keys.forEach((key, i) => { if (results[i]) uploaded[key] = results[i]!.url })
     const newSettings = { ...state.settings, panelImages: uploaded }
-    dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
     await updatePanelImages(uploaded)
+    dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
   }
 
   return (

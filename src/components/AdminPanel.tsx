@@ -902,7 +902,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     {STATUS_LABELS[s]}
                                   </button>
                                 ))}
-                                <button onClick={() => { if (confirm('Delete this registration?')) removeRegistration(r.id) }}
+                                <button onClick={() => { if (confirm('Delete this registration?')) void removeRegistration(r.id) }}
                                   className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Delete">
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </button>
@@ -1346,7 +1346,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                       </Button>
                                       <Button
                                         size="sm" variant="destructive"
-                                        onClick={() => { if (confirm(`Delete account for ${u.firstName} ${u.lastName}? This removes their saved profile but not their login.`)) removeUserProfile(u.uid) }}
+                                        onClick={() => { if (confirm(`Delete account for ${u.firstName} ${u.lastName}? This removes their saved profile but not their login.`)) void removeUserProfile(u.uid) }}
                                         className="gap-1.5 ml-auto"
                                       >
                                         <Trash2 className="h-3.5 w-3.5" /> Delete Profile

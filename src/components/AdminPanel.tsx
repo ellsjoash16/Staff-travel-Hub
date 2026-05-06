@@ -82,6 +82,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [userSearch, setUserSearch] = useState('')
   const [expandedUser, setExpandedUser] = useState<string | null>(null)
   const [expandedRegTrip, setExpandedRegTrip] = useState<string | null>(null)
+  const [updatingRegId, setUpdatingRegId] = useState<string | null>(null)
+  const [registrationsLoading, setRegistrationsLoading] = useState(false)
+  const [togglingAdminUid, setTogglingAdminUid] = useState<string | null>(null)
+  const [deletingProfileUid, setDeletingProfileUid] = useState<string | null>(null)
 
   useEffect(() => {
     if (open || inline) {
@@ -341,7 +345,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   }
 
   const tabsContent = (
-          <Tabs value={tab} onValueChange={(v) => { setTab(v); if (v === 'registrations') loadRegistrations() }}>
+          <Tabs value={tab} onValueChange={async (v) => { setTab(v); if (v === 'registrations') { setRegistrationsLoading(true); try { await loadRegistrations() } finally { setRegistrationsLoading(false) } } }}>
             <TabsList className="overflow-x-auto flex-nowrap">
               <TabsTrigger value="post" className="px-3 text-xs">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
               <TabsTrigger value="locations" className="px-3 text-xs">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>
@@ -803,7 +807,13 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
             {/* ── REGISTRATIONS ── */}
             <TabsContent value="registrations" className="p-0 mt-0">
-              {(() => {
+              {registrationsLoading && (
+                <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm">Loading registrations…</span>
+                </div>
+              )}
+              {!registrationsLoading && (() => {
                 const STATUS_LABELS: Record<string, string> = {
                   requested: 'Requested',
                   pending_confirmation: 'Pending Confirmation',
@@ -897,9 +907,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               </div>
                               <div className="flex flex-wrap items-center gap-1.5">
                                 {(['requested', 'pending_confirmation', 'confirmed', 'refused'] as const).map(s => (
-                                  <button key={s} onClick={() => setRegistrationStatus(r.id, s)} disabled={r.status === s}
+                                  <button key={s} onClick={async () => { setUpdatingRegId(r.id); try { await setRegistrationStatus(r.id, s) } catch { toast.error('Failed to update status') } finally { setUpdatingRegId(null) } }} disabled={r.status === s || updatingRegId === r.id}
                                     className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-colors disabled:opacity-40 disabled:cursor-default ${r.status === s ? STATUS_STYLES[s] : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'}`}>
-                                    {STATUS_LABELS[s]}
+                                    {updatingRegId === r.id && r.status !== s ? <Loader2 className="h-3 w-3 animate-spin inline" /> : STATUS_LABELS[s]}
                                   </button>
                                 ))}
                                 <button onClick={() => { if (confirm('Delete this registration?')) void removeRegistration(r.id) }}
@@ -1309,20 +1319,23 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                         type="button"
                                         size="sm"
                                         variant={isUserAdmin ? 'secondary' : 'default'}
+                                        disabled={togglingAdminUid === u.uid}
                                         onClick={async (e) => {
                                           e.preventDefault()
                                           e.stopPropagation()
-                                          toast.info('Updating…')
+                                          setTogglingAdminUid(u.uid)
                                           try {
                                             await toggleAdminUid(u.uid)
                                             toast.success(isUserAdmin ? 'Admin access revoked' : 'Admin access granted')
                                           } catch (err: unknown) {
                                             toast.error((err as Error)?.message ?? 'Failed to update admin access')
+                                          } finally {
+                                            setTogglingAdminUid(null)
                                           }
                                         }}
                                         className="gap-1.5"
                                       >
-                                        <ShieldCheck className="h-3.5 w-3.5" />
+                                        {togglingAdminUid === u.uid ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
                                         {isUserAdmin ? 'Revoke Admin' : 'Grant Admin'}
                                       </Button>
                                       <Button
@@ -1346,10 +1359,22 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                       </Button>
                                       <Button
                                         size="sm" variant="destructive"
-                                        onClick={() => { if (confirm(`Delete account for ${u.firstName} ${u.lastName}? This removes their saved profile but not their login.`)) void removeUserProfile(u.uid) }}
+                                        disabled={deletingProfileUid === u.uid}
+                                        onClick={async () => {
+                                          if (!confirm(`Delete account for ${u.firstName} ${u.lastName}? This removes their saved profile but not their login.`)) return
+                                          setDeletingProfileUid(u.uid)
+                                          try {
+                                            await removeUserProfile(u.uid)
+                                            toast.success('Profile deleted')
+                                          } catch {
+                                            toast.error('Failed to delete profile')
+                                          } finally {
+                                            setDeletingProfileUid(null)
+                                          }
+                                        }}
                                         className="gap-1.5 ml-auto"
                                       >
-                                        <Trash2 className="h-3.5 w-3.5" /> Delete Profile
+                                        {deletingProfileUid === u.uid ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Delete Profile
                                       </Button>
                                     </>
                                   )

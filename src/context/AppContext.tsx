@@ -173,6 +173,21 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   // Initial data load
   useEffect(() => {
     async function init() {
+      const uid = authUid ?? auth.currentUser?.uid
+
+      // Fire ensure-admin in parallel with data fetching — adds this user to
+      // Firestore adminUids so SDK writes pass the deployed security rules.
+      // Runs in background; we await it before unblocking the UI.
+      const ensureAdminPromise = uid
+        ? auth.currentUser?.getIdToken().then(token => {
+            if (!token) return
+            return fetch('/api/ensure-admin', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+            })
+          }).catch(() => {})
+        : Promise.resolve()
+
       let resolvedSettings: Settings = DEFAULT_SETTINGS
       try {
         const [postsRes, tripsRes, locationsRes, settingsRes] = await Promise.allSettled([
@@ -185,17 +200,17 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
         dispatch({
           type: 'INIT',
           posts: postsRes.status === 'fulfilled' ? postsRes.value : [],
-
           submissions: [],
           trips: tripsRes.status === 'fulfilled' ? tripsRes.value : [],
           locations: locationsRes.status === 'fulfilled' ? locationsRes.value : [],
           settings: resolvedSettings,
         })
       } finally {
+        // Wait for ensure-admin before unlocking UI so writes don't race
+        await ensureAdminPromise
         dispatch({ type: 'SET_LOADING', value: false })
       }
       // All authenticated users are admins
-      const uid = authUid ?? auth.currentUser?.uid
       if (uid) {
         dispatch({ type: 'SET_ADMIN', value: true })
         fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})

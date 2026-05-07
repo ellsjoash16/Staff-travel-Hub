@@ -2,7 +2,6 @@ import {
   collection, doc, getDoc, getDocs,
   setDoc, updateDoc, deleteDoc,
   query, where, limit, serverTimestamp,
-  arrayUnion, arrayRemove,
 } from 'firebase/firestore'
 import {
   ref, uploadBytes, getDownloadURL, deleteObject,
@@ -10,6 +9,28 @@ import {
 import { db, storage, auth } from './firebase'
 import type { Post, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile } from './types'
 import { encryptField, decryptField } from './crypto'
+
+// ── Admin write helper ────────────────────────────────────────────────────
+
+async function adminWrite(
+  collection: string,
+  id: string,
+  op: 'set' | 'update' | 'delete',
+  data?: Record<string, unknown>,
+  updateFields?: string[],
+): Promise<void> {
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) throw new Error('Not authenticated')
+  const res = await fetch('/api/admin-write', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ collection, id, op, data, updateFields }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string }
+    throw new Error(body.error ?? `Admin write failed: ${res.status}`)
+  }
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -69,11 +90,11 @@ export async function fetchPendingPosts(): Promise<Post[]> {
 }
 
 export async function approvePost(id: string): Promise<void> {
-  await updateDoc(doc(db, 'posts', id), { status: 'approved' })
+  await adminWrite('posts', id, 'update', { status: 'approved' }, ['status'])
 }
 
 export async function submitPendingPost(post: Post, imagePaths: string[]): Promise<void> {
-  await setDoc(doc(db, 'posts', post.id), {
+  await adminWrite('posts', post.id, 'set', {
     title: post.title,
     staff: post.staff,
     staffImage: post.staffImage ?? null,
@@ -93,7 +114,6 @@ export async function submitPendingPost(post: Post, imagePaths: string[]): Promi
     userId: post.userId ?? null,
     status: 'pending',
     folder: post.folder ?? null,
-    createdAt: serverTimestamp(),
   })
 }
 
@@ -102,7 +122,7 @@ export async function insertPost(
   imagePaths: string[],
   staffImagePath: string | null,
 ): Promise<void> {
-  await setDoc(doc(db, 'posts', post.id), {
+  await adminWrite('posts', post.id, 'set', {
     title: post.title,
     staff: post.staff,
     staffImage: post.staffImage ?? null,
@@ -122,12 +142,11 @@ export async function insertPost(
     userId: post.userId ?? null,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
-    createdAt: serverTimestamp(),
   })
 }
 
 export async function togglePinPost(id: string, pinned: boolean): Promise<void> {
-  await updateDoc(doc(db, 'posts', id), { pinned })
+  await adminWrite('posts', id, 'update', { pinned }, ['pinned'])
 }
 
 export async function updatePost(
@@ -152,7 +171,7 @@ export async function updatePost(
     }
   }
 
-  await updateDoc(ref_, {
+  const data: Record<string, unknown> = {
     title: post.title,
     staff: post.staff,
     staffImage: post.staffImage ?? null,
@@ -169,15 +188,16 @@ export async function updatePost(
     salesNote: post.salesNote ?? null,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
-    ...(newImagePaths !== undefined ? { imagePaths: newImagePaths } : {}),
-    ...(newStaffImagePath !== undefined ? { staffImagePath: newStaffImagePath } : {}),
-  })
+  }
+  if (newImagePaths !== undefined) data.imagePaths = newImagePaths
+  if (newStaffImagePath !== undefined) data.staffImagePath = newStaffImagePath
+  await adminWrite('posts', post.id, 'set', data)
 }
 
 export async function removePost(id: string): Promise<void> {
   const snap = await getDoc(doc(db, 'posts', id))
   const d = snap.data()
-  await deleteDoc(doc(db, 'posts', id))
+  await adminWrite('posts', id, 'delete')
   const paths: string[] = [
     ...(d?.imagePaths ?? []),
     ...(d?.staffImagePath ? [d.staffImagePath] : []),
@@ -285,7 +305,7 @@ export async function setAdminUids(uids: string[]): Promise<void> {
 }
 
 export async function setUserBanned(uid: string, banned: boolean): Promise<void> {
-  await setDoc(doc(db, 'userProfiles', uid), { banned }, { merge: true })
+  await adminWrite('userProfiles', uid, 'update', { banned }, ['banned'])
 }
 
 export async function updatePanelImages(panelImages: Settings['panelImages']): Promise<void> {
@@ -323,21 +343,15 @@ export async function fetchLocations(): Promise<Location[]> {
 }
 
 export async function insertLocation(location: Location): Promise<void> {
-  await setDoc(doc(db, 'locations', location.id), {
-    name: location.name,
-    country: location.country,
-  })
+  await adminWrite('locations', location.id, 'set', { name: location.name, country: location.country })
 }
 
 export async function updateLocation(location: Location): Promise<void> {
-  await updateDoc(doc(db, 'locations', location.id), {
-    name: location.name,
-    country: location.country,
-  })
+  await adminWrite('locations', location.id, 'set', { name: location.name, country: location.country })
 }
 
 export async function removeLocation(id: string): Promise<void> {
-  await deleteDoc(doc(db, 'locations', id))
+  await adminWrite('locations', id, 'delete')
 }
 
 // ── Trips ─────────────────────────────────────────────────────────────────
@@ -367,7 +381,7 @@ export async function fetchTrips(): Promise<Trip[]> {
 }
 
 export async function insertTrip(trip: Trip, imagePath: string | null): Promise<void> {
-  await setDoc(doc(db, 'trips', trip.id), {
+  await adminWrite('trips', trip.id, 'set', {
     name: trip.name,
     description: trip.description ?? null,
     participants: trip.participants,
@@ -379,25 +393,23 @@ export async function insertTrip(trip: Trip, imagePath: string | null): Promise<
     completed: trip.completed ?? false,
     international: trip.international ?? false,
     showRegisterInterest: trip.showRegisterInterest ?? false,
-    createdAt: serverTimestamp(),
   })
 }
 
 export async function markTripComplete(id: string): Promise<void> {
-  await updateDoc(doc(db, 'trips', id), { completed: true })
+  await adminWrite('trips', id, 'update', { completed: true }, ['completed'])
 }
 
 export async function updateTrip(
   trip: Trip,
   newImagePath: string | null | undefined,
 ): Promise<void> {
-  const ref_ = doc(db, 'trips', trip.id)
   if (newImagePath !== undefined) {
-    const snap = await getDoc(ref_)
+    const snap = await getDoc(doc(db, 'trips', trip.id))
     const oldPath: string | null = snap.data()?.imagePath ?? null
     if (oldPath && oldPath !== newImagePath) await deleteImage(oldPath).catch(() => {})
   }
-  await updateDoc(ref_, {
+  const data: Record<string, unknown> = {
     name: trip.name,
     description: trip.description ?? null,
     participants: trip.participants,
@@ -408,14 +420,15 @@ export async function updateTrip(
     completed: trip.completed ?? false,
     international: trip.international ?? false,
     showRegisterInterest: trip.showRegisterInterest ?? false,
-    ...(newImagePath !== undefined ? { imagePath: newImagePath } : {}),
-  })
+  }
+  if (newImagePath !== undefined) data.imagePath = newImagePath
+  await adminWrite('trips', trip.id, 'set', data)
 }
 
 export async function removeTrip(id: string): Promise<void> {
   const snap = await getDoc(doc(db, 'trips', id))
   const imagePath: string | null = snap.data()?.imagePath ?? null
-  await deleteDoc(doc(db, 'trips', id))
+  await adminWrite('trips', id, 'delete')
   if (imagePath) await deleteImage(imagePath).catch(() => {})
 }
 
@@ -507,15 +520,21 @@ export async function fetchRegistrations(): Promise<Registration[]> {
 }
 
 export async function updateRegistrationStatus(id: string, status: RegistrationStatus): Promise<void> {
-  await updateDoc(doc(db, 'registrations', id), { status })
+  await adminWrite('registrations', id, 'update', { status }, ['status'])
 }
 
 export async function addTripParticipant(tripId: string, name: string): Promise<void> {
-  await updateDoc(doc(db, 'trips', tripId), { participants: arrayUnion(name) })
+  const snap = await getDoc(doc(db, 'trips', tripId))
+  const current: string[] = snap.data()?.participants ?? []
+  if (!current.includes(name)) {
+    await adminWrite('trips', tripId, 'update', { participants: [...current, name] }, ['participants'])
+  }
 }
 
 export async function removeTripParticipant(tripId: string, name: string): Promise<void> {
-  await updateDoc(doc(db, 'trips', tripId), { participants: arrayRemove(name) })
+  const snap = await getDoc(doc(db, 'trips', tripId))
+  const current: string[] = snap.data()?.participants ?? []
+  await adminWrite('trips', tripId, 'update', { participants: current.filter(p => p !== name) }, ['participants'])
 }
 
 export async function fetchMyRegistrations(uid: string): Promise<Registration[]> {
@@ -539,11 +558,11 @@ export async function fetchMyRegistrations(uid: string): Promise<Registration[]>
 }
 
 export async function deleteRegistration(id: string): Promise<void> {
-  await deleteDoc(doc(db, 'registrations', id))
+  await adminWrite('registrations', id, 'delete')
 }
 
 export async function deleteUserProfile(uid: string): Promise<void> {
-  await deleteDoc(doc(db, 'userProfiles', uid))
+  await adminWrite('userProfiles', uid, 'delete')
 }
 
 export async function fetchUserProfile(uid: string): Promise<UserProfile | null> {

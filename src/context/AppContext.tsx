@@ -157,7 +157,6 @@ interface AppContextValue {
   loadUserProfiles: () => Promise<void>
   loadMyRegistrations: () => Promise<void>
   toggleAdminUid: (uid: string) => Promise<void>
-  promoteToAdmin: (appPassword: string) => Promise<boolean>
   banUser: (uid: string, banned: boolean) => Promise<void>
 }
 
@@ -195,12 +194,10 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       } finally {
         dispatch({ type: 'SET_LOADING', value: false })
       }
-      // Auto-grant admin if UID is in adminUids list
+      // All authenticated users are admins
       const uid = authUid ?? auth.currentUser?.uid
       if (uid) {
-        if (resolvedSettings.adminUids?.includes(uid)) {
-          dispatch({ type: 'SET_ADMIN', value: true })
-        }
+        dispatch({ type: 'SET_ADMIN', value: true })
         fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})
       }
     }
@@ -295,26 +292,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     dispatch({ type: 'SET_USER_BANNED', uid, banned })
   }
 
-  async function promoteToAdmin(appPassword: string): Promise<boolean> {
-    const token = await auth.currentUser?.getIdToken()
-    if (!token) return false
-    const apiRes = await fetch('/api/promote-to-admin', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: appPassword }),
-    })
-    if (apiRes.status === 403) return false
-    if (!apiRes.ok) {
-      const body = await apiRes.json().catch(() => ({})) as { error?: string }
-      throw new Error(body.error ?? `API error ${apiRes.status}`)
-    }
-    const { adminUids } = await apiRes.json() as { adminUids: string[] }
-    dispatch({ type: 'UPDATE_SETTINGS', settings: { ...state.settings, adminUids } })
-    dispatch({ type: 'SET_ADMIN', value: true })
-    return true
-  }
-
-  async function togglePin(id: string, pinned: boolean): Promise<void> {
+async function togglePin(id: string, pinned: boolean): Promise<void> {
     await togglePinPost(id, pinned)
     dispatch({ type: 'UPDATE_POST', post: { ...state.posts.find(p => p.id === id)!, pinned } })
   }
@@ -519,7 +497,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       addTrip, editTrip, deleteTrip, completeTrip,
       addLocation, editLocation, deleteLocation,
       saveSettings, savePageImages,
-      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, promoteToAdmin, banUser,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, banUser,
     }}>
       {children}
     </AppContext.Provider>

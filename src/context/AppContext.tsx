@@ -163,7 +163,7 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null)
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({ children, authUid }: { children: ReactNode; authUid: string | null }) {
   const [state, dispatch] = useReducer(reducer, {
     posts: [], courses: [], submissions: [], trips: [], locations: [],
     settings: DEFAULT_SETTINGS,
@@ -196,7 +196,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'SET_LOADING', value: false })
       }
       // Auto-grant admin if UID is in adminUids list
-      const uid = auth.currentUser?.uid
+      const uid = authUid ?? auth.currentUser?.uid
       if (uid) {
         if (resolvedSettings.adminUids?.includes(uid)) {
           dispatch({ type: 'SET_ADMIN', value: true })

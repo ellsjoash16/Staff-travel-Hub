@@ -125,11 +125,13 @@ function AppShell() {
 export default function App() {
   const [authReady, setAuthReady] = useState(false)
   const [signedIn, setSignedIn]   = useState(false)
+  const [authUid, setAuthUid]     = useState<string | null>(null)
 
   useEffect(() => {
     return onAuthStateChanged(auth, user => {
       setSignedIn(!!user)
       setAuthReady(true)
+      setAuthUid(user?.uid ?? null)
       if (user) saveAccountRecord(user.uid, user.email, user.displayName).catch(console.error)
     })
   }, [])
@@ -146,7 +148,7 @@ export default function App() {
   }
 
   return (
-    <AppProvider>
+    <AppProvider authUid={authUid}>
       <AppShell />
     </AppProvider>
   )

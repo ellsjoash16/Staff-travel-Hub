@@ -22,7 +22,11 @@ const app = initializeApp(firebaseConfig)
 // }
 // experimentalAutoDetectLongPolling: falls back from WebChannel to HTTP polling
 // when the environment blocks streaming connections (e.g. some CDN/proxy setups)
-export const db = initializeFirestore(app, {})
+// experimentalAutoDetectLongPolling: falls back to HTTP long-polling when the
+// environment blocks WebChannel streaming (e.g. Vercel's CDN edge network).
+// Safe to use now that all admin writes go through the serverless API instead
+// of the Firestore SDK — the original write-queuing issue no longer applies.
+export const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true })
 export const storage = getStorage(app)
 export const auth = getAuth(app)
 export const microsoftProvider = new OAuthProvider('microsoft.com')

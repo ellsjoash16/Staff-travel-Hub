@@ -22,6 +22,16 @@ import { auth } from '@/lib/firebase'
 
 const BUCKET = 'post-images'
 
+async function apiFetch(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  try {
+    return await fetch(url, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 interface AppState {
   posts: Post[]
   courses: Course[]
@@ -181,7 +191,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       const ensureAdminPromise = uid
         ? auth.currentUser?.getIdToken().then(token => {
             if (!token) return
-            return fetch('/api/ensure-admin', {
+            return apiFetch('/api/ensure-admin', {
               method: 'POST',
               headers: { Authorization: `Bearer ${token}` },
             })
@@ -291,7 +301,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     // Use server-side API to bypass Firestore rules (which require the caller to already be in adminUids)
     const token = await auth.currentUser?.getIdToken()
     if (!token) throw new Error('Not authenticated')
-    const apiRes = await fetch('/api/set-admin-uids', {
+    const apiRes = await apiFetch('/api/set-admin-uids', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ adminUids: updated }),
@@ -454,7 +464,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
   async function saveSettings(settings: Settings): Promise<void> {
     const token = await auth.currentUser?.getIdToken()
     if (!token) throw new Error('Not authenticated')
-    const apiRes = await fetch('/api/save-settings', {
+    const apiRes = await apiFetch('/api/save-settings', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -491,7 +501,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
     const newSettings = { ...state.settings, panelImages: uploaded }
     const token = await auth.currentUser?.getIdToken()
     if (!token) throw new Error('Not authenticated')
-    const apiRes = await fetch('/api/save-settings', {
+    const apiRes = await apiFetch('/api/save-settings', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ panelImages: uploaded }),

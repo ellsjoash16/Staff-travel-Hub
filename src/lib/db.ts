@@ -21,14 +21,21 @@ async function adminWrite(
 ): Promise<void> {
   const token = await auth.currentUser?.getIdToken()
   if (!token) throw new Error('Not authenticated')
-  const res = await fetch('/api/admin-write', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ collection, id, op, data, updateFields }),
-  })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({})) as { error?: string }
-    throw new Error(body.error ?? `Admin write failed: ${res.status}`)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  try {
+    const res = await fetch('/api/admin-write', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection, id, op, data, updateFields }),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({})) as { error?: string }
+      throw new Error(body.error ?? `Admin write failed: ${res.status}`)
+    }
+  } finally {
+    clearTimeout(timeout)
   }
 }
 

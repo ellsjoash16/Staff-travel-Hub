@@ -93,6 +93,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       setSPwd('')
       setSNotice(settings.notice ?? '')
       if (initialPost) startEditPost(initialPost)
+      handleLoadUsers()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, inline])
@@ -1186,15 +1187,13 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 </div>
                 <Button size="sm" variant="secondary" className="gap-1.5 flex-shrink-0" onClick={handleLoadUsers} disabled={usersLoading}>
                   {usersLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                  {usersLoaded ? 'Refresh' : 'Load Users'}
+                  Refresh
                 </Button>
               </div>
 
-              {!usersLoaded ? (
-                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                  <Users className="h-10 w-10 text-primary/30 mb-3" />
-                  <p className="text-sm font-medium text-foreground">User accounts</p>
-                  <p className="text-xs mt-1 text-center">Click "Load Users" to fetch all registered accounts</p>
+              {usersLoading && !usersLoaded ? (
+                <div className="flex items-center justify-center py-16 text-muted-foreground">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary/50" />
                 </div>
               ) : (() => {
                 const q = userSearch.toLowerCase()

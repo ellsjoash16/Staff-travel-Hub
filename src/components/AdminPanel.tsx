@@ -16,6 +16,7 @@ import { ImageUpload } from './ImageUpload'
 import { DatePicker } from './DatePicker'
 import { useApp } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
+import { seedDemoData } from '@/lib/seed'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
 
 
@@ -1452,6 +1453,31 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
               <div className="flex justify-end pt-1 pb-1">
                 <Button onClick={handleSaveSettings} className="px-6">Save PIN</Button>
+              </div>
+
+              {/* Demo Data */}
+              <div className="rounded-2xl border border-dashed border-border bg-muted/20 overflow-hidden">
+                <div className="px-5 py-4 border-b border-border/60 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Globe className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Demo Data</p>
+                    <p className="text-xs text-muted-foreground">Load placeholder posts, locations and trips for demo purposes</p>
+                  </div>
+                </div>
+                <div className="px-5 py-4 flex items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">Adds 5 destinations, 5 posts, 3 upcoming trips and 2 past trips. Safe to run multiple times — existing seed data will be overwritten, not duplicated.</p>
+                  <Button size="sm" variant="secondary" className="flex-shrink-0" onClick={async () => {
+                    if (!confirm('Load demo data? This will add placeholder posts, locations and trips.')) return
+                    try {
+                      await seedDemoData()
+                      toast.success('Demo data loaded — refresh to see changes')
+                    } catch (err) {
+                      toast.error((err as Error)?.message || 'Failed to load demo data')
+                    }
+                  }}>Load Demo Data</Button>
+                </div>
               </div>
             </TabsContent>
 

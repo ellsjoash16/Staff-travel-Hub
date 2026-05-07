@@ -1,0 +1,268 @@
+import { setDoc, doc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import type { Post, Location, Trip } from '@/lib/types'
+
+const LOCATIONS: Location[] = [
+  { id: 'seed-loc-1', name: 'Dubai', country: 'United Arab Emirates' },
+  { id: 'seed-loc-2', name: 'Bali', country: 'Indonesia' },
+  { id: 'seed-loc-3', name: 'Maldives', country: 'Maldives' },
+  { id: 'seed-loc-4', name: 'Marrakech', country: 'Morocco' },
+  { id: 'seed-loc-5', name: 'Phuket', country: 'Thailand' },
+]
+
+const POSTS: Post[] = [
+  {
+    id: 'seed-post-1',
+    title: 'Dubai: Luxury in the Desert',
+    staff: 'Sarah Johnson',
+    staffImage: null,
+    review: `Dubai exceeded every expectation. We stayed at the Atlantis The Palm and the sheer scale of it is breathtaking. The aquapark alone kept us busy for two full days.\n\nThe city itself is a spectacle — from the Burj Khalifa observation deck at sunset to the bustling Gold Souk, there's a constant contrast between the ultra-modern and the traditional. The food scene is world class; we had an incredible dinner at Nobu overlooking the marina.\n\nFor sales: this destination sells itself. Ideal for honeymooners, families with older children, and anyone seeking guaranteed sunshine with five-star service.`,
+    location: { name: 'Dubai', lat: 25.2048, lng: 55.2708 },
+    locationId: 'seed-loc-1',
+    date: '2026-02-14',
+    tags: ['luxury', 'beach', 'city', 'family'],
+    images: [
+      'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?auto=format&fit=crop&w=1200&q=80',
+    ],
+    pinned: true,
+    extras: {
+      airlines: [{ name: 'Emirates', rating: 5, description: 'Impeccable service, A380 upper deck. Champagne on departure. Highly recommend upselling business class.' }],
+      hotels: [{ name: 'Atlantis The Palm', rating: 5, description: 'Iconic resort, enormous rooms, the Aquaventure waterpark is included. Book the Royal Bridge Suite for VIP clients.' }],
+      cruises: [],
+      activities: [{ name: 'Desert Safari & BBQ Dinner', rating: 4, description: 'Dune bashing, camel riding and a traditional Bedouin camp dinner. A must-do for first timers.' }],
+      dmcs: [{ name: 'Arabian Adventures', rating: 5, description: 'Organised our whole ground programme flawlessly. Very responsive and flexible.' }],
+    },
+    salesNote: 'Best seller for February half-term. Emirates A380 business class upsell has a very high conversion rate. Pair with a Maldives extension for honeymoon clients.',
+    userId: null,
+    status: 'approved',
+    folder: null,
+  },
+  {
+    id: 'seed-post-2',
+    title: 'Bali: Culture, Rice Fields & Relaxation',
+    staff: 'James Patel',
+    staffImage: null,
+    review: `Bali is one of those destinations that genuinely lives up to the hype. We based ourselves in Ubud for three nights before moving to Seminyak for the beach portion of the trip.\n\nUbud is magical — the Tegalalang Rice Terraces at sunrise are among the most beautiful things I've ever seen. The spa culture here is phenomenal; we had a traditional Balinese massage for under £10. Ubud's food market is a must.\n\nSeminyak has the buzz of a beach resort town with excellent surf, rooftop bars and great shopping. Potato Head Beach Club for sundowners is unmissable.\n\nThis is a very easy sell — incredible value, stunning scenery and genuinely warm hospitality.`,
+    location: { name: 'Bali', lat: -8.3405, lng: 115.0920 },
+    locationId: 'seed-loc-2',
+    date: '2026-01-20',
+    tags: ['culture', 'beach', 'wellness', 'value'],
+    images: [
+      'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=1200&q=80',
+    ],
+    pinned: false,
+    extras: {
+      airlines: [{ name: 'Singapore Airlines', rating: 5, description: 'Via Singapore. Excellent service and the transit through Changi Airport is a pleasure.' }],
+      hotels: [{ name: 'Alaya Resort Ubud', rating: 5, description: 'Private pool villas surrounded by jungle. Exceptional breakfast and staff.' }],
+      cruises: [],
+      activities: [{ name: 'Tegalalang Rice Terrace Trek', rating: 5, description: 'Go at sunrise to avoid crowds. Combine with a cooking class for a full day.' }],
+      dmcs: [],
+    },
+    salesNote: 'Excellent value destination. Push villa upgrades — the cost difference is minimal but the experience is transformed. Popular with solo travellers and couples.',
+    userId: null,
+    status: 'approved',
+    folder: null,
+  },
+  {
+    id: 'seed-post-3',
+    title: 'Maldives: The Ultimate Overwater Experience',
+    staff: 'Emma Clarke',
+    staffImage: null,
+    review: `The Maldives is the most perfect place I have ever visited. Full stop. We stayed at a luxury overwater bungalow resort and from the moment the seaplane landed on the lagoon, everything was flawless.\n\nThe water is an unreal shade of turquoise — photos genuinely don't do it justice. Snorkelling directly from our bungalow steps we saw reef sharks, manta rays and thousands of tropical fish every single morning.\n\nFor couples and honeymooners this is THE destination. Private dining on the sandbank at sunset is something clients will never forget.`,
+    location: { name: 'Maldives', lat: 3.2028, lng: 73.2207 },
+    locationId: 'seed-loc-3',
+    date: '2026-03-05',
+    tags: ['luxury', 'honeymoon', 'beach', 'diving'],
+    images: [
+      'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1540202404-a2f29016b523?auto=format&fit=crop&w=1200&q=80',
+    ],
+    pinned: false,
+    extras: {
+      airlines: [{ name: 'Qatar Airways', rating: 5, description: 'Via Doha. Business class is exceptional. Worth every penny for a honeymoon.' }],
+      hotels: [{ name: 'Gili Lankanfushi', rating: 5, description: 'No news, no shoes philosophy. The crusoe residences are extraordinary. Butler service 24/7.' }],
+      cruises: [],
+      activities: [{ name: 'Private Sandbank Dinner', rating: 5, description: 'The resort sets up a table for two on a deserted sandbank at sunset. Absolutely unforgettable.' }],
+      dmcs: [],
+    },
+    salesNote: 'Highest margin destination in our portfolio. Never discount — clients who go always rebook. Upsell the seaplane transfer over the speedboat every time.',
+    userId: null,
+    status: 'approved',
+    folder: null,
+  },
+  {
+    id: 'seed-post-4',
+    title: 'Marrakech: Colour, Chaos & Charm',
+    staff: 'Olivia Bennett',
+    staffImage: null,
+    review: `Marrakech is a sensory overload in the best possible way. The medina is a labyrinth of souks, spice stalls and artisan workshops that you could lose yourself in for days.\n\nJemaa el-Fna square at dusk is something everyone should experience — snake charmers, storytellers, orange juice sellers and the smell of tagine cooking on a hundred open fires.\n\nWe stayed in a beautiful riad inside the medina walls which made the whole trip feel very authentic. The contrast of stepping off the hectic street into a serene courtyard with a plunge pool is incredible.\n\nA great short-haul option — under 4 hours from the UK and completely different to anything else in our portfolio.`,
+    location: { name: 'Marrakech', lat: 31.6295, lng: -7.9811 },
+    locationId: 'seed-loc-4',
+    date: '2025-11-10',
+    tags: ['culture', 'city', 'short-haul', 'food'],
+    images: [
+      'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1553899609-0baf7fa023d5?auto=format&fit=crop&w=1200&q=80',
+    ],
+    pinned: false,
+    extras: {
+      airlines: [{ name: 'Royal Air Maroc', rating: 3, description: 'Direct from LHR, reliable but basic. EasyJet from Gatwick is a cheaper alternative for budget clients.' }],
+      hotels: [{ name: 'Riad Yasmine', rating: 5, description: 'Stunning riad with rooftop pool. The location inside the medina is perfect. Book well in advance.' }],
+      cruises: [],
+      activities: [{ name: 'Cooking Class with Market Tour', rating: 5, description: 'Half day visiting the souks with a chef then cooking a traditional Moroccan feast. Brilliant for foodies.' }],
+      dmcs: [{ name: 'Marrakech Insiders', rating: 4, description: 'Good ground handler, responsive. Negotiated good rates for private transfers.' }],
+    },
+    salesNote: 'Great weekend break option year-round. Pairs well with a coastal extension to Essaouira. Popular with groups of friends and couples celebrating anniversaries.',
+    userId: null,
+    status: 'approved',
+    folder: null,
+  },
+  {
+    id: 'seed-post-5',
+    title: 'Phuket: Beaches, Temples & Thai Hospitality',
+    staff: 'Daniel Wright',
+    staffImage: null,
+    review: `Phuket continues to be one of the best-value long-haul destinations we sell. We based ourselves in Kata Beach which had a much more relaxed vibe than Patong — perfect for the families and couples we typically send.\n\nPhi Phi Island day trip was a highlight — the limestone karsts rising from the Andaman Sea are a jaw-dropping sight. We also did a half-day cooking class which was a massive hit.\n\nThe food is outstanding everywhere you go and the hospitality is genuinely warm. Grand opening rates at some of the newer resorts make this exceptional value right now.`,
+    location: { name: 'Phuket', lat: 7.8804, lng: 98.3923 },
+    locationId: 'seed-loc-5',
+    date: '2026-01-08',
+    tags: ['beach', 'value', 'family', 'food'],
+    images: [
+      'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?auto=format&fit=crop&w=1200&q=80',
+    ],
+    pinned: false,
+    extras: {
+      airlines: [{ name: 'Thai Airways', rating: 4, description: 'Good product via Bangkok. The upgrade to business is very reasonable and worth pitching.' }],
+      hotels: [{ name: 'Kata Rocks Resort', rating: 5, description: 'Clifftop infinity pool villas with incredible Andaman Sea views. Adults only — excellent for couples.' }],
+      cruises: [],
+      activities: [{ name: 'Phi Phi Island & Maya Bay Tour', rating: 5, description: 'Full day speedboat tour. Book the sunrise departure to beat the crowds at Maya Bay.' }],
+      dmcs: [],
+    },
+    salesNote: 'Strong converter from enquiry to booking — price point is very accessible. Combine with Bangkok 2-night stopover for clients wanting more of a mixed itinerary.',
+    userId: null,
+    status: 'approved',
+    folder: null,
+  },
+]
+
+const TRIPS: Trip[] = [
+  {
+    id: 'seed-trip-1',
+    name: 'Dubai Famil — Atlantis & Desert Experience',
+    description: 'A 5-night familiarisation trip to Dubai covering the Atlantis The Palm, a desert safari, city tour and trade partner meetings. All meals included.',
+    participants: ['Sarah Johnson', 'James Patel', 'Emma Clarke'],
+    date: '2026-06-15',
+    image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80',
+    locationId: 'seed-loc-1',
+    external: false,
+    international: true,
+    showRegisterInterest: true,
+    completed: false,
+  },
+  {
+    id: 'seed-trip-2',
+    name: 'Bali Wellness Retreat 2026',
+    description: 'A 7-night wellness and culture trip through Ubud and Seminyak. Includes spa treatments, cooking class, rice terrace trek and beach club time.',
+    participants: ['Olivia Bennett'],
+    date: '2026-07-20',
+    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80',
+    locationId: 'seed-loc-2',
+    external: false,
+    international: true,
+    showRegisterInterest: true,
+    completed: false,
+  },
+  {
+    id: 'seed-trip-3',
+    name: 'Maldives Luxury Showcase',
+    description: 'Exclusive 4-night showcase of our top Maldivian resorts. Seaplane transfers, overwater bungalows and private sandbank dining included.',
+    participants: ['Daniel Wright', 'Sarah Johnson'],
+    date: '2026-09-01',
+    image: 'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=800&q=80',
+    locationId: 'seed-loc-3',
+    external: false,
+    international: true,
+    showRegisterInterest: false,
+    completed: false,
+  },
+]
+
+const COMPLETED_TRIPS: Trip[] = [
+  {
+    id: 'seed-trip-past-1',
+    name: 'Thailand Explorer 2025',
+    description: 'Bangkok, Chiang Mai and Phuket over 10 nights.',
+    participants: ['Sarah Johnson', 'James Patel', 'Emma Clarke', 'Daniel Wright'],
+    date: '2025-10-12',
+    image: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=800&q=80',
+    locationId: 'seed-loc-5',
+    external: false,
+    international: true,
+    showRegisterInterest: false,
+    completed: true,
+  },
+  {
+    id: 'seed-trip-past-2',
+    name: 'Morocco Discovery 2025',
+    description: 'Marrakech medina, Atlas Mountains and Essaouira coastal extension.',
+    participants: ['Olivia Bennett', 'Sarah Johnson'],
+    date: '2025-03-08',
+    image: 'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=800&q=80',
+    locationId: 'seed-loc-4',
+    external: false,
+    international: true,
+    showRegisterInterest: false,
+    completed: true,
+  },
+]
+
+export async function seedDemoData(): Promise<void> {
+  const writes: Promise<void>[] = []
+
+  for (const loc of LOCATIONS) {
+    writes.push(setDoc(doc(db, 'locations', loc.id), { name: loc.name, country: loc.country }))
+  }
+
+  for (const post of POSTS) {
+    writes.push(setDoc(doc(db, 'posts', post.id), {
+      title: post.title,
+      staff: post.staff,
+      staffImage: post.staffImage,
+      review: post.review,
+      locName: post.location.name,
+      locLat: post.location.lat,
+      locLng: post.location.lng,
+      locationId: post.locationId,
+      date: post.date,
+      tags: post.tags,
+      images: post.images,
+      imagePaths: [],
+      pinned: post.pinned,
+      extras: post.extras,
+      salesNote: post.salesNote,
+      userId: post.userId,
+      status: post.status,
+      folder: post.folder,
+    }))
+  }
+
+  for (const trip of [...TRIPS, ...COMPLETED_TRIPS]) {
+    writes.push(setDoc(doc(db, 'trips', trip.id), {
+      name: trip.name,
+      description: trip.description,
+      participants: trip.participants,
+      date: trip.date,
+      image: trip.image,
+      locationId: trip.locationId,
+      external: trip.external,
+      international: trip.international,
+      showRegisterInterest: trip.showRegisterInterest,
+      completed: trip.completed,
+    }))
+  }
+
+  await Promise.all(writes)
+}

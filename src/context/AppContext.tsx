@@ -12,7 +12,7 @@ import {
   updateSubmission, removeSubmission,
   insertTrip, updateTrip, removeTrip, markTripComplete,
   insertLocation, updateLocation, removeLocation,
-  upsertSettings, updatePanelImages, uploadImage, DEFAULT_SETTINGS,
+  uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
   fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, deleteUserProfile,
   fetchAllUserProfiles, setUserBanned,
@@ -458,7 +458,29 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   }
 
   async function saveSettings(settings: Settings): Promise<void> {
-    await upsertSettings(settings)
+    const token = await auth.currentUser?.getIdToken()
+    if (!token) throw new Error('Not authenticated')
+    const apiRes = await fetch('/api/save-settings', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: settings.title,
+        heading: settings.heading,
+        color: settings.color,
+        password: settings.password,
+        welcome: settings.welcome,
+        notice: settings.notice ?? '',
+        departureName: settings.departureAirport?.name ?? 'LHR',
+        departureLat: settings.departureAirport?.lat ?? 51.5074,
+        departureLng: settings.departureAirport?.lng ?? -0.1278,
+        adminFolders: settings.adminFolders ?? [],
+        panelImages: settings.panelImages,
+      }),
+    })
+    if (!apiRes.ok) {
+      const body = await apiRes.json().catch(() => ({})) as { error?: string }
+      throw new Error(body.error ?? `API error ${apiRes.status}`)
+    }
     dispatch({ type: 'UPDATE_SETTINGS', settings })
   }
 
@@ -473,7 +495,17 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     const uploaded = { ...images }
     keys.forEach((key, i) => { if (results[i]) uploaded[key] = results[i]!.url })
     const newSettings = { ...state.settings, panelImages: uploaded }
-    await updatePanelImages(uploaded)
+    const token = await auth.currentUser?.getIdToken()
+    if (!token) throw new Error('Not authenticated')
+    const apiRes = await fetch('/api/save-settings', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ panelImages: uploaded }),
+    })
+    if (!apiRes.ok) {
+      const body = await apiRes.json().catch(() => ({})) as { error?: string }
+      throw new Error(body.error ?? `API error ${apiRes.status}`)
+    }
     dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
   }
 

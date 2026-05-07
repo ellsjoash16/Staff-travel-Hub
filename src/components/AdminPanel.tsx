@@ -347,7 +347,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   }
 
   const tabsContent = (
-          <Tabs value={tab} onValueChange={async (v) => { setTab(v); if (v === 'registrations') { setRegistrationsLoading(true); try { await loadRegistrations() } finally { setRegistrationsLoading(false) } } }}>
+          <Tabs value={tab} onValueChange={async (v) => { setTab(v); if (v === 'registrations') { setRegistrationsLoading(true); try { await loadRegistrations() } catch { toast.error('Failed to load registrations') } finally { setRegistrationsLoading(false) } } }}>
             <TabsList className="overflow-x-auto flex-nowrap">
               <TabsTrigger value="post" className="px-3 text-xs">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
               <TabsTrigger value="locations" className="px-3 text-xs">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>

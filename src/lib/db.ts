@@ -8,7 +8,7 @@ import {
   ref, uploadBytes, getDownloadURL, deleteObject,
 } from 'firebase/storage'
 import { db, storage, auth } from './firebase'
-import type { Post, Course, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile } from './types'
+import type { Post, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile } from './types'
 import { encryptField, decryptField } from './crypto'
 
 // ── Constants ─────────────────────────────────────────────────────────────
@@ -183,71 +183,6 @@ export async function removePost(id: string): Promise<void> {
     ...(d?.staffImagePath ? [d.staffImagePath] : []),
   ]
   await Promise.all(paths.map((p) => deleteImage(p).catch(() => {})))
-}
-
-// ── Courses ───────────────────────────────────────────────────────────────
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function docToCourse(id: string, d: any): Course {
-  return {
-    id,
-    title: d.title ?? '',
-    description: d.description ?? null,
-    image: d.image ?? null,
-    riseUrl: d.riseUrl ?? '',
-    location: { name: d.locName ?? '', lat: d.locLat ?? null, lng: d.locLng ?? null },
-    locationId: d.locationId ?? null,
-  }
-}
-
-export async function fetchCourses(): Promise<Course[]> {
-  const snap = await getDocs(collection(db, 'courses'))
-  return snap.docs.map((d) => docToCourse(d.id, d.data()))
-}
-
-export async function insertCourse(course: Course, imagePath: string | null): Promise<void> {
-  await setDoc(doc(db, 'courses', course.id), {
-    title: course.title,
-    description: course.description ?? null,
-    image: course.image ?? null,
-    imagePath,
-    riseUrl: course.riseUrl,
-    locName: course.location.name,
-    locLat: course.location.lat ?? null,
-    locLng: course.location.lng ?? null,
-    locationId: course.locationId ?? null,
-    createdAt: serverTimestamp(),
-  })
-}
-
-export async function updateCourse(
-  course: Course,
-  newImagePath: string | null | undefined,
-): Promise<void> {
-  const ref_ = doc(db, 'courses', course.id)
-  if (newImagePath !== undefined) {
-    const snap = await getDoc(ref_)
-    const oldPath: string | null = snap.data()?.imagePath ?? null
-    if (oldPath && oldPath !== newImagePath) await deleteImage(oldPath).catch(() => {})
-  }
-  await updateDoc(ref_, {
-    title: course.title,
-    description: course.description ?? null,
-    image: course.image ?? null,
-    riseUrl: course.riseUrl,
-    locName: course.location.name,
-    locLat: course.location.lat ?? null,
-    locLng: course.location.lng ?? null,
-    locationId: course.locationId ?? null,
-    ...(newImagePath !== undefined ? { imagePath: newImagePath } : {}),
-  })
-}
-
-export async function removeCourse(id: string): Promise<void> {
-  const snap = await getDoc(doc(db, 'courses', id))
-  const imagePath: string | null = snap.data()?.imagePath ?? null
-  await deleteDoc(doc(db, 'courses', id))
-  if (imagePath) await deleteImage(imagePath).catch(() => {})
 }
 
 // ── Submissions ───────────────────────────────────────────────────────────

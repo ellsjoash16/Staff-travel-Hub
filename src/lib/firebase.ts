@@ -22,9 +22,7 @@ const app = initializeApp(firebaseConfig)
 // }
 // experimentalAutoDetectLongPolling: falls back from WebChannel to HTTP polling
 // when the environment blocks streaming connections (e.g. some CDN/proxy setups)
-export const db = initializeFirestore(app, {
-  experimentalAutoDetectLongPolling: true,
-})
+export const db = initializeFirestore(app, {})
 export const storage = getStorage(app)
 export const auth = getAuth(app)
 export const microsoftProvider = new OAuthProvider('microsoft.com')

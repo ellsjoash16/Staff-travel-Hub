@@ -9,7 +9,6 @@ import type { Post, Course, Submission, Settings, View, PanelImages, Trip, Locat
 import {
   fetchPosts, fetchSettings, fetchTrips, fetchLocations,
   insertPost, updatePost, removePost, togglePinPost,
-  insertCourse, updateCourse, removeCourse,
   updateSubmission, removeSubmission,
   insertTrip, updateTrip, removeTrip, markTripComplete,
   insertLocation, updateLocation, removeLocation,
@@ -41,7 +40,10 @@ interface AppState {
 }
 
 type Action =
-  | { type: 'INIT'; posts: Post[]; courses: Course[]; submissions: Submission[]; trips: Trip[]; locations: Location[]; settings: Settings }
+  | { type: 'INIT'; posts: Post[]; submissions: Submission[]; trips: Trip[]; locations: Location[]; settings: Settings }
+  | { type: 'ADD_COURSE'; course: Course }
+  | { type: 'UPDATE_COURSE'; course: Course }
+  | { type: 'DELETE_COURSE'; id: string }
   | { type: 'SET_LOADING'; value: boolean }
   | { type: 'SET_VIEW'; view: View }
   | { type: 'SET_FILTER'; filter: string | null }
@@ -60,9 +62,7 @@ type Action =
   | { type: 'ADD_POST'; post: Post }
   | { type: 'UPDATE_POST'; post: Post }
   | { type: 'DELETE_POST'; id: string }
-  | { type: 'ADD_COURSE'; course: Course }
-  | { type: 'UPDATE_COURSE'; course: Course }
-  | { type: 'DELETE_COURSE'; id: string }
+
   | { type: 'ADD_SUBMISSION'; submission: Submission }
   | { type: 'UPDATE_SUBMISSION'; submission: Submission }
   | { type: 'DELETE_SUBMISSION'; id: string }
@@ -77,7 +77,7 @@ type Action =
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'INIT':
-      return { ...state, posts: action.posts, courses: action.courses, submissions: action.submissions, trips: action.trips, locations: action.locations, settings: action.settings }
+      return { ...state, posts: action.posts, courses: [], submissions: action.submissions, trips: action.trips, locations: action.locations, settings: action.settings }
     case 'SET_LOADING': return { ...state, loading: action.value }
     case 'SET_VIEW': return { ...state, activeView: action.view }
     case 'SET_FILTER': return { ...state, activeFilter: action.filter }
@@ -113,9 +113,7 @@ function reducer(state: AppState, action: Action): AppState {
     case 'ADD_POST': return { ...state, posts: [action.post, ...state.posts] }
     case 'UPDATE_POST': return { ...state, posts: state.posts.map((p) => p.id === action.post.id ? action.post : p) }
     case 'DELETE_POST': return { ...state, posts: state.posts.filter((p) => p.id !== action.id) }
-    case 'ADD_COURSE': return { ...state, courses: [action.course, ...state.courses] }
-    case 'UPDATE_COURSE': return { ...state, courses: state.courses.map((c) => c.id === action.course.id ? action.course : c) }
-    case 'DELETE_COURSE': return { ...state, courses: state.courses.filter((c) => c.id !== action.id) }
+
     case 'ADD_SUBMISSION': return { ...state, submissions: [action.submission, ...state.submissions] }
     case 'UPDATE_SUBMISSION': return { ...state, submissions: state.submissions.map((s) => s.id === action.submission.id ? action.submission : s) }
     case 'DELETE_SUBMISSION': return { ...state, submissions: state.submissions.filter((s) => s.id !== action.id) }
@@ -137,9 +135,7 @@ interface AppContextValue {
   addPost: (post: Post, newDataUrls: string[], staffImageDataUrl: string | null) => Promise<void>
   editPost: (post: Post, newDataUrls: string[], staffImageDataUrl: string | null) => Promise<void>
   deletePost: (id: string) => Promise<void>
-  addCourse: (course: Course, imageDataUrl: string | null) => Promise<void>
-  editCourse: (course: Course, imageDataUrl: string | null) => Promise<void>
-  deleteCourse: (id: string) => Promise<void>
+
   submitReview: (submission: Submission, imageDataUrls: string[]) => Promise<void>
   editSubmission: (submission: Submission, newDataUrls: string[]) => Promise<void>
   deleteSubmission: (id: string) => Promise<void>
@@ -190,7 +186,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dispatch({
           type: 'INIT',
           posts: postsRes.status === 'fulfilled' ? postsRes.value : [],
-          courses: [],
+
           submissions: [],
           trips: tripsRes.status === 'fulfilled' ? tripsRes.value : [],
           locations: locationsRes.status === 'fulfilled' ? locationsRes.value : [],
@@ -359,36 +355,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'DELETE_POST', id })
   }
 
-  async function addCourse(course: Course, imageDataUrl: string | null): Promise<void> {
-    let finalCourse = course
-    let imagePath: string | null = null
-    if (imageDataUrl?.startsWith('data:')) {
-      const result = await uploadImage(imageDataUrl, course.id)
-      finalCourse = { ...course, image: result.url }
-      imagePath = result.path
-    }
-    await insertCourse(finalCourse, imagePath)
-    dispatch({ type: 'ADD_COURSE', course: finalCourse })
-  }
-
-  async function editCourse(course: Course, imageDataUrl: string | null): Promise<void> {
-    let finalCourse = course
-    let newImagePath: string | null | undefined = undefined
-    if (imageDataUrl?.startsWith('data:')) {
-      const result = await uploadImage(imageDataUrl, course.id)
-      finalCourse = { ...course, image: result.url }
-      newImagePath = result.path
-    } else if (imageDataUrl === null && course.image === null) {
-      newImagePath = null
-    }
-    await updateCourse(finalCourse, newImagePath)
-    dispatch({ type: 'UPDATE_COURSE', course: finalCourse })
-  }
-
-  async function deleteCourse(id: string): Promise<void> {
-    await removeCourse(id)
-    dispatch({ type: 'DELETE_COURSE', id })
-  }
 
   async function submitReview(submission: Submission, imageDataUrls: string[]): Promise<void> {
     const uploadedResults = await Promise.all(imageDataUrls.map((url, i) => uploadImage(url, `${submission.id}-${i}`)))
@@ -510,7 +476,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       state, dispatch,
       togglePin,
       addPost, editPost, deletePost,
-      addCourse, editCourse, deleteCourse,
+
       submitReview, editSubmission, deleteSubmission,
       addTrip, editTrip, deleteTrip, completeTrip,
       addLocation, editLocation, deleteLocation,

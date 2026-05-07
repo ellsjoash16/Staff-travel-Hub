@@ -210,9 +210,10 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
         await ensureAdminPromise
         dispatch({ type: 'SET_LOADING', value: false })
       }
-      // All authenticated users are admins
       if (uid) {
-        dispatch({ type: 'SET_ADMIN', value: true })
+        if (resolvedSettings.adminUids?.includes(uid)) {
+          dispatch({ type: 'SET_ADMIN', value: true })
+        }
         fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})
       }
     }

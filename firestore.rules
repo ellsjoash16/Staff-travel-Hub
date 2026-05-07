@@ -7,7 +7,10 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated();
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/settings/main) &&
+        'adminUids' in get(/databases/$(database)/documents/settings/main).data &&
+        request.auth.uid in get(/databases/$(database)/documents/settings/main).data.adminUids;
     }
 
     // Posts — authenticated users can submit (pending only), admins manage all
@@ -23,9 +26,12 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
-    // Settings — authenticated users can read and write
+    // Settings — admins can write; anyone authenticated can read
     match /settings/{id} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() ||
+        // Bootstrap: allow write when no admins exist yet
+        (resource == null || !('adminUids' in resource.data) || resource.data.adminUids.size() == 0);
     }
 
     // Locations — authenticated read, admin write

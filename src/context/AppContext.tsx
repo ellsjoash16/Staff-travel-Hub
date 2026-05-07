@@ -12,7 +12,7 @@ import {
   updateSubmission, removeSubmission,
   insertTrip, updateTrip, removeTrip, markTripComplete,
   insertLocation, updateLocation, removeLocation,
-  upsertSettings, updatePanelImages, uploadImage, DEFAULT_SETTINGS,
+  upsertSettings, updatePanelImages, setAdminUids, uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
   fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, deleteUserProfile,
   fetchAllUserProfiles, setUserBanned,
@@ -296,20 +296,13 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   }
 
   async function promoteToAdmin(appPassword: string): Promise<boolean> {
-    const token = await auth.currentUser?.getIdToken()
-    if (!token) return false
-    const apiRes = await fetch('/api/promote-to-admin', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: appPassword }),
-    })
-    if (apiRes.status === 403) return false
-    if (!apiRes.ok) {
-      const body = await apiRes.json().catch(() => ({})) as { error?: string }
-      throw new Error(body.error ?? `API error ${apiRes.status}`)
+    if (appPassword !== state.settings.password) return false
+    const uid = authUid ?? auth.currentUser?.uid
+    if (uid && !state.settings.adminUids?.includes(uid)) {
+      const updated = [...(state.settings.adminUids ?? []), uid]
+      await setAdminUids(updated)
+      dispatch({ type: 'UPDATE_SETTINGS', settings: { ...state.settings, adminUids: updated } })
     }
-    const { adminUids } = await apiRes.json() as { adminUids: string[] }
-    dispatch({ type: 'UPDATE_SETTINGS', settings: { ...state.settings, adminUids } })
     dispatch({ type: 'SET_ADMIN', value: true })
     return true
   }

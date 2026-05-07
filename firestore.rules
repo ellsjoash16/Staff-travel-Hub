@@ -13,13 +13,6 @@ service cloud.firestore {
         request.auth.uid in get(/databases/$(database)/documents/settings/main).data.adminUids;
     }
 
-    // Bootstrap: allow settings write if no admins have been set up yet
-    function noAdminsYet() {
-      return !exists(/databases/$(database)/documents/settings/main) ||
-        !('adminUids' in get(/databases/$(database)/documents/settings/main).data) ||
-        get(/databases/$(database)/documents/settings/main).data.adminUids.size() == 0;
-    }
-
     // Posts — authenticated users can submit (pending only), admins manage all
     match /posts/{id} {
       allow read: if isAuthenticated();
@@ -33,10 +26,25 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
-    // Settings — authenticated read; admin write, or bootstrap if no admins exist yet
+    // Settings — authenticated read; write rules avoid circular get() by using resource.data
     match /settings/{id} {
       allow read: if isAuthenticated();
-      allow write: if isAdmin() || noAdminsYet();
+      allow write: if
+        // Existing admin: check via resource.data (avoids get() on the doc being written)
+        (isAuthenticated() && resource != null &&
+         'adminUids' in resource.data &&
+         request.auth.uid in resource.data.adminUids) ||
+        // Bootstrap: no admins set up yet
+        (resource == null ||
+         !('adminUids' in resource.data) ||
+         resource.data.adminUids.size() == 0) ||
+        // Self-promotion: authenticated user adding only their own UID to adminUids
+        (isAuthenticated() && resource != null &&
+         'adminUids' in resource.data &&
+         resource.data.adminUids.size() > 0 &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['adminUids']) &&
+         request.resource.data.adminUids.hasAll(resource.data.adminUids) &&
+         request.auth.uid in request.resource.data.adminUids);
     }
 
     // Locations — authenticated read, admin write

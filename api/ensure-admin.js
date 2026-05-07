@@ -29,13 +29,8 @@ export default async function handler(req, res) {
       return res.status(200).json({ adminUids })
     }
 
-    // Only auto-add on bootstrap (no admins yet) — otherwise access must be granted manually
-    if (adminUids.length > 0) {
-      return res.status(200).json({ adminUids })
-    }
-
-    // Bootstrap: first user to log in becomes the initial admin
-    const newUids = [callerUid]
+    // Add caller to adminUids
+    const newUids = [...adminUids, callerUid]
     const patchRes = await fetch(
       `${fsBase}/settings/main?updateMask.fieldPaths=adminUids`,
       {

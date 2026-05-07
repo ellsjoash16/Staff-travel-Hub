@@ -185,7 +185,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
               method: 'POST',
               headers: { Authorization: `Bearer ${token}` },
             })
-          }).catch(() => {})
+          }).catch(err => console.error('[ensure-admin]', err))
         : Promise.resolve()
 
       let resolvedSettings: Settings = DEFAULT_SETTINGS

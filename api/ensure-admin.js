@@ -29,6 +29,15 @@ export default async function handler(req, res) {
       return res.status(200).json({ adminUids })
     }
 
+    // Only these UIDs are permitted to self-enrol as admins
+    const ALLOWED_UIDS = [
+      'zjq9ki2IUNg3fUHGlda7N3pn6ko1',
+      'UdIhjIXCVfdPBwaQ6HnzM1jDYoa2',
+    ]
+    if (!ALLOWED_UIDS.includes(callerUid)) {
+      return res.status(200).json({ adminUids })
+    }
+
     // Add caller to adminUids
     const newUids = [...adminUids, callerUid]
     const patchRes = await fetch(

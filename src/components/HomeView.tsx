@@ -1,8 +1,5 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
-import type { GlobeMethods } from 'react-globe.gl'
+import { useState, useRef } from 'react'
 import { Camera, Plane, CalendarDays, Send, ArrowRight, ClipboardCheck, X, Megaphone } from 'lucide-react'
-
-const Globe = lazy(() => import('react-globe.gl'))
 import { useApp } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
 import type { View } from '@/lib/types'
@@ -97,28 +94,11 @@ function useTilt(deg = 7) {
 
 // ── Mini globe panel ─────────────────────────────────────────────────────────
 
+const EARTH_IMG = 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=800&q=75'
+
 function MapPanel({ onClick }: { onClick: () => void }) {
-  const { state } = useApp()
   const containerRef = useRef<HTMLDivElement>(null)
-  const globeRef = useRef<GlobeMethods | undefined>(undefined)
-  const [dims, setDims] = useState({ w: 400, h: 360 })
-  const [showGlobe, setShowGlobe] = useState(false)
   const tilt = useTilt(5)
-
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const ro = new ResizeObserver(entries => {
-      const { width, height } = entries[0].contentRect
-      if (width > 0 && height > 0) setDims({ w: Math.floor(width), h: Math.floor(height) })
-    })
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
-  useEffect(() => { setShowGlobe(true) }, [])
-
-  const pinColor = state.settings.color || '#05979a'
 
   return (
     <div ref={tilt.ref} style={tilt.style} onMouseMove={tilt.onMouseMove} onMouseLeave={tilt.onMouseLeave}
@@ -130,29 +110,11 @@ function MapPanel({ onClick }: { onClick: () => void }) {
         style={{ background: '#060c1a' }}
         onClick={onClick}
       >
-        <div className="absolute inset-0 pointer-events-none">
-          {showGlobe && <Suspense fallback={null}>
-            <Globe
-              ref={globeRef}
-              width={dims.w}
-              height={dims.h}
-              globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-              backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
-              showAtmosphere
-              atmosphereColor={pinColor}
-              atmosphereAltitude={0.18}
-              onGlobeReady={() => {
-                if (globeRef.current) {
-                  globeRef.current.controls().autoRotate = true
-                  globeRef.current.controls().autoRotateSpeed = 0.6
-                  globeRef.current.controls().enableZoom = false
-                  globeRef.current.controls().enableRotate = false
-                  globeRef.current.controls().enablePan = false
-                }
-              }}
-            />
-          </Suspense>}
-        </div>
+        <img
+          src={EARTH_IMG}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-[1.04] transition-transform duration-600"
+        />
 
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
           style={{ boxShadow: 'inset 0 0 60px rgba(5,151,154,0.2)' }} />

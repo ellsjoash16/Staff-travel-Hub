@@ -109,11 +109,8 @@ export interface UserProfile {
   authDisplayName: string | null
   firstName: string
   lastName: string
-  passportNumber: string
   passportFirstName: string
-  passportMiddleNames: string | null
   passportLastName: string
-  dob: string
   medicalInfo: string | null
   dataConsent: boolean
   banned?: boolean
@@ -127,11 +124,8 @@ export interface Registration {
   firstName: string
   lastName: string
   email: string
-  passportNumber: string
   passportFirstName: string
-  passportMiddleNames: string | null
   passportLastName: string
-  dob: string
   medicalInfo: string | null
   dataConsent: boolean
   status: RegistrationStatus

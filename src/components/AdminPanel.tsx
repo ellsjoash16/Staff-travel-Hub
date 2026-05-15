@@ -893,12 +893,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                 <div>
                                   <p className="font-semibold text-sm">{r.firstName} {r.lastName}</p>
                                   {r.email && <p className="text-xs text-muted-foreground mt-0.5">{r.email}</p>}
-                                  {r.passportNumber && <p className="text-xs text-muted-foreground mt-0.5">Passport: {r.passportNumber}</p>}
                                   {r.passportFirstName && (
-                                    <p className="text-xs text-muted-foreground mt-0.5">
-                                      {r.passportFirstName}{r.passportMiddleNames ? ` ${r.passportMiddleNames}` : ''} {r.passportLastName}
-                                      {r.dob ? ` · DOB: ${new Date(r.dob).toLocaleDateString('en-GB')}` : ''}
-                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">{r.passportFirstName} {r.passportLastName}</p>
                                   )}
                                   {r.medicalInfo && <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Medical: {r.medicalInfo}</p>}
                                   {r.dataConsent && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">✓ Data consent</p>}
@@ -1258,16 +1254,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   <p className="font-medium">{u.firstName} {u.lastName}</p>
                                 </div>
                                 <div>
-                                  <p className="text-xs text-muted-foreground mb-0.5">Date of birth</p>
-                                  <p className="font-medium">{u.dob ? new Date(u.dob).toLocaleDateString('en-GB') : '—'}</p>
-                                </div>
-                                <div>
                                   <p className="text-xs text-muted-foreground mb-0.5">Passport name</p>
-                                  <p className="font-medium">{u.passportFirstName} {u.passportMiddleNames ? `${u.passportMiddleNames} ` : ''}{u.passportLastName}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-0.5">Passport number</p>
-                                  <p className="font-medium font-mono">{u.passportNumber || '—'}</p>
+                                  <p className="font-medium">{u.passportFirstName} {u.passportLastName}</p>
                                 </div>
                                 {u.medicalInfo && (
                                   <div className="col-span-2">

@@ -444,17 +444,14 @@ export async function removeTrip(id: string): Promise<void> {
 export async function insertRegistration(reg: Registration): Promise<void> {
   const [
     firstName, lastName, email,
-    passportNumber, passportFirstName, passportMiddleNames, passportLastName,
-    dob, medicalInfo,
+    passportFirstName, passportLastName,
+    medicalInfo,
   ] = await Promise.all([
     encryptField(reg.firstName),
     encryptField(reg.lastName),
     encryptField(reg.email),
-    encryptField(reg.passportNumber),
     encryptField(reg.passportFirstName),
-    encryptField(reg.passportMiddleNames),
     encryptField(reg.passportLastName),
-    encryptField(reg.dob),
     encryptField(reg.medicalInfo),
   ])
   await setDoc(doc(db, 'registrations', reg.id), {
@@ -462,8 +459,8 @@ export async function insertRegistration(reg: Registration): Promise<void> {
     tripName: reg.tripName,
     uid: reg.uid ?? null,
     firstName, lastName, email,
-    passportNumber, passportFirstName, passportMiddleNames, passportLastName,
-    dob, medicalInfo,
+    passportFirstName, passportLastName,
+    medicalInfo,
     dataConsent: reg.dataConsent,
     status: 'requested',
     submittedAt: serverTimestamp(),
@@ -477,17 +474,14 @@ export async function fetchRegistrations(): Promise<Registration[]> {
     try {
       const [
         firstName, lastName, email,
-        passportNumber, passportFirstName, passportMiddleNames, passportLastName,
-        dob, medicalInfo,
+        passportFirstName, passportLastName,
+        medicalInfo,
       ] = await Promise.all([
         decryptField(data.firstName ?? null),
         decryptField(data.lastName ?? null),
         decryptField(data.email ?? data.workEmail ?? null),
-        decryptField(data.passportNumber ?? null),
         decryptField(data.passportFirstName ?? null),
-        decryptField(data.passportMiddleNames ?? null),
         decryptField(data.passportLastName ?? data.passportSurname ?? null),
-        decryptField(data.dob ?? null),
         decryptField(data.medicalInfo ?? data.medicalConditions ?? null),
       ])
       return {
@@ -498,11 +492,8 @@ export async function fetchRegistrations(): Promise<Registration[]> {
         firstName: firstName ?? '',
         lastName: lastName ?? '',
         email: email ?? '',
-        passportNumber: passportNumber ?? '',
         passportFirstName: passportFirstName ?? '',
-        passportMiddleNames,
         passportLastName: passportLastName ?? '',
-        dob: dob ?? '',
         medicalInfo,
         dataConsent: data.dataConsent ?? false,
         status: (data.status ?? 'requested') as RegistrationStatus,
@@ -515,9 +506,8 @@ export async function fetchRegistrations(): Promise<Registration[]> {
         tripName: data.tripName ?? '',
         uid: data.uid ?? null,
         firstName: '[encrypted]', lastName: '[encrypted]',
-        email: '', passportNumber: '', passportFirstName: '',
-        passportMiddleNames: null, passportLastName: '',
-        dob: '', medicalInfo: null,
+        email: '', passportFirstName: '', passportLastName: '',
+        medicalInfo: null,
         dataConsent: data.dataConsent ?? false,
         status: (data.status ?? 'requested') as RegistrationStatus,
       } as Registration
@@ -549,16 +539,16 @@ export async function fetchMyRegistrations(uid: string): Promise<Registration[]>
   const results = await Promise.all(snap.docs.map(async d => {
     const data = d.data()
     try {
-      const [firstName, lastName, email, passportNumber, passportFirstName, passportMiddleNames, passportLastName, dob, medicalInfo] = await Promise.all([
+      const [firstName, lastName, email, passportFirstName, passportLastName, medicalInfo] = await Promise.all([
         decryptField(data.firstName ?? null), decryptField(data.lastName ?? null),
-        decryptField(data.email ?? null), decryptField(data.passportNumber ?? null),
-        decryptField(data.passportFirstName ?? null), decryptField(data.passportMiddleNames ?? null),
-        decryptField(data.passportLastName ?? null), decryptField(data.dob ?? null),
+        decryptField(data.email ?? null),
+        decryptField(data.passportFirstName ?? null),
+        decryptField(data.passportLastName ?? null),
         decryptField(data.medicalInfo ?? null),
       ])
-      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: firstName ?? '', lastName: lastName ?? '', email: email ?? '', passportNumber: passportNumber ?? '', passportFirstName: passportFirstName ?? '', passportMiddleNames, passportLastName: passportLastName ?? '', dob: dob ?? '', medicalInfo, dataConsent: data.dataConsent ?? false, status: (data.status ?? 'requested') as RegistrationStatus } as Registration
+      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: firstName ?? '', lastName: lastName ?? '', email: email ?? '', passportFirstName: passportFirstName ?? '', passportLastName: passportLastName ?? '', medicalInfo, dataConsent: data.dataConsent ?? false, status: (data.status ?? 'requested') as RegistrationStatus } as Registration
     } catch {
-      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: '', lastName: '', email: '', passportNumber: '', passportFirstName: '', passportMiddleNames: null, passportLastName: '', dob: '', medicalInfo: null, dataConsent: false, status: (data.status ?? 'requested') as RegistrationStatus } as Registration
+      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: '', lastName: '', email: '', passportFirstName: '', passportLastName: '', medicalInfo: null, dataConsent: false, status: (data.status ?? 'requested') as RegistrationStatus } as Registration
     }
   }))
   return results
@@ -577,17 +567,14 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
   if (!snap.exists()) return null
   const data = snap.data()
   const [
-    firstName, lastName, passportNumber,
-    passportFirstName, passportMiddleNames, passportLastName,
-    dob, medicalInfo,
+    firstName, lastName,
+    passportFirstName, passportLastName,
+    medicalInfo,
   ] = await Promise.all([
     decryptField(data.firstName ?? null),
     decryptField(data.lastName ?? null),
-    decryptField(data.passportNumber ?? null),
     decryptField(data.passportFirstName ?? null),
-    decryptField(data.passportMiddleNames ?? null),
     decryptField(data.passportLastName ?? null),
-    decryptField(data.dob ?? null),
     decryptField(data.medicalInfo ?? null),
   ])
   return {
@@ -596,11 +583,8 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     authDisplayName: data.authDisplayName ?? null,
     firstName: firstName ?? '',
     lastName: lastName ?? '',
-    passportNumber: passportNumber ?? '',
     passportFirstName: passportFirstName ?? '',
-    passportMiddleNames,
     passportLastName: passportLastName ?? '',
-    dob: dob ?? '',
     medicalInfo,
     dataConsent: data.dataConsent ?? false,
     banned: data.banned ?? false,
@@ -609,23 +593,20 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
 
 export async function upsertUserProfile(profile: UserProfile): Promise<void> {
   const [
-    firstName, lastName, passportNumber,
-    passportFirstName, passportMiddleNames, passportLastName,
-    dob, medicalInfo,
+    firstName, lastName,
+    passportFirstName, passportLastName,
+    medicalInfo,
   ] = await Promise.all([
     encryptField(profile.firstName),
     encryptField(profile.lastName),
-    encryptField(profile.passportNumber),
     encryptField(profile.passportFirstName),
-    encryptField(profile.passportMiddleNames),
     encryptField(profile.passportLastName),
-    encryptField(profile.dob),
     encryptField(profile.medicalInfo),
   ])
   await setDoc(doc(db, 'userProfiles', profile.uid), {
-    firstName, lastName, passportNumber,
-    passportFirstName, passportMiddleNames, passportLastName,
-    dob, medicalInfo,
+    firstName, lastName,
+    passportFirstName, passportLastName,
+    medicalInfo,
     dataConsent: profile.dataConsent,
     updatedAt: serverTimestamp(),
   })
@@ -672,25 +653,21 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
         authEmail: authUser.email,
         authDisplayName: authUser.displayName,
         firstName: '', lastName: '',
-        passportNumber: '', passportFirstName: '',
-        passportMiddleNames: null, passportLastName: '',
-        dob: '', medicalInfo: null,
+        passportFirstName: '', passportLastName: '',
+        medicalInfo: null,
         dataConsent: false, banned: false,
         updatedAt: null,
       } as UserProfile & { updatedAt: string | null }
     }
     const [
-      firstName, lastName, passportNumber,
-      passportFirstName, passportMiddleNames, passportLastName,
-      dob, medicalInfo,
+      firstName, lastName,
+      passportFirstName, passportLastName,
+      medicalInfo,
     ] = await Promise.all([
       decryptField(data.firstName ?? null),
       decryptField(data.lastName ?? null),
-      decryptField(data.passportNumber ?? null),
       decryptField(data.passportFirstName ?? null),
-      decryptField(data.passportMiddleNames ?? null),
       decryptField(data.passportLastName ?? null),
-      decryptField(data.dob ?? null),
       decryptField(data.medicalInfo ?? null),
     ])
     return {
@@ -699,11 +676,8 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
       authDisplayName: data.authDisplayName ?? authUser.displayName,
       firstName: firstName ?? '',
       lastName: lastName ?? '',
-      passportNumber: passportNumber ?? '',
       passportFirstName: passportFirstName ?? '',
-      passportMiddleNames,
       passportLastName: passportLastName ?? '',
-      dob: dob ?? '',
       medicalInfo,
       dataConsent: data.dataConsent ?? false,
       banned: data.banned ?? false,

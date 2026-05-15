@@ -31,21 +31,18 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   const { state, loadMyRegistrations } = useApp()
   const existingReg = state.myRegistrations.find(r => r.tripId === trip.id)
   const [phase, setPhase]                   = useState<Phase>('loading')
-  const [passportNumber, setPassportNumber] = useState('')
-  const [passportFirst, setPassportFirst]   = useState('')
-  const [passportMiddle, setPassportMiddle] = useState('')
-  const [passportLast, setPassportLast]     = useState('')
-  const [dob, setDob]                       = useState('')
-  const [medicalInfo, setMedicalInfo]       = useState('')
+  const [passportFirst, setPassportFirst] = useState('')
+  const [passportLast, setPassportLast]   = useState('')
+  const [medicalInfo, setMedicalInfo]     = useState('')
   const [dataConsent, setDataConsent]       = useState(false)
   const [submitting, setSubmitting]         = useState(false)
   const [submitted, setSubmitted]           = useState(false)
 
   // Saved profile for confirm screen
   const [savedProfile, setSavedProfile] = useState<{
-    firstName: string; lastName: string; passportNumber: string
-    passportFirstName: string; passportMiddleNames: string | null
-    passportLastName: string; dob: string; medicalInfo: string | null
+    firstName: string; lastName: string
+    passportFirstName: string; passportLastName: string
+    medicalInfo: string | null
   } | null>(null)
 
   useEffect(() => {
@@ -75,8 +72,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
 
   function reset() {
     setPhase('loading'); setSavedProfile(null)
-    setPassportNumber(''); setPassportFirst(''); setPassportMiddle('')
-    setPassportLast(''); setDob(''); setMedicalInfo(''); setDataConsent(false)
+    setPassportFirst(''); setPassportLast(''); setMedicalInfo(''); setDataConsent(false)
     setSubmitting(false); setSubmitted(false)
   }
 
@@ -97,11 +93,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         email: user.email ?? '',
         firstName: savedProfile.firstName,
         lastName: savedProfile.lastName,
-        passportNumber: savedProfile.passportNumber,
         passportFirstName: savedProfile.passportFirstName,
-        passportMiddleNames: savedProfile.passportMiddleNames,
         passportLastName: savedProfile.passportLastName,
-        dob: savedProfile.dob,
         medicalInfo: savedProfile.medicalInfo,
         dataConsent: true,
         status: 'requested',
@@ -115,8 +108,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   }
 
   async function handleSubmit() {
-    if (!passportNumber.trim() || !passportFirst.trim() || !passportLast.trim() || !dob) {
-      toast.error('Passport details are incomplete'); return
+    if (!passportFirst.trim() || !passportLast.trim()) {
+      toast.error('Passport name is required'); return
     }
     const user = auth.currentUser
     if (!user) { toast.error('Not signed in'); return }
@@ -129,11 +122,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         email: user.email ?? '',
         firstName: passportFirst.trim() || (user.displayName ?? '').split(' ')[0] || '',
         lastName: passportLast.trim() || (user.displayName ?? '').split(' ').slice(1).join(' ') || '',
-        passportNumber: passportNumber.trim(),
         passportFirstName: passportFirst.trim(),
-        passportMiddleNames: passportMiddle.trim() || null,
         passportLastName: passportLast.trim(),
-        dob,
         medicalInfo: medicalInfo.trim() || null,
         dataConsent,
         status: 'requested' as const,
@@ -145,11 +135,9 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
           authEmail: user.email ?? null,
           authDisplayName: user.displayName ?? null,
           firstName: reg.firstName, lastName: reg.lastName,
-          passportNumber: reg.passportNumber,
           passportFirstName: reg.passportFirstName,
-          passportMiddleNames: reg.passportMiddleNames,
           passportLastName: reg.passportLastName,
-          dob: reg.dob, medicalInfo: reg.medicalInfo,
+          medicalInfo: reg.medicalInfo,
           dataConsent: true,
         })
       }
@@ -175,28 +163,14 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   )
 
   const passportFields = (
-    <div className="space-y-3">
+    <div className="grid grid-cols-2 gap-3">
       <div className="space-y-1.5">
-        <Label>Passport Number <span className="text-destructive">*</span></Label>
-        <Input placeholder="e.g. 123456789" value={passportNumber} onChange={e => setPassportNumber(e.target.value)} autoFocus />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label>First Name <span className="text-destructive">*</span></Label>
-          <Input placeholder="As on passport" value={passportFirst} onChange={e => setPassportFirst(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Last Name <span className="text-destructive">*</span></Label>
-          <Input placeholder="As on passport" value={passportLast} onChange={e => setPassportLast(e.target.value)} />
-        </div>
+        <Label>First Name <span className="text-destructive">*</span></Label>
+        <Input placeholder="As on passport" value={passportFirst} onChange={e => setPassportFirst(e.target.value)} autoFocus />
       </div>
       <div className="space-y-1.5">
-        <Label>Middle Name(s) <span className="text-muted-foreground font-normal">(if applicable)</span></Label>
-        <Input placeholder="As on passport" value={passportMiddle} onChange={e => setPassportMiddle(e.target.value)} />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Date of Birth <span className="text-destructive">*</span></Label>
-        <Input type="date" value={dob} onChange={e => setDob(e.target.value)} />
+        <Label>Last Name <span className="text-destructive">*</span></Label>
+        <Input placeholder="As on passport" value={passportLast} onChange={e => setPassportLast(e.target.value)} />
       </div>
     </div>
   )
@@ -280,11 +254,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                 <div className="space-y-4">
                   <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-1.5 text-sm">
                     <p className="font-semibold">{savedProfile.firstName} {savedProfile.lastName}</p>
-                    <p className="text-muted-foreground">Passport: {savedProfile.passportNumber}</p>
-                    <p className="text-muted-foreground">
-                      {savedProfile.passportFirstName}{savedProfile.passportMiddleNames ? ` ${savedProfile.passportMiddleNames}` : ''} {savedProfile.passportLastName}
-                      {savedProfile.dob ? ` · DOB: ${new Date(savedProfile.dob).toLocaleDateString('en-GB')}` : ''}
-                    </p>
+                    <p className="text-muted-foreground">{savedProfile.passportFirstName} {savedProfile.passportLastName}</p>
                     {savedProfile.medicalInfo && (
                       <p className="text-amber-600 dark:text-amber-400">Medical: {savedProfile.medicalInfo}</p>
                     )}
@@ -306,8 +276,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   {passportFields}
                   <div className="flex justify-end pt-1">
                     <Button onClick={() => {
-                      if (!passportNumber.trim() || !passportFirst.trim() || !passportLast.trim() || !dob) {
-                        toast.error('Passport number, name and date of birth are required'); return
+                      if (!passportFirst.trim() || !passportLast.trim()) {
+                        toast.error('Passport name is required'); return
                       }
                       setPhase('medical')
                     }} className="gap-1.5">

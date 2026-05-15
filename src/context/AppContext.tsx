@@ -198,32 +198,26 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
           }).catch(err => console.error('[ensure-admin]', err))
         : Promise.resolve()
 
+      // Kick off all fetches in parallel
+      const postsPromise = fetchPosts().catch(() => [] as Post[])
+      const tripsPromise = fetchTrips().catch(() => [] as Trip[])
+      const locationsPromise = fetchLocations().catch(() => [] as Location[])
+
+      // Unblock the UI as soon as settings resolves — theming + admin check
       let resolvedSettings: Settings = DEFAULT_SETTINGS
-      try {
-        const [postsRes, tripsRes, locationsRes, settingsRes] = await Promise.allSettled([
-          fetchPosts(),
-          fetchTrips(),
-          fetchLocations(),
-          fetchSettings(),
-        ])
-        resolvedSettings = settingsRes.status === 'fulfilled' ? settingsRes.value : DEFAULT_SETTINGS
-        dispatch({
-          type: 'INIT',
-          posts: postsRes.status === 'fulfilled' ? postsRes.value : [],
-          submissions: [],
-          trips: tripsRes.status === 'fulfilled' ? tripsRes.value : [],
-          locations: locationsRes.status === 'fulfilled' ? locationsRes.value : [],
-          settings: resolvedSettings,
-        })
-      } finally {
-        // Wait for ensure-admin before unlocking UI so writes don't race
-        await ensureAdminPromise
-        dispatch({ type: 'SET_LOADING', value: false })
+      try { resolvedSettings = await fetchSettings() } catch {}
+      dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
+      if (uid && resolvedSettings.adminUids?.includes(uid)) {
+        dispatch({ type: 'SET_ADMIN', value: true })
       }
+      dispatch({ type: 'SET_LOADING', value: false })
+
+      // Load remaining data in the background
+      const [posts, trips, locations] = await Promise.all([postsPromise, tripsPromise, locationsPromise])
+      dispatch({ type: 'INIT', posts, submissions: [], trips, locations, settings: resolvedSettings })
+
+      ensureAdminPromise?.catch(() => {})
       if (uid) {
-        if (resolvedSettings.adminUids?.includes(uid)) {
-          dispatch({ type: 'SET_ADMIN', value: true })
-        }
         fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})
       }
     }

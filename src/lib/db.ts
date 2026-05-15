@@ -101,7 +101,7 @@ export async function approvePost(id: string): Promise<void> {
 }
 
 export async function submitPendingPost(post: Post, imagePaths: string[]): Promise<void> {
-  await adminWrite('posts', post.id, 'set', {
+  await setDoc(doc(db, 'posts', post.id), {
     title: post.title,
     staff: post.staff,
     staffImage: post.staffImage ?? null,
@@ -343,7 +343,7 @@ function docToLocation(id: string, d: any): Location {
 }
 
 export async function fetchLocations(): Promise<Location[]> {
-  const snap = await getDocs(collection(db, 'locations'))
+  const snap = await getDocs(query(collection(db, 'locations'), limit(500)))
   return snap.docs
     .map((d) => docToLocation(d.id, d.data()))
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -381,7 +381,7 @@ function docToTrip(id: string, d: any): Trip {
 }
 
 export async function fetchTrips(): Promise<Trip[]> {
-  const snap = await getDocs(collection(db, 'trips'))
+  const snap = await getDocs(query(collection(db, 'trips'), limit(500)))
   return snap.docs
     .map((d) => docToTrip(d.id, d.data()))
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
@@ -471,7 +471,7 @@ export async function insertRegistration(reg: Registration): Promise<void> {
 }
 
 export async function fetchRegistrations(): Promise<Registration[]> {
-  const snap = await getDocs(collection(db, 'registrations'))
+  const snap = await getDocs(query(collection(db, 'registrations'), limit(1000)))
   const results = await Promise.all(snap.docs.map(async d => {
     const data = d.data()
     try {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, LogIn, UserPlus, Plane } from 'lucide-react'
+import { Loader2, LogIn, UserPlus } from 'lucide-react'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth'
 import { auth, microsoftProvider } from '@/lib/firebase'
 import { Button } from '@/components/ui/button'
@@ -88,9 +88,7 @@ export function LoginScreen() {
       <div className="relative z-10 w-full max-w-sm mx-4">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 backdrop-blur-sm mb-4">
-            <Plane className="h-7 w-7 text-primary" />
-          </div>
+          <img src="/daf-logo.png" alt="DAF logo" className="h-20 w-20 object-contain mx-auto mb-4" style={{ transform: 'translateX(8px)' }} />
           <h1 className="font-gilbert text-3xl text-white drop-shadow">DAFAGRAM</h1>
           <p className="text-white/60 text-sm mt-1">Staff Travel Hub</p>
         </div>

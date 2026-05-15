@@ -102,6 +102,7 @@ function MapPanel({ onClick }: { onClick: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const globeRef = useRef<GlobeMethods | undefined>(undefined)
   const [dims, setDims] = useState({ w: 400, h: 360 })
+  const [showGlobe, setShowGlobe] = useState(false)
   const tilt = useTilt(5)
 
   useEffect(() => {
@@ -114,6 +115,8 @@ function MapPanel({ onClick }: { onClick: () => void }) {
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
+
+  useEffect(() => { setShowGlobe(true) }, [])
 
   const pinColor = state.settings.color || '#05979a'
 
@@ -128,7 +131,7 @@ function MapPanel({ onClick }: { onClick: () => void }) {
         onClick={onClick}
       >
         <div className="absolute inset-0 pointer-events-none">
-          <Suspense fallback={null}>
+          {showGlobe && <Suspense fallback={null}>
             <Globe
               ref={globeRef}
               width={dims.w}
@@ -148,7 +151,7 @@ function MapPanel({ onClick }: { onClick: () => void }) {
                 }
               }}
             />
-          </Suspense>
+          </Suspense>}
         </div>
 
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"

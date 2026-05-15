@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
-import { Loader2, Plane } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { saveAccountRecord } from '@/lib/db'
@@ -31,9 +31,7 @@ function SplashScreen() {
         transform: 'scale(1.1)',
       }} />
       <div className="relative z-10 flex flex-col items-center gap-6 text-center px-6">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 backdrop-blur-sm">
-          <Plane className="h-8 w-8 text-primary" />
-        </div>
+        <img src="/daf-logo.png" alt="DAF logo" className="h-20 w-20 object-contain" style={{ transform: 'translateX(8px)' }} />
         <div>
           <h1 className="font-gilbert text-4xl text-white drop-shadow mb-1">DAFAGRAM</h1>
           <p className="text-white/50 text-sm tracking-widest uppercase">Staff Travel Hub</p>

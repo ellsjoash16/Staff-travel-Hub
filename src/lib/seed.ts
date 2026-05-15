@@ -165,6 +165,9 @@ const TRIPS: Trip[] = [
     isEvent: false,
     eventType: null,
     eventBuilding: null,
+    eventVenue: null,
+    eventSpaces: null,
+    eventSponsor: null,
   },
   {
     id: 'seed-trip-2',
@@ -182,6 +185,9 @@ const TRIPS: Trip[] = [
     isEvent: false,
     eventType: null,
     eventBuilding: null,
+    eventVenue: null,
+    eventSpaces: null,
+    eventSponsor: null,
   },
   {
     id: 'seed-trip-3',
@@ -199,6 +205,9 @@ const TRIPS: Trip[] = [
     isEvent: false,
     eventType: null,
     eventBuilding: null,
+    eventVenue: null,
+    eventSpaces: null,
+    eventSponsor: null,
   },
 ]
 
@@ -219,6 +228,9 @@ const COMPLETED_TRIPS: Trip[] = [
     isEvent: false,
     eventType: null,
     eventBuilding: null,
+    eventVenue: null,
+    eventSpaces: null,
+    eventSponsor: null,
   },
   {
     id: 'seed-trip-past-2',
@@ -236,6 +248,9 @@ const COMPLETED_TRIPS: Trip[] = [
     isEvent: false,
     eventType: null,
     eventBuilding: null,
+    eventVenue: null,
+    eventSpaces: null,
+    eventSponsor: null,
   },
 ]
 

@@ -103,6 +103,9 @@ export interface Trip {
   isEvent: boolean
   eventType: string | null
   eventBuilding: string | null
+  eventVenue: string | null
+  eventSpaces: number | null
+  eventSponsor: string | null
 }
 
 export type RegistrationStatus = 'requested' | 'pending_confirmation' | 'confirmed' | 'refused'

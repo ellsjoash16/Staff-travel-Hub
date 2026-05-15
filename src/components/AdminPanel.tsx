@@ -31,7 +31,7 @@ interface PostForm {
 
 
 interface TripForm {
-  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string
+  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string; eventVenue: string; eventSpaces: string; eventSponsor: string
 }
 
 interface LocationForm {
@@ -46,7 +46,7 @@ const emptyPostForm = (): PostForm => ({
 })
 
 const emptyTripForm = (): TripForm => ({
-  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: '',
+  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: '', eventVenue: '', eventSpaces: '', eventSponsor: '',
 })
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
@@ -243,6 +243,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       isEvent: tripForm.isEvent,
       eventType: tripForm.isEvent ? (tripForm.eventType || null) : null,
       eventBuilding: tripForm.isEvent ? (tripForm.eventBuilding.trim() || null) : null,
+      eventVenue: tripForm.isEvent ? (tripForm.eventVenue.trim() || null) : null,
+      eventSpaces: tripForm.isEvent ? (parseInt(tripForm.eventSpaces) || null) : null,
+      eventSponsor: tripForm.isEvent ? (tripForm.eventSponsor.trim() || null) : null,
     }
     setTripSaving(true)
     try {
@@ -273,6 +276,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       isEvent: trip.isEvent ?? false,
       eventType: trip.eventType ?? '',
       eventBuilding: trip.eventBuilding ?? '',
+      eventVenue: trip.eventVenue ?? '',
+      eventSpaces: trip.eventSpaces != null ? String(trip.eventSpaces) : '',
+      eventSponsor: trip.eventSponsor ?? '',
     })
     setEditingTripId(trip.id); setTab('trips')
   }
@@ -723,6 +729,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               </div>
 
               {tripForm.isEvent && (
+                <>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium">Event Type</label>
@@ -750,6 +757,35 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Venue Name <span className="text-muted-foreground font-normal">(optional)</span></label>
+                    <Input
+                      placeholder="e.g. The Grand Ballroom"
+                      value={tripForm.eventVenue}
+                      onChange={(e) => setTrip('eventVenue', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Number of Spaces <span className="text-muted-foreground font-normal">(optional)</span></label>
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 50"
+                      value={tripForm.eventSpaces}
+                      onChange={(e) => setTrip('eventSpaces', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium">Event Sponsor <span className="text-muted-foreground font-normal">(optional)</span></label>
+                  <Input
+                    placeholder="e.g. British Airways"
+                    value={tripForm.eventSponsor}
+                    onChange={(e) => setTrip('eventSponsor', e.target.value)}
+                  />
+                </div>
+                </>
               )}
 
               <div className="flex justify-end gap-2 pt-2">

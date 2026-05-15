@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MapPin, Calendar, Star, Building2 } from 'lucide-react'
+import { MapPin, Calendar, Star, Building2, Users, Award } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
@@ -44,7 +44,16 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
               {trip.eventBuilding && (
                 <span className="flex items-center gap-1"><Building2 className="h-3 w-3 flex-shrink-0" />{trip.eventBuilding}</span>
               )}
+              {trip.eventVenue && (
+                <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{trip.eventVenue}</span>
+              )}
               <span className="flex items-center gap-1"><Calendar className="h-3 w-3 flex-shrink-0" />{dateStr}</span>
+              {trip.eventSpaces != null && (
+                <span className="flex items-center gap-1"><Users className="h-3 w-3 flex-shrink-0" />{trip.eventSpaces} spaces</span>
+              )}
+              {trip.eventSponsor && (
+                <span className="flex items-center gap-1"><Award className="h-3 w-3 flex-shrink-0" />Sponsored by {trip.eventSponsor}</span>
+              )}
             </div>
             {trip.description && (
               <p className="text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-2">{trip.description}</p>

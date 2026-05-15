@@ -203,14 +203,29 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       const tripsPromise = fetchTrips().catch(() => [] as Trip[])
       const locationsPromise = fetchLocations().catch(() => [] as Location[])
 
-      // Unblock the UI as soon as settings resolves — theming + admin check
+      // Unblock the UI immediately using cached settings (stale-while-revalidate)
+      const SETTINGS_KEY = 'dafagram:settings'
+      let hasCached = false
+      try {
+        const raw = localStorage.getItem(SETTINGS_KEY)
+        if (raw) {
+          const cached: Settings = JSON.parse(raw)
+          dispatch({ type: 'UPDATE_SETTINGS', settings: cached })
+          if (uid && cached.adminUids?.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
+          dispatch({ type: 'SET_LOADING', value: false })
+          hasCached = true
+        }
+      } catch {}
+
+      // Fetch fresh settings — blocks UI only on first-ever visit (no cache)
       let resolvedSettings: Settings = DEFAULT_SETTINGS
-      try { resolvedSettings = await fetchSettings() } catch {}
+      try {
+        resolvedSettings = await fetchSettings()
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings))
+      } catch {}
       dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
-      if (uid && resolvedSettings.adminUids?.includes(uid)) {
-        dispatch({ type: 'SET_ADMIN', value: true })
-      }
-      dispatch({ type: 'SET_LOADING', value: false })
+      if (uid && resolvedSettings.adminUids?.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
+      if (!hasCached) dispatch({ type: 'SET_LOADING', value: false })
 
       // Load remaining data in the background
       const [posts, trips, locations] = await Promise.all([postsPromise, tripsPromise, locationsPromise])

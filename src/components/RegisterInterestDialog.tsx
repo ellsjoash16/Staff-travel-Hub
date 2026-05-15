@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { auth } from '@/lib/firebase'
 import { insertRegistration, fetchUserProfile, upsertUserProfile } from '@/lib/db'
+
+const JOB_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM']
 import { useApp } from '@/context/AppContext'
 import type { Trip } from '@/lib/types'
 
@@ -33,6 +35,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   const [phase, setPhase]                   = useState<Phase>('loading')
   const [passportFirst, setPassportFirst] = useState('')
   const [passportLast, setPassportLast]   = useState('')
+  const [jobRole, setJobRole]             = useState('')
   const [medicalInfo, setMedicalInfo]     = useState('')
   const [dataConsent, setDataConsent]       = useState(false)
   const [submitting, setSubmitting]         = useState(false)
@@ -42,6 +45,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   const [savedProfile, setSavedProfile] = useState<{
     firstName: string; lastName: string
     passportFirstName: string; passportLastName: string
+    jobRole: string | null
     medicalInfo: string | null
   } | null>(null)
 
@@ -65,6 +69,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         // Pre-fill name from Firebase Auth displayName if available
         const parts = (user.displayName ?? '').split(' ')
         if (parts[0]) setPassportFirst(f => f || parts[0])
+        if (profile?.jobRole) setJobRole(profile.jobRole)
         setPhase('passport')
       }
     }).catch(() => setPhase('passport'))
@@ -72,7 +77,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
 
   function reset() {
     setPhase('loading'); setSavedProfile(null)
-    setPassportFirst(''); setPassportLast(''); setMedicalInfo(''); setDataConsent(false)
+    setPassportFirst(''); setPassportLast(''); setJobRole(''); setMedicalInfo(''); setDataConsent(false)
     setSubmitting(false); setSubmitted(false)
   }
 
@@ -111,6 +116,9 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     if (!passportFirst.trim() || !passportLast.trim()) {
       toast.error('Passport name is required'); return
     }
+    if (!jobRole) {
+      toast.error('Please select your job role'); return
+    }
     const user = auth.currentUser
     if (!user) { toast.error('Not signed in'); return }
     setSubmitting(true)
@@ -134,6 +142,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
           uid: user.uid,
           authEmail: user.email ?? null,
           authDisplayName: user.displayName ?? null,
+          jobRole: jobRole || null,
           firstName: reg.firstName, lastName: reg.lastName,
           passportFirstName: reg.passportFirstName,
           passportLastName: reg.passportLastName,
@@ -163,14 +172,27 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   )
 
   const passportFields = (
-    <div className="grid grid-cols-2 gap-3">
-      <div className="space-y-1.5">
-        <Label>First Name <span className="text-destructive">*</span></Label>
-        <Input placeholder="As on passport" value={passportFirst} onChange={e => setPassportFirst(e.target.value)} autoFocus />
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>First Name <span className="text-destructive">*</span></Label>
+          <Input placeholder="As on passport" value={passportFirst} onChange={e => setPassportFirst(e.target.value)} autoFocus />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Last Name <span className="text-destructive">*</span></Label>
+          <Input placeholder="As on passport" value={passportLast} onChange={e => setPassportLast(e.target.value)} />
+        </div>
       </div>
       <div className="space-y-1.5">
-        <Label>Last Name <span className="text-destructive">*</span></Label>
-        <Input placeholder="As on passport" value={passportLast} onChange={e => setPassportLast(e.target.value)} />
+        <Label>Job Role <span className="text-destructive">*</span></Label>
+        <select
+          value={jobRole}
+          onChange={e => setJobRole(e.target.value)}
+          className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="">— Select your role —</option>
+          {JOB_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
       </div>
     </div>
   )
@@ -255,6 +277,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-1.5 text-sm">
                     <p className="font-semibold">{savedProfile.firstName} {savedProfile.lastName}</p>
                     <p className="text-muted-foreground">{savedProfile.passportFirstName} {savedProfile.passportLastName}</p>
+                    {savedProfile.jobRole && <p className="text-muted-foreground">{savedProfile.jobRole}</p>}
                     {savedProfile.medicalInfo && (
                       <p className="text-amber-600 dark:text-amber-400">Medical: {savedProfile.medicalInfo}</p>
                     )}

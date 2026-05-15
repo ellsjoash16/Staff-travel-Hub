@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { Loader2, LogIn, UserPlus } from 'lucide-react'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth'
 import { auth, microsoftProvider } from '@/lib/firebase'
+import { saveJobRole } from '@/lib/db'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
+
+const JOB_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM']
 
 const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80'
 
@@ -15,6 +18,7 @@ export function LoginScreen() {
   const [mode, setMode] = useState<Mode>('signin')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName]   = useState('')
+  const [jobRole, setJobRole]     = useState('')
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
   const [confirmPwd, setConfirmPwd] = useState('')
@@ -39,6 +43,7 @@ export function LoginScreen() {
 
   async function handleSignUp() {
     if (!firstName.trim() || !lastName.trim()) { toast.error('Enter your first and last name'); return }
+    if (!jobRole) { toast.error('Please select your job role'); return }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { toast.error('Enter a valid email address'); return }
     if (!email.trim().toLowerCase().endsWith('@dialaflight.co.uk')) { toast.error('You must use your @dialaflight.co.uk email to sign up'); return }
     if (password.length < 6) { toast.error('Password must be at least 6 characters'); return }
@@ -47,6 +52,7 @@ export function LoginScreen() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
       await updateProfile(cred.user, { displayName: `${firstName.trim()} ${lastName.trim()}` })
+      await saveJobRole(cred.user.uid, jobRole)
     } catch (err: unknown) {
       const code = (err as { code?: string }).code
       if (code === 'auth/email-already-in-use') {
@@ -112,16 +118,29 @@ export function LoginScreen() {
 
           <div className="space-y-3">
             {mode === 'signup' && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>First Name</Label>
-                  <Input placeholder="Sarah" value={firstName} onChange={e => setFirstName(e.target.value)} />
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>First Name</Label>
+                    <Input placeholder="Sarah" value={firstName} onChange={e => setFirstName(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Last Name</Label>
+                    <Input placeholder="Johnson" value={lastName} onChange={e => setLastName(e.target.value)} />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Last Name</Label>
-                  <Input placeholder="Johnson" value={lastName} onChange={e => setLastName(e.target.value)} />
+                  <Label>Job Role <span className="text-destructive">*</span></Label>
+                  <select
+                    value={jobRole}
+                    onChange={e => setJobRole(e.target.value)}
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">— Select your role —</option>
+                    {JOB_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
                 </div>
-              </div>
+              </>
             )}
 
             <div className="space-y-1.5">

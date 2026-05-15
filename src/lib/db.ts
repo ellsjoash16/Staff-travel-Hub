@@ -602,6 +602,7 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     uid,
     authEmail: data.authEmail ?? null,
     authDisplayName: data.authDisplayName ?? null,
+    jobRole: data.jobRole ?? null,
     firstName: firstName ?? '',
     lastName: lastName ?? '',
     passportFirstName: passportFirstName ?? '',
@@ -628,9 +629,14 @@ export async function upsertUserProfile(profile: UserProfile): Promise<void> {
     firstName, lastName,
     passportFirstName, passportLastName,
     medicalInfo,
+    jobRole: profile.jobRole ?? null,
     dataConsent: profile.dataConsent,
     updatedAt: serverTimestamp(),
   })
+}
+
+export async function saveJobRole(uid: string, jobRole: string): Promise<void> {
+  await setDoc(doc(db, 'userProfiles', uid), { jobRole }, { merge: true })
 }
 
 export async function saveAccountRecord(uid: string, email: string | null, displayName: string | null): Promise<void> {
@@ -673,6 +679,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
         uid: authUser.uid,
         authEmail: authUser.email,
         authDisplayName: authUser.displayName,
+        jobRole: null,
         firstName: '', lastName: '',
         passportFirstName: '', passportLastName: '',
         medicalInfo: null,
@@ -695,6 +702,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
       uid: authUser.uid,
       authEmail: data.authEmail ?? authUser.email,
       authDisplayName: data.authDisplayName ?? authUser.displayName,
+      jobRole: data.jobRole ?? null,
       firstName: firstName ?? '',
       lastName: lastName ?? '',
       passportFirstName: passportFirstName ?? '',

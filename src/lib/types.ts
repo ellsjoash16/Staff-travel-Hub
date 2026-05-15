@@ -118,6 +118,7 @@ export interface UserProfile {
   lastName: string
   passportFirstName: string
   passportLastName: string
+  jobRole: string | null
   medicalInfo: string | null
   dataConsent: boolean
   banned?: boolean

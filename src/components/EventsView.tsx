@@ -49,7 +49,10 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
               )}
               <span className="flex items-center gap-1"><Calendar className="h-3 w-3 flex-shrink-0" />{dateStr}</span>
               {trip.eventSpaces != null && (
-                <span className="flex items-center gap-1"><Users className="h-3 w-3 flex-shrink-0" />{trip.eventSpaces} spaces</span>
+                <span className="flex items-center gap-1">
+                  <Users className="h-3 w-3 flex-shrink-0" />
+                  {Math.max(0, trip.eventSpaces - trip.participants.length)} of {trip.eventSpaces} spaces remaining
+                </span>
               )}
               {trip.eventSponsor && (
                 <span className="flex items-center gap-1"><Award className="h-3 w-3 flex-shrink-0" />Sponsored by {trip.eventSponsor}</span>
@@ -59,13 +62,20 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
               <p className="text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-2">{trip.description}</p>
             )}
           </div>
-          {trip.showRegisterInterest && (
-            <div className="flex justify-end">
-              <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1.5 bg-violet-600 hover:bg-violet-700 text-white">
-                <Star className="h-3.5 w-3.5" /> Register Interest
-              </Button>
-            </div>
-          )}
+          {trip.showRegisterInterest && (() => {
+            const full = trip.eventSpaces != null && trip.participants.length >= trip.eventSpaces
+            return (
+              <div className="flex justify-end">
+                {full ? (
+                  <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-muted text-muted-foreground">Fully Booked</span>
+                ) : (
+                  <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1.5 bg-violet-600 hover:bg-violet-700 text-white">
+                    <Star className="h-3.5 w-3.5" /> Register Interest
+                  </Button>
+                )}
+              </div>
+            )
+          })()}
         </div>
       </div>
     </>

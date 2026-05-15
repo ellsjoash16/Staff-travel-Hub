@@ -379,6 +379,8 @@ function docToTrip(id: string, d: any): Trip {
     international: d.international ?? false,
     showRegisterInterest: d.showRegisterInterest ?? false,
     isEvent: d.isEvent ?? false,
+    eventType: d.eventType ?? null,
+    eventBuilding: d.eventBuilding ?? null,
   }
 }
 
@@ -404,6 +406,8 @@ export async function insertTrip(trip: Trip, imagePath: string | null): Promise<
     international: trip.international ?? false,
     showRegisterInterest: trip.showRegisterInterest ?? false,
     isEvent: trip.isEvent ?? false,
+    eventType: trip.eventType ?? null,
+    eventBuilding: trip.eventBuilding ?? null,
   })
 }
 
@@ -433,6 +437,8 @@ export async function updateTrip(
     international: trip.international ?? false,
     showRegisterInterest: trip.showRegisterInterest ?? false,
     isEvent: trip.isEvent ?? false,
+    eventType: trip.eventType ?? null,
+    eventBuilding: trip.eventBuilding ?? null,
   }
   if (newImagePath !== undefined) data.imagePath = newImagePath
   await adminWrite('trips', trip.id, 'set', data)

@@ -31,7 +31,7 @@ interface PostForm {
 
 
 interface TripForm {
-  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean
+  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string
 }
 
 interface LocationForm {
@@ -46,7 +46,7 @@ const emptyPostForm = (): PostForm => ({
 })
 
 const emptyTripForm = (): TripForm => ({
-  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false,
+  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: '',
 })
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
@@ -241,6 +241,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       showRegisterInterest: tripForm.showRegisterInterest,
       completed: tripForm.completed,
       isEvent: tripForm.isEvent,
+      eventType: tripForm.isEvent ? (tripForm.eventType || null) : null,
+      eventBuilding: tripForm.isEvent ? (tripForm.eventBuilding.trim() || null) : null,
     }
     setTripSaving(true)
     try {
@@ -269,6 +271,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       showRegisterInterest: trip.showRegisterInterest ?? false,
       completed: trip.completed ?? false,
       isEvent: trip.isEvent ?? false,
+      eventType: trip.eventType ?? '',
+      eventBuilding: trip.eventBuilding ?? '',
     })
     setEditingTripId(trip.id); setTab('trips')
   }
@@ -717,6 +721,36 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   </label>
                 </div>
               </div>
+
+              {tripForm.isEvent && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Event Type</label>
+                    <select
+                      value={tripForm.eventType}
+                      onChange={(e) => setTrip('eventType', e.target.value)}
+                      className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">— Select type —</option>
+                      <option value="Drinks">Drinks</option>
+                      <option value="Dinner">Dinner</option>
+                      <option value="Sporting Event">Sporting Event</option>
+                      <option value="Conference">Conference</option>
+                      <option value="Team Building">Team Building</option>
+                      <option value="Social">Social</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Building <span className="text-muted-foreground font-normal">(optional)</span></label>
+                    <Input
+                      placeholder="e.g. Head Office"
+                      value={tripForm.eventBuilding}
+                      onChange={(e) => setTrip('eventBuilding', e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="secondary" onClick={() => { setTripForm(emptyTripForm()); setEditingTripId(null) }} disabled={tripSaving}>Clear</Button>

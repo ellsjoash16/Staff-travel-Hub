@@ -101,6 +101,8 @@ export interface Trip {
   international: boolean
   showRegisterInterest: boolean
   isEvent: boolean
+  eventType: string | null
+  eventBuilding: string | null
 }
 
 export type RegistrationStatus = 'requested' | 'pending_confirmation' | 'confirmed' | 'refused'

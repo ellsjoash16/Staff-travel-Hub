@@ -371,12 +371,14 @@ function docToTrip(id: string, d: any): Trip {
     description: d.description ?? null,
     participants: d.participants ?? [],
     date: d.date ?? '',
+    endDate: d.endDate ?? null,
     image: d.image ?? null,
     locationId: d.locationId ?? null,
     external: d.external ?? false,
     completed: d.completed ?? false,
     international: d.international ?? false,
     showRegisterInterest: d.showRegisterInterest ?? false,
+    isEvent: d.isEvent ?? false,
   }
 }
 
@@ -393,6 +395,7 @@ export async function insertTrip(trip: Trip, imagePath: string | null): Promise<
     description: trip.description ?? null,
     participants: trip.participants,
     date: trip.date || null,
+    endDate: trip.endDate || null,
     image: trip.image ?? null,
     imagePath,
     locationId: trip.locationId ?? null,
@@ -400,6 +403,7 @@ export async function insertTrip(trip: Trip, imagePath: string | null): Promise<
     completed: trip.completed ?? false,
     international: trip.international ?? false,
     showRegisterInterest: trip.showRegisterInterest ?? false,
+    isEvent: trip.isEvent ?? false,
   })
 }
 
@@ -421,12 +425,14 @@ export async function updateTrip(
     description: trip.description ?? null,
     participants: trip.participants,
     date: trip.date || null,
+    endDate: trip.endDate || null,
     image: trip.image ?? null,
     locationId: trip.locationId ?? null,
     external: trip.external ?? false,
     completed: trip.completed ?? false,
     international: trip.international ?? false,
     showRegisterInterest: trip.showRegisterInterest ?? false,
+    isEvent: trip.isEvent ?? false,
   }
   if (newImagePath !== undefined) data.imagePath = newImagePath
   await adminWrite('trips', trip.id, 'set', data)

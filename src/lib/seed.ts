@@ -161,6 +161,8 @@ const TRIPS: Trip[] = [
     international: true,
     showRegisterInterest: true,
     completed: false,
+    endDate: null,
+    isEvent: false,
   },
   {
     id: 'seed-trip-2',
@@ -174,6 +176,8 @@ const TRIPS: Trip[] = [
     international: true,
     showRegisterInterest: true,
     completed: false,
+    endDate: null,
+    isEvent: false,
   },
   {
     id: 'seed-trip-3',
@@ -187,6 +191,8 @@ const TRIPS: Trip[] = [
     international: true,
     showRegisterInterest: false,
     completed: false,
+    endDate: null,
+    isEvent: false,
   },
 ]
 
@@ -203,6 +209,8 @@ const COMPLETED_TRIPS: Trip[] = [
     international: true,
     showRegisterInterest: false,
     completed: true,
+    endDate: null,
+    isEvent: false,
   },
   {
     id: 'seed-trip-past-2',
@@ -216,6 +224,8 @@ const COMPLETED_TRIPS: Trip[] = [
     international: true,
     showRegisterInterest: false,
     completed: true,
+    endDate: null,
+    isEvent: false,
   },
 ]
 

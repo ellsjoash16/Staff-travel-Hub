@@ -31,7 +31,7 @@ interface PostForm {
 
 
 interface TripForm {
-  name: string; description: string; participants: string; date: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean
+  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean
 }
 
 interface LocationForm {
@@ -46,7 +46,7 @@ const emptyPostForm = (): PostForm => ({
 })
 
 const emptyTripForm = (): TripForm => ({
-  name: '', description: '', participants: '', date: today(), image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false,
+  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false,
 })
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
@@ -233,12 +233,14 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       description: tripForm.description.trim() || null,
       participants,
       date: tripForm.date || today(),
+      endDate: tripForm.endDate || null,
       image: tripForm.image?.startsWith('https:') ? tripForm.image : null,
       locationId: tripForm.locationId,
       external: tripForm.external,
       international: tripForm.international,
       showRegisterInterest: tripForm.showRegisterInterest,
       completed: tripForm.completed,
+      isEvent: tripForm.isEvent,
     }
     setTripSaving(true)
     try {
@@ -258,12 +260,15 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       name: trip.name,
       description: trip.description ?? '',
       participants: trip.participants.join(', '),
-      date: trip.date || today(), image: trip.image,
+      date: trip.date || today(),
+      endDate: trip.endDate ?? '',
+      image: trip.image,
       locationId: trip.locationId ?? null,
       external: trip.external ?? false,
       international: trip.international ?? false,
       showRegisterInterest: trip.showRegisterInterest ?? false,
       completed: trip.completed ?? false,
+      isEvent: trip.isEvent ?? false,
     })
     setEditingTripId(trip.id); setTab('trips')
   }
@@ -625,9 +630,15 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 <Input placeholder="e.g. Sarah Johnson, Mike Smith" value={tripForm.participants} onChange={(e) => setTrip('participants', e.target.value)} />
               </div>
 
-              <div className="space-y-1.5">
-                <Label>Date</Label>
-                <DatePicker value={tripForm.date} onChange={(v) => setTrip('date', v)} />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Start Date</Label>
+                  <DatePicker value={tripForm.date} onChange={(v) => setTrip('date', v)} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>End Date <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                  <DatePicker value={tripForm.endDate} onChange={(v) => setTrip('endDate', v)} />
+                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -693,6 +704,18 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     Show Register Interest
                   </label>
                 </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="trip-is-event"
+                    type="checkbox"
+                    checked={tripForm.isEvent}
+                    onChange={(e) => setTrip('isEvent', e.target.checked)}
+                    className="h-4 w-4 rounded border-input accent-primary"
+                  />
+                  <label htmlFor="trip-is-event" className="text-sm font-medium select-none cursor-pointer">
+                    This is an event
+                  </label>
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -723,7 +746,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                             <p className="text-xs text-muted-foreground truncate">{t.participants.join(', ')}</p>
                           )}
                           {t.locationId && (() => { const loc = locations.find(l => l.id === t.locationId); return loc ? <p className="text-xs text-primary truncate flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{loc.name}</p> : null })()}
-                          {t.date && <p className="text-xs text-muted-foreground">{fmtDate(t.date)}</p>}
+                          {t.date && <p className="text-xs text-muted-foreground">{fmtDate(t.date)}{t.endDate ? ` – ${fmtDate(t.endDate)}` : ''}</p>}
+                          {t.isEvent && <span className="text-[10px] font-medium bg-violet-500/10 text-violet-500 rounded-full px-1.5 py-0.5 w-fit">Event</span>}
                         </div>
                         <div className="flex flex-col gap-1.5 flex-shrink-0">
                           <div className="flex gap-1.5">

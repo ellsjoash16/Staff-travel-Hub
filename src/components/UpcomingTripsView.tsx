@@ -91,7 +91,7 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
               {location && (
                 <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 flex-shrink-0" />{location.name}</span>
               )}
-              <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 flex-shrink-0" />{fmtDate(trip.date)}</span>
+              <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 flex-shrink-0" />{fmtDate(trip.date)}{trip.endDate ? ` – ${fmtDate(trip.endDate)}` : ''}</span>
             </div>
             {trip.description && (
               <p className="text-sm text-muted-foreground leading-relaxed">{trip.description}</p>
@@ -140,7 +140,7 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
             {location && (
               <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{location.name}</span>
             )}
-            <span className="flex items-center gap-1"><Calendar className="h-3 w-3 flex-shrink-0" />{fmtDate(trip.date)}</span>
+            <span className="flex items-center gap-1"><Calendar className="h-3 w-3 flex-shrink-0" />{fmtDate(trip.date)}{trip.endDate ? ` – ${fmtDate(trip.endDate)}` : ''}</span>
           </div>
           {trip.description && (
             <p className="text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-2">{trip.description}</p>
@@ -169,7 +169,7 @@ export function UpcomingTripsView() {
 
   const todayStr = new Date().toISOString().slice(0, 10)
   const upcoming = trips
-    .filter(t => t.date >= todayStr && !t.completed)
+    .filter(t => t.date >= todayStr && !t.completed && !t.isEvent)
     .sort((a, b) => a.date.localeCompare(b.date))
 
   function getLocation(locationId: string | null): Location | null {

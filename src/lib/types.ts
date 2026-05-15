@@ -93,12 +93,14 @@ export interface Trip {
   description: string | null
   participants: string[]
   date: string
+  endDate: string | null
   image: string | null
   locationId: string | null
   external: boolean
   completed: boolean
   international: boolean
   showRegisterInterest: boolean
+  isEvent: boolean
 }
 
 export type RegistrationStatus = 'requested' | 'pending_confirmation' | 'confirmed' | 'refused'
@@ -131,4 +133,4 @@ export interface Registration {
   status: RegistrationStatus
 }
 
-export type View = 'home' | 'feed' | 'map' | 'upcoming' | 'years' | 'submit' | 'settings' | 'pending' | 'interest'
+export type View = 'home' | 'feed' | 'map' | 'upcoming' | 'events' | 'years' | 'submit' | 'settings' | 'pending' | 'interest'

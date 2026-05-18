@@ -193,7 +193,22 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       const uid = authUid ?? auth.currentUser?.uid
       const SETTINGS_KEY = 'dafagram:settings'
 
-      // Kick off non-settings fetches in parallel immediately
+      // Fire ensure-admin in parallel — does NOT block settings load.
+      // Returns the current adminUids from Firestore (including any it just added).
+      // We check this result AFTER fetchSettings as a second admin-check pass.
+      const ensureAdminPromise: Promise<{ adminUids: string[] } | null> = uid
+        ? auth.currentUser?.getIdToken()
+            .then(token => {
+              if (!token) return null
+              return apiFetch('/api/ensure-admin', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+              }).then(r => r.ok ? (r.json() as Promise<{ adminUids: string[] }>) : null)
+            })
+            .catch(() => null) ?? Promise.resolve(null)
+        : Promise.resolve(null)
+
+      // Kick off all data fetches in parallel
       const postsPromise = fetchPosts().catch(() => [] as Post[])
       const tripsPromise = fetchTrips().catch(() => [] as Trip[])
       const locationsPromise = fetchLocations().catch(() => [] as Location[])
@@ -211,22 +226,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
         }
       } catch {}
 
-      // Run ensure-admin BEFORE fetchSettings so that any UID writes land in
-      // Firestore before we read it — avoids a race where fetchSettings returns
-      // stale adminUids and the user is never marked as admin.
-      if (uid) {
-        try {
-          const token = await auth.currentUser?.getIdToken()
-          if (token) {
-            await apiFetch('/api/ensure-admin', {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${token}` },
-            })
-          }
-        } catch {}
-      }
-
-      // Fetch fresh settings (adminUids are now up-to-date in Firestore)
+      // Fetch fresh settings from Firestore
       let resolvedSettings: Settings = DEFAULT_SETTINGS
       try {
         resolvedSettings = await fetchSettings()
@@ -235,6 +235,22 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
       if (uid && resolvedSettings.adminUids?.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
       if (!hasCached) dispatch({ type: 'SET_LOADING', value: false })
+
+      // Wait for ensure-admin to finish and do a second admin check.
+      // This catches the race where ensure-admin wrote the UID to Firestore
+      // after fetchSettings already returned (e.g. ALLOWED_UID on first visit).
+      try {
+        const ensureResult = await ensureAdminPromise
+        if (uid && ensureResult?.adminUids?.includes(uid)) {
+          dispatch({ type: 'SET_ADMIN', value: true })
+          // If ensure-admin added our UID (not yet in local settings), update state + cache
+          if (!resolvedSettings.adminUids.includes(uid)) {
+            const updated = { ...resolvedSettings, adminUids: ensureResult.adminUids }
+            dispatch({ type: 'UPDATE_SETTINGS', settings: updated })
+            try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated)) } catch {}
+          }
+        }
+      } catch {}
 
       // Load remaining data in the background
       const [posts, trips, locations] = await Promise.all([postsPromise, tripsPromise, locationsPromise])

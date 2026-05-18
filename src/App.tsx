@@ -109,7 +109,7 @@ function AppShell() {
             {state.activeView === 'interest' && <MyRegistrationsView />}
             {state.activeView === 'years' && <YearsView />}
             {state.activeView === 'submit' && <SubmitView />}
-            {state.activeView === 'settings' && <SettingsView />}
+            {state.activeView === 'settings' && state.isAdmin && <SettingsView />}
             {state.activeView === 'pending' && state.isAdmin && <PendingView />}
           </div>
         </Suspense>

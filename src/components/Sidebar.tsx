@@ -76,6 +76,7 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
 
         {/* Bottom: Settings + Pending */}
         <div className="px-2 pb-2 pt-2 border-t border-border space-y-0.5">
+          {isAdmin && (
           <button
             onClick={() => go('settings')}
             title={collapsed ? 'Settings' : undefined}
@@ -91,6 +92,7 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
             <Settings className="h-5 w-5 flex-shrink-0" />
             {!collapsed && <span className="text-sm font-medium">Settings</span>}
           </button>
+          )}
 
           {isAdmin && (
             <button

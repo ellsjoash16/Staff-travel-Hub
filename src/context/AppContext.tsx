@@ -191,27 +191,14 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   useEffect(() => {
     async function init() {
       const uid = authUid ?? auth.currentUser?.uid
+      const SETTINGS_KEY = 'dafagram:settings'
 
-      // Fire ensure-admin in parallel with data fetching — adds this user to
-      // Firestore adminUids so SDK writes pass the deployed security rules.
-      // Runs in background; we await it before unblocking the UI.
-      const ensureAdminPromise = uid
-        ? auth.currentUser?.getIdToken().then(token => {
-            if (!token) return
-            return apiFetch('/api/ensure-admin', {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${token}` },
-            })
-          }).catch(err => console.error('[ensure-admin]', err))
-        : Promise.resolve()
-
-      // Kick off all fetches in parallel
+      // Kick off non-settings fetches in parallel immediately
       const postsPromise = fetchPosts().catch(() => [] as Post[])
       const tripsPromise = fetchTrips().catch(() => [] as Trip[])
       const locationsPromise = fetchLocations().catch(() => [] as Location[])
 
       // Unblock the UI immediately using cached settings (stale-while-revalidate)
-      const SETTINGS_KEY = 'dafagram:settings'
       let hasCached = false
       try {
         const raw = localStorage.getItem(SETTINGS_KEY)
@@ -224,7 +211,22 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
         }
       } catch {}
 
-      // Fetch fresh settings — blocks UI only on first-ever visit (no cache)
+      // Run ensure-admin BEFORE fetchSettings so that any UID writes land in
+      // Firestore before we read it — avoids a race where fetchSettings returns
+      // stale adminUids and the user is never marked as admin.
+      if (uid) {
+        try {
+          const token = await auth.currentUser?.getIdToken()
+          if (token) {
+            await apiFetch('/api/ensure-admin', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+            })
+          }
+        } catch {}
+      }
+
+      // Fetch fresh settings (adminUids are now up-to-date in Firestore)
       let resolvedSettings: Settings = DEFAULT_SETTINGS
       try {
         resolvedSettings = await fetchSettings()
@@ -238,7 +240,6 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       const [posts, trips, locations] = await Promise.all([postsPromise, tripsPromise, locationsPromise])
       dispatch({ type: 'INIT', posts, submissions: [], trips, locations, settings: resolvedSettings })
 
-      ensureAdminPromise?.catch(() => {})
       if (uid) {
         fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})
         fetchUserProfile(uid).then(p => {
@@ -329,7 +330,9 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       const body = await apiRes.json().catch(() => ({})) as { error?: string }
       throw new Error(body.error ?? `API error ${apiRes.status}`)
     }
-    dispatch({ type: 'UPDATE_SETTINGS', settings: { ...state.settings, adminUids: updated } })
+    const newSettings = { ...state.settings, adminUids: updated }
+    dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
+    try { localStorage.setItem('dafagram:settings', JSON.stringify(newSettings)) } catch {}
   }
 
   async function banUser(uid: string, banned: boolean): Promise<void> {

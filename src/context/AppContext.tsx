@@ -237,17 +237,19 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       if (!hasCached) dispatch({ type: 'SET_LOADING', value: false })
 
       // Wait for ensure-admin to finish and do a second admin check.
-      // This catches the race where ensure-admin wrote the UID to Firestore
-      // after fetchSettings already returned (e.g. ALLOWED_UID on first visit).
+      // Second admin check: wait for ensure-admin to finish.
+      // If it returned a fresh adminUids list that includes us, update resolvedSettings
+      // so that the INIT dispatch below uses the correct list — otherwise INIT would
+      // overwrite state.settings.adminUids back to the stale version, making
+      // toggleAdminUid read the wrong array and silently drop UIDs on every grant.
       try {
         const ensureResult = await ensureAdminPromise
         if (uid && ensureResult?.adminUids?.includes(uid)) {
           dispatch({ type: 'SET_ADMIN', value: true })
-          // If ensure-admin added our UID (not yet in local settings), update state + cache
           if (!resolvedSettings.adminUids.includes(uid)) {
-            const updated = { ...resolvedSettings, adminUids: ensureResult.adminUids }
-            dispatch({ type: 'UPDATE_SETTINGS', settings: updated })
-            try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated)) } catch {}
+            resolvedSettings = { ...resolvedSettings, adminUids: ensureResult.adminUids }
+            dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
+            try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings)) } catch {}
           }
         }
       } catch {}

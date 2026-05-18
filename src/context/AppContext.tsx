@@ -20,6 +20,9 @@ import {
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
 import { auth } from '@/lib/firebase'
 
+// UIDs that are always admin — mirrors api/ensure-admin.js ALLOWED_UIDS
+export const SUPERADMIN_UIDS = ['zjq9ki2IUNg3fUHGlda7N3pn6ko1', 'UdIhjIXCVfdPBwaQ6HnzM1jDYoa2']
+
 const BUCKET = 'post-images'
 
 async function apiFetch(url: string, init: RequestInit): Promise<Response> {
@@ -189,9 +192,6 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
 
   // Initial data load
   useEffect(() => {
-    // UIDs that are always admin regardless of Firestore state (mirrors ensure-admin.js)
-    const SUPERADMIN_UIDS = ['zjq9ki2IUNg3fUHGlda7N3pn6ko1', 'UdIhjIXCVfdPBwaQ6HnzM1jDYoa2']
-
     async function init() {
       const uid = authUid ?? auth.currentUser?.uid
       const SETTINGS_KEY = 'dafagram:settings'

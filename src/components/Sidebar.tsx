@@ -1,5 +1,5 @@
 import { Camera, Globe2, Plane, CalendarDays, Send, ChevronLeft, ChevronRight, Settings, Clock, ClipboardCheck } from 'lucide-react'
-import { useApp } from '@/context/AppContext'
+import { useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
 import type { View } from '@/lib/types'
 
@@ -21,7 +21,8 @@ interface Props {
 
 export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClose }: Props) {
   const { state, dispatch } = useApp()
-  const { activeView, isAdmin, pendingPosts } = state
+  const { activeView, pendingPosts } = state
+  const isAdmin = state.isAdmin || SUPERADMIN_UIDS.includes(auth.currentUser?.uid ?? '')
 
   function go(view: View) {
     dispatch({ type: 'SET_VIEW', view })

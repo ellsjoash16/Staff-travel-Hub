@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { saveAccountRecord } from '@/lib/db'
-import { AppProvider, useApp } from '@/context/AppContext'
+import { AppProvider, useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
 import { LoginScreen } from '@/components/LoginScreen'
@@ -109,8 +109,8 @@ function AppShell() {
             {state.activeView === 'interest' && <MyRegistrationsView />}
             {state.activeView === 'years' && <YearsView />}
             {state.activeView === 'submit' && <SubmitView />}
-            {state.activeView === 'settings' && state.isAdmin && <SettingsView />}
-            {state.activeView === 'pending' && state.isAdmin && <PendingView />}
+            {state.activeView === 'settings' && (state.isAdmin || SUPERADMIN_UIDS.includes(auth.currentUser?.uid ?? '')) && <SettingsView />}
+            {state.activeView === 'pending' && (state.isAdmin || SUPERADMIN_UIDS.includes(auth.currentUser?.uid ?? '')) && <PendingView />}
           </div>
         </Suspense>
       </main>

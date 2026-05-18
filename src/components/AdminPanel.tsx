@@ -32,7 +32,7 @@ interface PostForm {
 
 
 interface TripForm {
-  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string[]; eventVenue: string; eventSpaces: string; eventSponsor: string; allowedRoles: string[]
+  name: string; description: string; participants: string; date: string; endDate: string; registrationDeadline: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string[]; eventVenue: string; eventSpaces: string; eventSponsor: string; allowedRoles: string[]
 }
 
 interface LocationForm {
@@ -47,7 +47,7 @@ const emptyPostForm = (): PostForm => ({
 })
 
 const emptyTripForm = (): TripForm => ({
-  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: [], eventVenue: '', eventSpaces: '', eventSponsor: '', allowedRoles: [],
+  name: '', description: '', participants: '', date: today(), endDate: '', registrationDeadline: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: [], eventVenue: '', eventSpaces: '', eventSponsor: '', allowedRoles: [],
 })
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
@@ -251,6 +251,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       participants,
       date: tripForm.date || today(),
       endDate: tripForm.endDate || null,
+      registrationDeadline: tripForm.registrationDeadline || null,
       image: tripForm.image?.startsWith('https:') ? tripForm.image : null,
       locationId: tripForm.locationId,
       external: tripForm.external,
@@ -285,6 +286,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       participants: trip.participants.join(', '),
       date: trip.date || today(),
       endDate: trip.endDate ?? '',
+      registrationDeadline: trip.registrationDeadline ?? '',
       image: trip.image,
       locationId: trip.locationId ?? null,
       external: trip.external ?? false,
@@ -662,6 +664,11 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               </div>
 
               <div className="space-y-1.5">
+                <Label>Registration Deadline <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <DatePicker value={tripForm.registrationDeadline} onChange={(v) => setTrip('registrationDeadline', v)} />
+              </div>
+
+              <div className="space-y-1.5">
                 <Label>Location <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <AppSelect
                   value={tripForm.locationId ?? ''}
@@ -883,6 +890,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           )}
                           {t.locationId && (() => { const loc = locations.find(l => l.id === t.locationId); return loc ? <p className="text-xs text-primary truncate flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{loc.name}</p> : null })()}
                           {t.date && <p className="text-xs text-muted-foreground">{fmtDate(t.date)}{t.endDate ? ` – ${fmtDate(t.endDate)}` : ''}</p>}
+                          {t.registrationDeadline && <p className="text-xs text-muted-foreground">Deadline: {fmtDate(t.registrationDeadline)}</p>}
                           {t.isEvent && <span className="text-[10px] font-medium bg-violet-500/10 text-violet-500 rounded-full px-1.5 py-0.5 w-fit">Event</span>}
                         </div>
                         <div className="flex flex-col gap-1.5 flex-shrink-0">

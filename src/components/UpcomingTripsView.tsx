@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MapPin, Calendar, Plane, Star, Building2, Users, Award } from 'lucide-react'
+import { MapPin, Calendar, Plane, Star, Building2, Users, Award, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
@@ -92,6 +92,9 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
                 <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 flex-shrink-0" />{location.name}</span>
               )}
               <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 flex-shrink-0" />{fmtDate(trip.date)}{trip.endDate ? ` – ${fmtDate(trip.endDate)}` : ''}</span>
+              {trip.registrationDeadline && (
+                <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 flex-shrink-0" />Register by {fmtDate(trip.registrationDeadline)}</span>
+              )}
             </div>
             {trip.description && (
               <p className="text-sm text-muted-foreground leading-relaxed">{trip.description}</p>
@@ -141,6 +144,9 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
               <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{location.name}</span>
             )}
             <span className="flex items-center gap-1"><Calendar className="h-3 w-3 flex-shrink-0" />{fmtDate(trip.date)}{trip.endDate ? ` – ${fmtDate(trip.endDate)}` : ''}</span>
+            {trip.registrationDeadline && (
+              <span className="flex items-center gap-1"><Clock className="h-3 w-3 flex-shrink-0" />Register by {fmtDate(trip.registrationDeadline)}</span>
+            )}
           </div>
           {trip.description && (
             <p className="text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-2">{trip.description}</p>
@@ -209,6 +215,9 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
               )}
               {trip.eventSponsor && (
                 <span className="flex items-center gap-1"><Award className="h-3 w-3 flex-shrink-0" />Sponsored by {trip.eventSponsor}</span>
+              )}
+              {trip.registrationDeadline && (
+                <span className="flex items-center gap-1"><Clock className="h-3 w-3 flex-shrink-0" />Register by {fmtDate(trip.registrationDeadline)}</span>
               )}
             </div>
             {trip.description && (

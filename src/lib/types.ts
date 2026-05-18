@@ -107,6 +107,7 @@ export interface Trip {
   eventSpaces: number | null
   eventSponsor: string | null
   allowedRoles: string[] | null
+  registrationDeadline: string | null
 }
 
 export type RegistrationStatus = 'requested' | 'pending_confirmation' | 'confirmed' | 'refused'

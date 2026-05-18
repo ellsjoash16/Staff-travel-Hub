@@ -62,6 +62,17 @@ export default async function handler(req, res) {
       throw new Error(`Firestore write failed: ${patchRes.status} ${txt.slice(0, 200)}`)
     }
 
+    // Also write isAdmin flag to the user's profile so the client can read it
+    // without depending on settings/main timing
+    await fetch(
+      `${fsBase}/userProfiles/${targetUid}?updateMask.fieldPaths=isAdmin`,
+      {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { isAdmin: { booleanValue: action === 'add' } } }),
+      }
+    ).catch(() => {})
+
     console.log(`[set-admin-uids] ${callerUid} ${action}ed ${targetUid} → [${newUids.join(', ')}]`)
     res.status(200).json({ adminUids: newUids })
   } catch (err) {

@@ -125,6 +125,7 @@ export interface UserProfile {
   medicalInfo: string | null
   dataConsent: boolean
   banned?: boolean
+  isAdmin?: boolean
 }
 
 export interface NominatedPerson {

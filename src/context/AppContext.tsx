@@ -196,20 +196,19 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       const uid = authUid ?? auth.currentUser?.uid
       const SETTINGS_KEY = 'dafagram:settings'
 
-      // Superadmins are always admin — set immediately, no network call needed
-      if (uid && SUPERADMIN_UIDS.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
-
-      // Fire ensure-admin silently in background to keep Firestore in sync
+      // Fire ensure-admin silently in background — keeps settings/main.adminUids
+      // in sync for Firestore security rules, and writes isAdmin to the user's profile
       if (uid) {
         auth.currentUser?.getIdToken()
           .then(token => { if (token) apiFetch('/api/ensure-admin', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }) })
           .catch(() => {})
       }
 
-      // Kick off all data fetches in parallel
+      // Kick off everything in parallel
       const postsPromise = fetchPosts().catch(() => [] as Post[])
       const tripsPromise = fetchTrips().catch(() => [] as Trip[])
       const locationsPromise = fetchLocations().catch(() => [] as Location[])
+      const profilePromise = uid ? fetchUserProfile(uid).catch(() => null) : Promise.resolve(null)
 
       // Show cached settings immediately (stale-while-revalidate)
       let hasCached = false
@@ -218,25 +217,30 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
         if (raw) {
           const cached: Settings = JSON.parse(raw)
           dispatch({ type: 'UPDATE_SETTINGS', settings: cached })
-          if (uid && cached.adminUids?.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
           dispatch({ type: 'SET_LOADING', value: false })
           hasCached = true
         }
       } catch {}
 
-      // Fetch fresh settings from Firestore
-      let resolvedSettings: Settings = DEFAULT_SETTINGS
-      try {
-        resolvedSettings = await fetchSettings()
-        // Patch superadmin UID into local settings if Firestore hasn't synced yet
-        if (uid && SUPERADMIN_UIDS.includes(uid) && !resolvedSettings.adminUids.includes(uid)) {
-          resolvedSettings = { ...resolvedSettings, adminUids: [...resolvedSettings.adminUids, uid] }
-        }
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings))
-      } catch {}
+      // Fetch settings and own profile in parallel
+      const [resolvedSettings, profile] = await Promise.all([
+        fetchSettings().catch(() => DEFAULT_SETTINGS),
+        profilePromise,
+      ])
 
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings)) } catch {}
       dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
-      if (uid && resolvedSettings.adminUids?.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
+
+      // isAdmin = profile flag (written by server) OR in adminUids OR superadmin UID
+      const isAdminUser =
+        profile?.isAdmin === true ||
+        (uid != null && resolvedSettings.adminUids.includes(uid)) ||
+        (uid != null && SUPERADMIN_UIDS.includes(uid))
+      if (isAdminUser) dispatch({ type: 'SET_ADMIN', value: true })
+
+      if (profile) {
+        dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision } })
+      }
       if (!hasCached) dispatch({ type: 'SET_LOADING', value: false })
 
       const [posts, trips, locations] = await Promise.all([postsPromise, tripsPromise, locationsPromise])
@@ -244,9 +248,6 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
 
       if (uid) {
         fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})
-        fetchUserProfile(uid).then(p => {
-          if (p) dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: p.jobRole, salesDivision: p.salesDivision } })
-        }).catch(() => {})
       }
     }
     init()
@@ -331,11 +332,12 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     })
     const resBody = await apiRes.json().catch(() => ({})) as { adminUids?: string[]; error?: string }
     if (!apiRes.ok) throw new Error(resBody.error ?? `API error ${apiRes.status}`)
-    // Use the server's returned adminUids as the new source of truth
     const freshUids: string[] = resBody.adminUids ?? [...(state.settings.adminUids ?? []), uid]
     const newSettings = { ...state.settings, adminUids: freshUids }
     dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
     try { localStorage.setItem('dafagram:settings', JSON.stringify(newSettings)) } catch {}
+    // Update the isAdmin flag on the local userProfile entry so the Users tab display is correct
+    dispatch({ type: 'UPDATE_USER_PROFILE', uid, fields: { isAdmin: action === 'add' } })
   }
 
   async function banUser(uid: string, banned: boolean): Promise<void> {

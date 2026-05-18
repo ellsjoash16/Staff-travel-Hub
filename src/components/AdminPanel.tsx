@@ -1414,7 +1414,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               {u.banned && (
                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">Banned</span>
                               )}
-                              {(settings.adminUids ?? []).includes(u.uid) && (
+                              {u.isAdmin === true && (
                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Admin</span>
                               )}
                               {u.dataConsent && <span title="Data consent given"><ShieldCheck className="h-4 w-4 text-emerald-500" /></span>}
@@ -1513,8 +1513,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   )}
                                   <div>
                                     <p className="text-xs text-muted-foreground mb-0.5">Admin access</p>
-                                    <p className={`font-medium text-sm ${(settings.adminUids ?? []).includes(u.uid) ? 'text-primary' : 'text-muted-foreground'}`}>
-                                      {(settings.adminUids ?? []).includes(u.uid) ? '✓ Admin' : 'No'}
+                                    <p className={`font-medium text-sm ${u.isAdmin === true ? 'text-primary' : 'text-muted-foreground'}`}>
+                                      {u.isAdmin === true ? '✓ Admin' : 'No'}
                                     </p>
                                   </div>
                                   <div>
@@ -1548,7 +1548,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               <p className="text-[10px] text-muted-foreground font-mono">UID: {u.uid}</p>
                               <div className="flex flex-wrap items-center gap-2 pt-1">
                                 {(() => {
-                                  const isUserAdmin = (settings.adminUids ?? []).includes(u.uid)
+                                  const isUserAdmin = u.isAdmin === true || (settings.adminUids ?? []).includes(u.uid)
                                   const isBanned = u.banned ?? false
                                   return (
                                     <>

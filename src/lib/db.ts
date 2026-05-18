@@ -626,6 +626,7 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     medicalInfo,
     dataConsent: data.dataConsent ?? false,
     banned: data.banned ?? false,
+    isAdmin: data.isAdmin ?? false,
   }
 }
 
@@ -722,7 +723,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
         firstName: '', lastName: '',
         passportFirstName: '', passportLastName: '',
         medicalInfo: null,
-        dataConsent: false, banned: false,
+        dataConsent: false, banned: false, isAdmin: false,
         updatedAt: null,
       } as UserProfile & { updatedAt: string | null }
     }
@@ -750,6 +751,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
       medicalInfo,
       dataConsent: data.dataConsent ?? false,
       banned: data.banned ?? false,
+      isAdmin: data.isAdmin ?? false,
       updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null,
     } as UserProfile & { updatedAt: string | null }
   }))

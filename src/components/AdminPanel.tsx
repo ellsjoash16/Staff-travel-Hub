@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label'
 import { MultiImageUpload } from './MultiImageUpload'
 import { ImageUpload } from './ImageUpload'
 import { DatePicker } from './DatePicker'
-import { useApp } from '@/context/AppContext'
+import { useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
 import { seedDemoData } from '@/lib/seed'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
@@ -1511,12 +1511,17 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                       <p className="font-medium text-amber-600 dark:text-amber-400">{u.medicalInfo}</p>
                                     </div>
                                   )}
-                                  <div>
-                                    <p className="text-xs text-muted-foreground mb-0.5">Admin access</p>
-                                    <p className={`font-medium text-sm ${u.isAdmin === true ? 'text-primary' : 'text-muted-foreground'}`}>
-                                      {u.isAdmin === true ? '✓ Admin' : 'No'}
-                                    </p>
-                                  </div>
+                                  {(() => {
+                                    const adminFlag = u.isAdmin === true || (settings.adminUids ?? []).includes(u.uid) || SUPERADMIN_UIDS.includes(u.uid)
+                                    return (
+                                      <div>
+                                        <p className="text-xs text-muted-foreground mb-0.5">Admin access</p>
+                                        <p className={`font-medium text-sm ${adminFlag ? 'text-primary' : 'text-muted-foreground'}`}>
+                                          {adminFlag ? '✓ Admin' : 'No'}
+                                        </p>
+                                      </div>
+                                    )
+                                  })()}
                                   <div>
                                     <p className="text-xs text-muted-foreground mb-0.5">Data consent</p>
                                     <p className={`font-medium text-sm ${u.dataConsent ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
@@ -1548,7 +1553,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               <p className="text-[10px] text-muted-foreground font-mono">UID: {u.uid}</p>
                               <div className="flex flex-wrap items-center gap-2 pt-1">
                                 {(() => {
-                                  const isUserAdmin = u.isAdmin === true || (settings.adminUids ?? []).includes(u.uid)
+                                  const isUserAdmin = u.isAdmin === true || (settings.adminUids ?? []).includes(u.uid) || SUPERADMIN_UIDS.includes(u.uid)
                                   const isBanned = u.banned ?? false
                                   return (
                                     <>
@@ -1562,7 +1567,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                           e.stopPropagation()
                                           setTogglingAdminUid(u.uid)
                                           try {
-                                            await toggleAdminUid(u.uid)
+                                            await toggleAdminUid(u.uid, isUserAdmin)
                                             toast.success(isUserAdmin ? 'Admin access revoked' : 'Admin access granted')
                                           } catch (err: unknown) {
                                             toast.error((err as Error)?.message ?? 'Failed to update admin access')

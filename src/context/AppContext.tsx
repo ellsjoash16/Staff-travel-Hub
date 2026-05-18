@@ -174,7 +174,7 @@ interface AppContextValue {
   removeUserProfile: (uid: string) => Promise<void>
   loadUserProfiles: () => Promise<void>
   loadMyRegistrations: () => Promise<void>
-  toggleAdminUid: (uid: string) => Promise<void>
+  toggleAdminUid: (uid: string, isCurrentlyAdmin?: boolean) => Promise<void>
   banUser: (uid: string, banned: boolean) => Promise<void>
   editUserProfile: (uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; salesDivision: string | null }) => Promise<void>
 }
@@ -320,9 +320,9 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     dispatch({ type: 'DELETE_USER_PROFILE', uid })
   }
 
-  async function toggleAdminUid(uid: string): Promise<void> {
+  async function toggleAdminUid(uid: string, isCurrentlyAdmin?: boolean): Promise<void> {
     const current = state.settings.adminUids ?? []
-    const action = current.includes(uid) ? 'remove' : 'add'
+    const action = (isCurrentlyAdmin ?? current.includes(uid)) ? 'remove' : 'add'
     const token = await auth.currentUser?.getIdToken()
     if (!token) throw new Error('Not authenticated')
     // Send a single-UID mutation — server reads Firestore authoritatively so no

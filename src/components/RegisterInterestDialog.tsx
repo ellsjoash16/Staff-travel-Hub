@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
-import { CheckCircle, ChevronLeft, ChevronRight, Send, Loader2, Plane, Ban } from 'lucide-react'
+import { CheckCircle, ChevronLeft, ChevronRight, Send, Loader2, Plane, Ban, Plus, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,9 +13,9 @@ import { insertRegistration, fetchUserProfile, upsertUserProfile } from '@/lib/d
 
 const JOB_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM']
 import { useApp } from '@/context/AppContext'
-import type { Trip } from '@/lib/types'
+import type { Trip, NominatedPerson } from '@/lib/types'
 
-type Phase = 'loading' | 'confirm' | 'passport' | 'medical' | 'banned'
+type Phase = 'loading' | 'confirm' | 'passport' | 'medical' | 'nominate' | 'banned'
 
 interface Props {
   trip: Trip
@@ -30,23 +30,28 @@ const STATUS_LABELS: Record<string, string> = {
   refused: 'Refused',
 }
 
+const NOMINATING_ROLES = ['DSM', 'RSM']
+
 export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   const { state, loadMyRegistrations } = useApp()
   const existingReg = state.myRegistrations.find(r => r.tripId === trip.id)
-  const [phase, setPhase]                   = useState<Phase>('loading')
+  const [phase, setPhase]               = useState<Phase>('loading')
   const [passportFirst, setPassportFirst] = useState('')
   const [passportLast, setPassportLast]   = useState('')
   const [jobRole, setJobRole]             = useState('')
+  const [salesDivision, setSalesDivision] = useState('')
   const [medicalInfo, setMedicalInfo]     = useState('')
-  const [dataConsent, setDataConsent]       = useState(false)
-  const [submitting, setSubmitting]         = useState(false)
-  const [submitted, setSubmitted]           = useState(false)
+  const [dataConsent, setDataConsent]     = useState(false)
+  const [nominatedPeople, setNominatedPeople] = useState<NominatedPerson[]>([])
+  const [submitting, setSubmitting]       = useState(false)
+  const [submitted, setSubmitted]         = useState(false)
 
   // Saved profile for confirm screen
   const [savedProfile, setSavedProfile] = useState<{
     firstName: string; lastName: string
     passportFirstName: string; passportLastName: string
     jobRole: string | null
+    salesDivision: string | null
     medicalInfo: string | null
   } | null>(null)
 
@@ -67,10 +72,10 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         setSavedProfile(profile)
         setPhase('confirm')
       } else {
-        // Pre-fill name from Firebase Auth displayName if available
         const parts = (user.displayName ?? '').split(' ')
         if (parts[0]) setPassportFirst(f => f || parts[0])
         if (profile?.jobRole) setJobRole(profile.jobRole)
+        if (profile?.salesDivision) setSalesDivision(profile.salesDivision)
         setPhase('passport')
       }
     }).catch(() => setPhase('passport'))
@@ -78,7 +83,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
 
   function reset() {
     setPhase('loading'); setSavedProfile(null)
-    setPassportFirst(''); setPassportLast(''); setJobRole(''); setMedicalInfo(''); setDataConsent(false)
+    setPassportFirst(''); setPassportLast(''); setJobRole(''); setSalesDivision('')
+    setMedicalInfo(''); setDataConsent(false); setNominatedPeople([])
     setSubmitting(false); setSubmitted(false)
   }
 
@@ -87,7 +93,44 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     onOpenChange(val)
   }
 
-  async function submitDirect() {
+  function addNominee() {
+    setNominatedPeople(p => [...p, { name: '', email: '' }])
+  }
+
+  function updateNominee(i: number, field: keyof NominatedPerson, val: string) {
+    setNominatedPeople(p => p.map((n, idx) => idx === i ? { ...n, [field]: val } : n))
+  }
+
+  function removeNominee(i: number) {
+    setNominatedPeople(p => p.filter((_, idx) => idx !== i))
+  }
+
+  async function doSubmit(
+    reg: Parameters<typeof insertRegistration>[0],
+    profile: { uid: string; jobRole: string | null; salesDivision: string | null; firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; consent: boolean } | null
+  ) {
+    await insertRegistration(reg)
+    if (profile?.consent) {
+      await upsertUserProfile({
+        uid: profile.uid,
+        authEmail: auth.currentUser?.email ?? null,
+        authDisplayName: auth.currentUser?.displayName ?? null,
+        jobRole: profile.jobRole,
+        salesDivision: profile.salesDivision,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        passportFirstName: profile.passportFirstName,
+        passportLastName: profile.passportLastName,
+        medicalInfo: profile.medicalInfo,
+        dataConsent: true,
+      })
+    }
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#05979a','#07c5b0','#064e5a','#f59e0b','#ffffff','#34d399'] })
+    await loadMyRegistrations()
+    setSubmitted(true)
+  }
+
+  async function submitFromConfirm() {
     const user = auth.currentUser
     if (!user || !savedProfile) return
     setSubmitting(true)
@@ -104,6 +147,9 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         medicalInfo: savedProfile.medicalInfo,
         dataConsent: true,
         status: 'requested',
+        jobRole: savedProfile.jobRole,
+        salesDivision: savedProfile.salesDivision,
+        nominatedPeople,
       })
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#05979a','#07c5b0','#064e5a','#f59e0b','#ffffff','#34d399'] })
       await loadMyRegistrations()
@@ -136,24 +182,20 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         medicalInfo: medicalInfo.trim() || null,
         dataConsent,
         status: 'requested' as const,
+        jobRole: jobRole || null,
+        salesDivision: salesDivision.trim() || null,
+        nominatedPeople,
       }
-      await insertRegistration(reg)
-      if (dataConsent) {
-        await upsertUserProfile({
-          uid: user.uid,
-          authEmail: user.email ?? null,
-          authDisplayName: user.displayName ?? null,
-          jobRole: jobRole || null,
-          firstName: reg.firstName, lastName: reg.lastName,
-          passportFirstName: reg.passportFirstName,
-          passportLastName: reg.passportLastName,
-          medicalInfo: reg.medicalInfo,
-          dataConsent: true,
-        })
-      }
-      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#05979a','#07c5b0','#064e5a','#f59e0b','#ffffff','#34d399'] })
-      await loadMyRegistrations()
-      setSubmitted(true)
+      await doSubmit(reg, dataConsent ? {
+        uid: user.uid,
+        jobRole: jobRole || null,
+        salesDivision: salesDivision.trim() || null,
+        firstName: reg.firstName, lastName: reg.lastName,
+        passportFirstName: reg.passportFirstName,
+        passportLastName: reg.passportLastName,
+        medicalInfo: reg.medicalInfo,
+        consent: true,
+      } : null)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
     } finally { setSubmitting(false) }
@@ -193,6 +235,10 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
           options={[{ value: '', label: '— Select your role —' }, ...JOB_ROLES.map(r => ({ value: r, label: r }))]}
         />
       </div>
+      <div className="space-y-1.5">
+        <Label>Sales Division <span className="text-muted-foreground font-normal">(optional)</span></Label>
+        <Input placeholder="e.g. North, South, Midlands…" value={salesDivision} onChange={e => setSalesDivision(e.target.value)} />
+      </div>
     </div>
   )
 
@@ -213,6 +259,44 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
           <p className="text-xs text-muted-foreground mt-0.5">I consent to my passport and medical information being securely stored and reused for future trip registrations.</p>
         </div>
       </label>
+    </div>
+  )
+
+  const nominateFields = (activeRole: string | null) => (
+    <div className="space-y-3">
+      <div>
+        <h3 className="font-gilbert text-base">Nominate from your division</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">As a {activeRole}, you can nominate colleagues from your division to register.</p>
+      </div>
+      {nominatedPeople.length === 0 && (
+        <p className="text-sm text-muted-foreground">No nominations added yet.</p>
+      )}
+      {nominatedPeople.map((n, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <div className="flex-1 grid grid-cols-2 gap-2">
+            <Input
+              placeholder="Full name"
+              value={n.name}
+              onChange={e => updateNominee(i, 'name', e.target.value)}
+            />
+            <Input
+              placeholder="Email (optional)"
+              value={n.email}
+              onChange={e => updateNominee(i, 'email', e.target.value)}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => removeNominee(i)}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors flex-shrink-0"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ))}
+      <Button type="button" variant="secondary" size="sm" onClick={addNominee} className="gap-1.5">
+        <Plus className="h-3.5 w-3.5" /> Add person
+      </Button>
     </div>
   )
 
@@ -276,15 +360,21 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-1.5 text-sm">
                     <p className="font-semibold">{savedProfile.firstName} {savedProfile.lastName}</p>
                     <p className="text-muted-foreground">{savedProfile.passportFirstName} {savedProfile.passportLastName}</p>
-                    {savedProfile.jobRole && <p className="text-muted-foreground">{savedProfile.jobRole}</p>}
+                    {savedProfile.jobRole && <p className="text-muted-foreground">{savedProfile.jobRole}{savedProfile.salesDivision ? ` · ${savedProfile.salesDivision}` : ''}</p>}
                     {savedProfile.medicalInfo && (
                       <p className="text-amber-600 dark:text-amber-400">Medical: {savedProfile.medicalInfo}</p>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">Your saved details will be used for this registration.</p>
-                  <Button onClick={submitDirect} disabled={submitting} className="w-full gap-2">
-                    {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><Send className="h-4 w-4" /> Register Interest</>}
-                  </Button>
+                  {savedProfile.jobRole && NOMINATING_ROLES.includes(savedProfile.jobRole) ? (
+                    <Button onClick={() => setPhase('nominate')} className="w-full gap-2">
+                      Next <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button onClick={submitFromConfirm} disabled={submitting} className="w-full gap-2">
+                      {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><Send className="h-4 w-4" /> Register Interest</>}
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -292,7 +382,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
               {phase === 'passport' && (
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-gilbert text-base">Passport details</h3>
+                    <h3 className="font-gilbert text-base">Your details</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">Required for all travel bookings</p>
                   </div>
                   {passportFields}
@@ -300,6 +390,9 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                     <Button onClick={() => {
                       if (!passportFirst.trim() || !passportLast.trim()) {
                         toast.error('Passport name is required'); return
+                      }
+                      if (!jobRole) {
+                        toast.error('Please select your job role'); return
                       }
                       setPhase('medical')
                     }} className="gap-1.5">
@@ -319,7 +412,32 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   {medicalFields}
                   <div className="flex justify-between pt-1">
                     <Button variant="ghost" onClick={() => setPhase('passport')} className="gap-1.5"><ChevronLeft className="h-4 w-4" /> Back</Button>
-                    <Button onClick={handleSubmit} disabled={submitting} className="gap-2">
+                    {NOMINATING_ROLES.includes(jobRole) ? (
+                      <Button onClick={() => setPhase('nominate')} className="gap-1.5">
+                        Next <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button onClick={handleSubmit} disabled={submitting} className="gap-2">
+                        {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><Send className="h-4 w-4" /> Register Interest</>}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Nominate */}
+              {phase === 'nominate' && (
+                <div className="space-y-4">
+                  {nominateFields(savedProfile?.jobRole ?? jobRole)}
+                  <div className="flex justify-between pt-1">
+                    <Button variant="ghost" onClick={() => setPhase(savedProfile ? 'confirm' : 'medical')} className="gap-1.5">
+                      <ChevronLeft className="h-4 w-4" /> Back
+                    </Button>
+                    <Button
+                      onClick={savedProfile ? submitFromConfirm : handleSubmit}
+                      disabled={submitting}
+                      className="gap-2"
+                    >
                       {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><Send className="h-4 w-4" /> Register Interest</>}
                     </Button>
                   </div>

@@ -106,6 +106,7 @@ export interface Trip {
   eventVenue: string | null
   eventSpaces: number | null
   eventSponsor: string | null
+  allowedRoles: string[] | null
 }
 
 export type RegistrationStatus = 'requested' | 'pending_confirmation' | 'confirmed' | 'refused'
@@ -119,9 +120,15 @@ export interface UserProfile {
   passportFirstName: string
   passportLastName: string
   jobRole: string | null
+  salesDivision: string | null
   medicalInfo: string | null
   dataConsent: boolean
   banned?: boolean
+}
+
+export interface NominatedPerson {
+  name: string
+  email: string
 }
 
 export interface Registration {
@@ -137,6 +144,9 @@ export interface Registration {
   medicalInfo: string | null
   dataConsent: boolean
   status: RegistrationStatus
+  jobRole: string | null
+  salesDivision: string | null
+  nominatedPeople: NominatedPerson[]
 }
 
 export type View = 'home' | 'feed' | 'map' | 'upcoming' | 'events' | 'years' | 'submit' | 'settings' | 'pending' | 'interest'

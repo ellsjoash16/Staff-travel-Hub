@@ -19,7 +19,8 @@ export function LoginScreen() {
   const [mode, setMode] = useState<Mode>('signin')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName]   = useState('')
-  const [jobRole, setJobRole]     = useState('')
+  const [jobRole, setJobRole]       = useState('')
+  const [salesDivision, setSalesDivision] = useState('')
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
   const [confirmPwd, setConfirmPwd] = useState('')
@@ -53,7 +54,7 @@ export function LoginScreen() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
       await updateProfile(cred.user, { displayName: `${firstName.trim()} ${lastName.trim()}` })
-      await saveJobRole(cred.user.uid, jobRole)
+      await saveJobRole(cred.user.uid, jobRole, salesDivision.trim() || null)
     } catch (err: unknown) {
       const code = (err as { code?: string }).code
       if (code === 'auth/email-already-in-use') {
@@ -138,6 +139,10 @@ export function LoginScreen() {
                     placeholder="— Select your role —"
                     options={[{ value: '', label: '— Select your role —' }, ...JOB_ROLES.map(r => ({ value: r, label: r }))]}
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Sales Division <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                  <Input placeholder="e.g. North, South, Midlands…" value={salesDivision} onChange={e => setSalesDivision(e.target.value)} />
                 </div>
               </>
             )}

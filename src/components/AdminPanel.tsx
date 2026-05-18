@@ -32,7 +32,7 @@ interface PostForm {
 
 
 interface TripForm {
-  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string[]; eventVenue: string; eventSpaces: string; eventSponsor: string
+  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string[]; eventVenue: string; eventSpaces: string; eventSponsor: string; allowedRoles: string[]
 }
 
 interface LocationForm {
@@ -47,7 +47,7 @@ const emptyPostForm = (): PostForm => ({
 })
 
 const emptyTripForm = (): TripForm => ({
-  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: [], eventVenue: '', eventSpaces: '', eventSponsor: '',
+  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: [], eventVenue: '', eventSpaces: '', eventSponsor: '', allowedRoles: [],
 })
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
@@ -55,7 +55,7 @@ const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
 interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
 export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
-  const { state, togglePin, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser } = useApp()
+  const { state, togglePin, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile } = useApp()
   const { posts, courses, trips, locations, settings, registrations, userProfiles } = state
 
   const [tab, setTab] = useState('post')
@@ -74,14 +74,17 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const pdfInputRef = useRef<HTMLInputElement>(null)
   const [buildingOpen, setBuildingOpen] = useState(false)
   const buildingRef = useRef<HTMLDivElement>(null)
+  const [rolesOpen, setRolesOpen] = useState(false)
+  const rolesRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
       if (buildingRef.current && !buildingRef.current.contains(e.target as Node)) setBuildingOpen(false)
+      if (rolesRef.current && !rolesRef.current.contains(e.target as Node)) setRolesOpen(false)
     }
-    if (buildingOpen) document.addEventListener('mousedown', handleOutside)
+    if (buildingOpen || rolesOpen) document.addEventListener('mousedown', handleOutside)
     return () => document.removeEventListener('mousedown', handleOutside)
-  }, [buildingOpen])
+  }, [buildingOpen, rolesOpen])
   const [manageFolder, setManageFolder] = useState<string | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
 
@@ -98,6 +101,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [registrationsLoading, setRegistrationsLoading] = useState(false)
   const [togglingAdminUid, setTogglingAdminUid] = useState<string | null>(null)
   const [deletingProfileUid, setDeletingProfileUid] = useState<string | null>(null)
+  const [editingProfileUid, setEditingProfileUid] = useState<string | null>(null)
+  const [profileEditForm, setProfileEditForm] = useState({ firstName: '', lastName: '', passportFirstName: '', passportLastName: '', medicalInfo: '', jobRole: '', salesDivision: '' })
+  const [profileEditSaving, setProfileEditSaving] = useState(false)
 
   useEffect(() => {
     if (open || inline) {
@@ -254,6 +260,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       isEvent: tripForm.isEvent,
       eventType: tripForm.isEvent ? (tripForm.eventType || null) : null,
       eventBuilding: tripForm.isEvent ? (tripForm.eventBuilding.length > 0 ? tripForm.eventBuilding : null) : null,
+      allowedRoles: tripForm.allowedRoles.length > 0 ? tripForm.allowedRoles : null,
       eventVenue: tripForm.isEvent ? (tripForm.eventVenue.trim() || null) : null,
       eventSpaces: tripForm.isEvent ? (parseInt(tripForm.eventSpaces) || null) : null,
       eventSponsor: tripForm.isEvent ? (tripForm.eventSponsor.trim() || null) : null,
@@ -287,6 +294,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       isEvent: trip.isEvent ?? false,
       eventType: trip.eventType ?? '',
       eventBuilding: trip.eventBuilding ?? [],
+      allowedRoles: trip.allowedRoles ?? [],
       eventVenue: trip.eventVenue ?? '',
       eventSpaces: trip.eventSpaces != null ? String(trip.eventSpaces) : '',
       eventSponsor: trip.eventSponsor ?? '',
@@ -726,6 +734,40 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 </div>
               </div>
 
+              <div className="space-y-1.5 relative" ref={rolesRef}>
+                <label className="text-sm font-medium">Restrict to Roles <span className="text-muted-foreground font-normal">(leave empty for all staff)</span></label>
+                <button
+                  type="button"
+                  onClick={() => setRolesOpen(o => !o)}
+                  className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <span className={tripForm.allowedRoles.length === 0 ? 'text-muted-foreground' : ''}>
+                    {tripForm.allowedRoles.length === 0 ? '— All staff —' : tripForm.allowedRoles.join(', ')}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                </button>
+                {rolesOpen && (
+                  <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-background shadow-md">
+                    {['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM'].map(r => (
+                      <label key={r} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-border accent-primary"
+                          checked={tripForm.allowedRoles.includes(r)}
+                          onChange={() => {
+                            const next = tripForm.allowedRoles.includes(r)
+                              ? tripForm.allowedRoles.filter(x => x !== r)
+                              : [...tripForm.allowedRoles, r]
+                            setTrip('allowedRoles', next)
+                          }}
+                        />
+                        {r}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {tripForm.isEvent && (
                 <>
                 <div className="grid grid-cols-2 gap-3">
@@ -1014,8 +1056,19 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   {r.passportFirstName && (
                                     <p className="text-xs text-muted-foreground mt-0.5">{r.passportFirstName} {r.passportLastName}</p>
                                   )}
+                                  {(r.jobRole || r.salesDivision) && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">{[r.jobRole, r.salesDivision].filter(Boolean).join(' · ')}</p>
+                                  )}
                                   {r.medicalInfo && <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Medical: {r.medicalInfo}</p>}
                                   {r.dataConsent && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">✓ Data consent</p>}
+                                  {r.nominatedPeople && r.nominatedPeople.length > 0 && (
+                                    <div className="mt-1.5 space-y-0.5">
+                                      <p className="text-xs font-medium text-primary">Nominations ({r.nominatedPeople.length}):</p>
+                                      {r.nominatedPeople.map((n, i) => (
+                                        <p key={i} className="text-xs text-muted-foreground pl-2">• {n.name}{n.email ? ` (${n.email})` : ''}</p>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                                 <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status]}`}>
                                   {STATUS_LABELS[r.status]}
@@ -1366,34 +1419,104 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
                           {isExpanded && (
                             <div className="border-t border-border/60 px-4 py-4 space-y-4 bg-muted/20">
-                              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-0.5">Full name</p>
-                                  <p className="font-medium">{u.firstName} {u.lastName}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-0.5">Passport name</p>
-                                  <p className="font-medium">{u.passportFirstName} {u.passportLastName}</p>
-                                </div>
-                                {u.medicalInfo && (
-                                  <div className="col-span-2">
-                                    <p className="text-xs text-muted-foreground mb-0.5">Medical info</p>
-                                    <p className="font-medium text-amber-600 dark:text-amber-400">{u.medicalInfo}</p>
+                              {editingProfileUid === u.uid ? (
+                                <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Edit Account</p>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                      <label className="text-xs text-muted-foreground">First Name</label>
+                                      <Input value={profileEditForm.firstName} onChange={e => setProfileEditForm(f => ({ ...f, firstName: e.target.value }))} />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="text-xs text-muted-foreground">Last Name</label>
+                                      <Input value={profileEditForm.lastName} onChange={e => setProfileEditForm(f => ({ ...f, lastName: e.target.value }))} />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="text-xs text-muted-foreground">Passport First Name</label>
+                                      <Input value={profileEditForm.passportFirstName} onChange={e => setProfileEditForm(f => ({ ...f, passportFirstName: e.target.value }))} />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="text-xs text-muted-foreground">Passport Last Name</label>
+                                      <Input value={profileEditForm.passportLastName} onChange={e => setProfileEditForm(f => ({ ...f, passportLastName: e.target.value }))} />
+                                    </div>
                                   </div>
-                                )}
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-0.5">Admin access</p>
-                                  <p className={`font-medium text-sm ${(settings.adminUids ?? []).includes(u.uid) ? 'text-primary' : 'text-muted-foreground'}`}>
-                                    {(settings.adminUids ?? []).includes(u.uid) ? '✓ Admin' : 'No'}
-                                  </p>
+                                  <div className="space-y-1">
+                                    <label className="text-xs text-muted-foreground">Job Role</label>
+                                    <AppSelect
+                                      value={profileEditForm.jobRole}
+                                      onChange={val => setProfileEditForm(f => ({ ...f, jobRole: val }))}
+                                      placeholder="— Select role —"
+                                      options={[{ value: '', label: '— Select role —' }, ...['Travel Manager','NTM','DTM','Sales Manager','DSM','Admin','Director','RSM'].map(r => ({ value: r, label: r }))]}
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs text-muted-foreground">Sales Division</label>
+                                    <Input placeholder="e.g. North, South…" value={profileEditForm.salesDivision} onChange={e => setProfileEditForm(f => ({ ...f, salesDivision: e.target.value }))} />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-xs text-muted-foreground">Medical Info</label>
+                                    <Input placeholder="Any medical conditions…" value={profileEditForm.medicalInfo} onChange={e => setProfileEditForm(f => ({ ...f, medicalInfo: e.target.value }))} />
+                                  </div>
+                                  <div className="flex gap-2 pt-1">
+                                    <Button size="sm" variant="secondary" onClick={() => setEditingProfileUid(null)} disabled={profileEditSaving}>Cancel</Button>
+                                    <Button size="sm" disabled={profileEditSaving} onClick={async () => {
+                                      setProfileEditSaving(true)
+                                      try {
+                                        await editUserProfile(u.uid, {
+                                          firstName: profileEditForm.firstName,
+                                          lastName: profileEditForm.lastName,
+                                          passportFirstName: profileEditForm.passportFirstName,
+                                          passportLastName: profileEditForm.passportLastName,
+                                          medicalInfo: profileEditForm.medicalInfo.trim() || null,
+                                          jobRole: profileEditForm.jobRole || null,
+                                          salesDivision: profileEditForm.salesDivision.trim() || null,
+                                        })
+                                        toast.success('Account updated')
+                                        setEditingProfileUid(null)
+                                      } catch (err: unknown) {
+                                        toast.error((err as Error)?.message ?? 'Failed to save')
+                                      } finally { setProfileEditSaving(false) }
+                                    }}>
+                                      {profileEditSaving ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving…</> : 'Save Changes'}
+                                    </Button>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-0.5">Data consent</p>
-                                  <p className={`font-medium text-sm ${u.dataConsent ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
-                                    {u.dataConsent ? '✓ Consented' : 'Not given'}
-                                  </p>
+                              ) : (
+                                <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-0.5">Full name</p>
+                                    <p className="font-medium">{u.firstName} {u.lastName}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-0.5">Passport name</p>
+                                    <p className="font-medium">{u.passportFirstName} {u.passportLastName}</p>
+                                  </div>
+                                  {(u.jobRole || u.salesDivision) && (
+                                    <div>
+                                      <p className="text-xs text-muted-foreground mb-0.5">Role / Division</p>
+                                      <p className="font-medium">{[u.jobRole, u.salesDivision].filter(Boolean).join(' · ')}</p>
+                                    </div>
+                                  )}
+                                  {u.medicalInfo && (
+                                    <div className="col-span-2">
+                                      <p className="text-xs text-muted-foreground mb-0.5">Medical info</p>
+                                      <p className="font-medium text-amber-600 dark:text-amber-400">{u.medicalInfo}</p>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-0.5">Admin access</p>
+                                    <p className={`font-medium text-sm ${(settings.adminUids ?? []).includes(u.uid) ? 'text-primary' : 'text-muted-foreground'}`}>
+                                      {(settings.adminUids ?? []).includes(u.uid) ? '✓ Admin' : 'No'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-0.5">Data consent</p>
+                                    <p className={`font-medium text-sm ${u.dataConsent ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                                      {u.dataConsent ? '✓ Consented' : 'Not given'}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
+                              )}
 
                               {userRegistrations.length > 0 && (
                                 <div>

@@ -15,7 +15,7 @@ import {
   uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
   fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, deleteUserProfile,
-  fetchAllUserProfiles, setUserBanned,
+  fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
 import { auth } from '@/lib/firebase'
@@ -47,6 +47,7 @@ interface AppState {
   registrations: Registration[]
   userProfiles: (UserProfile & { updatedAt: string | null })[]
   myRegistrations: Registration[]
+  currentUserProfile: { jobRole: string | null; salesDivision: string | null } | null
 }
 
 type Action =
@@ -67,6 +68,8 @@ type Action =
   | { type: 'SET_USER_BANNED'; uid: string; banned: boolean }
   | { type: 'SET_MY_REGISTRATIONS'; registrations: Registration[] }
   | { type: 'ADD_MY_REGISTRATION'; registration: Registration }
+  | { type: 'SET_CURRENT_USER_PROFILE'; profile: { jobRole: string | null; salesDivision: string | null } | null }
+  | { type: 'UPDATE_USER_PROFILE'; uid: string; fields: Partial<UserProfile> }
   | { type: 'UPDATE_TRIP_PARTICIPANTS'; tripId: string; name: string; action: 'add' | 'remove' }
   | { type: 'APPROVE_POST'; id: string }
   | { type: 'ADD_POST'; post: Post }
@@ -101,6 +104,8 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_USER_BANNED': return { ...state, userProfiles: state.userProfiles.map(u => u.uid === action.uid ? { ...u, banned: action.banned } : u) }
     case 'SET_MY_REGISTRATIONS': return { ...state, myRegistrations: action.registrations }
     case 'ADD_MY_REGISTRATION': return { ...state, myRegistrations: [...state.myRegistrations, action.registration] }
+    case 'SET_CURRENT_USER_PROFILE': return { ...state, currentUserProfile: action.profile }
+    case 'UPDATE_USER_PROFILE': return { ...state, userProfiles: state.userProfiles.map(u => u.uid === action.uid ? { ...u, ...action.fields } : u) }
     case 'UPDATE_TRIP_PARTICIPANTS': return {
       ...state,
       trips: state.trips.map(t => t.id === action.tripId ? {
@@ -168,6 +173,7 @@ interface AppContextValue {
   loadMyRegistrations: () => Promise<void>
   toggleAdminUid: (uid: string) => Promise<void>
   banUser: (uid: string, banned: boolean) => Promise<void>
+  editUserProfile: (uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; salesDivision: string | null }) => Promise<void>
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -178,6 +184,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     settings: DEFAULT_SETTINGS,
     isAdmin: false, activeView: 'home', activeFilter: null, loading: true,
     pendingPosts: [], registrations: [], userProfiles: [], myRegistrations: [],
+    currentUserProfile: null,
   })
 
   // Initial data load
@@ -234,6 +241,9 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       ensureAdminPromise?.catch(() => {})
       if (uid) {
         fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})
+        fetchUserProfile(uid).then(p => {
+          if (p) dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: p.jobRole, salesDivision: p.salesDivision } })
+        }).catch(() => {})
       }
     }
     init()
@@ -325,6 +335,11 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   async function banUser(uid: string, banned: boolean): Promise<void> {
     await setUserBanned(uid, banned)
     dispatch({ type: 'SET_USER_BANNED', uid, banned })
+  }
+
+  async function editUserProfile(uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; salesDivision: string | null }): Promise<void> {
+    await adminUpdateUserProfile(uid, fields)
+    dispatch({ type: 'UPDATE_USER_PROFILE', uid, fields })
   }
 
 async function togglePin(id: string, pinned: boolean): Promise<void> {
@@ -532,7 +547,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
       addTrip, editTrip, deleteTrip, completeTrip,
       addLocation, editLocation, deleteLocation,
       saveSettings, savePageImages,
-      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, banUser,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
     }}>
       {children}
     </AppContext.Provider>

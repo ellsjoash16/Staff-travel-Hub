@@ -384,6 +384,7 @@ function docToTrip(id: string, d: any): Trip {
     eventVenue: d.eventVenue ?? null,
     eventSpaces: d.eventSpaces ?? null,
     eventSponsor: d.eventSponsor ?? null,
+    allowedRoles: Array.isArray(d.allowedRoles) ? d.allowedRoles : null,
   }
 }
 
@@ -414,6 +415,7 @@ export async function insertTrip(trip: Trip, imagePath: string | null): Promise<
     eventVenue: trip.eventVenue ?? null,
     eventSpaces: trip.eventSpaces ?? null,
     eventSponsor: trip.eventSponsor ?? null,
+    allowedRoles: trip.allowedRoles ?? null,
   })
 }
 
@@ -448,6 +450,7 @@ export async function updateTrip(
     eventVenue: trip.eventVenue ?? null,
     eventSpaces: trip.eventSpaces ?? null,
     eventSponsor: trip.eventSponsor ?? null,
+    allowedRoles: trip.allowedRoles ?? null,
   }
   if (newImagePath !== undefined) data.imagePath = newImagePath
   await adminWrite('trips', trip.id, 'set', data)
@@ -483,6 +486,9 @@ export async function insertRegistration(reg: Registration): Promise<void> {
     passportFirstName, passportLastName,
     medicalInfo,
     dataConsent: reg.dataConsent,
+    jobRole: reg.jobRole ?? null,
+    salesDivision: reg.salesDivision ?? null,
+    nominatedPeople: reg.nominatedPeople ?? [],
     status: 'requested',
     submittedAt: serverTimestamp(),
   })
@@ -518,6 +524,9 @@ export async function fetchRegistrations(): Promise<Registration[]> {
         medicalInfo,
         dataConsent: data.dataConsent ?? false,
         status: (data.status ?? 'requested') as RegistrationStatus,
+        jobRole: data.jobRole ?? null,
+        salesDivision: data.salesDivision ?? null,
+        nominatedPeople: Array.isArray(data.nominatedPeople) ? data.nominatedPeople : [],
       } as Registration
     } catch {
       // Decryption failed for this doc — return a placeholder so it still shows
@@ -531,6 +540,9 @@ export async function fetchRegistrations(): Promise<Registration[]> {
         medicalInfo: null,
         dataConsent: data.dataConsent ?? false,
         status: (data.status ?? 'requested') as RegistrationStatus,
+        jobRole: data.jobRole ?? null,
+        salesDivision: data.salesDivision ?? null,
+        nominatedPeople: [],
       } as Registration
     }
   }))
@@ -567,9 +579,9 @@ export async function fetchMyRegistrations(uid: string): Promise<Registration[]>
         decryptField(data.passportLastName ?? null),
         decryptField(data.medicalInfo ?? null),
       ])
-      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: firstName ?? '', lastName: lastName ?? '', email: email ?? '', passportFirstName: passportFirstName ?? '', passportLastName: passportLastName ?? '', medicalInfo, dataConsent: data.dataConsent ?? false, status: (data.status ?? 'requested') as RegistrationStatus } as Registration
+      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: firstName ?? '', lastName: lastName ?? '', email: email ?? '', passportFirstName: passportFirstName ?? '', passportLastName: passportLastName ?? '', medicalInfo, dataConsent: data.dataConsent ?? false, status: (data.status ?? 'requested') as RegistrationStatus, jobRole: data.jobRole ?? null, salesDivision: data.salesDivision ?? null, nominatedPeople: Array.isArray(data.nominatedPeople) ? data.nominatedPeople : [] } as Registration
     } catch {
-      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: '', lastName: '', email: '', passportFirstName: '', passportLastName: '', medicalInfo: null, dataConsent: false, status: (data.status ?? 'requested') as RegistrationStatus } as Registration
+      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: '', lastName: '', email: '', passportFirstName: '', passportLastName: '', medicalInfo: null, dataConsent: false, status: (data.status ?? 'requested') as RegistrationStatus, jobRole: null, salesDivision: null, nominatedPeople: [] } as Registration
     }
   }))
   return results
@@ -603,6 +615,7 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     authEmail: data.authEmail ?? null,
     authDisplayName: data.authDisplayName ?? null,
     jobRole: data.jobRole ?? null,
+    salesDivision: data.salesDivision ?? null,
     firstName: firstName ?? '',
     lastName: lastName ?? '',
     passportFirstName: passportFirstName ?? '',
@@ -630,13 +643,35 @@ export async function upsertUserProfile(profile: UserProfile): Promise<void> {
     passportFirstName, passportLastName,
     medicalInfo,
     jobRole: profile.jobRole ?? null,
+    salesDivision: profile.salesDivision ?? null,
     dataConsent: profile.dataConsent,
     updatedAt: serverTimestamp(),
   })
 }
 
-export async function saveJobRole(uid: string, jobRole: string): Promise<void> {
-  await setDoc(doc(db, 'userProfiles', uid), { jobRole }, { merge: true })
+export async function adminUpdateUserProfile(uid: string, fields: {
+  firstName: string; lastName: string
+  passportFirstName: string; passportLastName: string
+  medicalInfo: string | null
+  jobRole: string | null
+  salesDivision: string | null
+}): Promise<void> {
+  const [firstName, lastName, passportFirstName, passportLastName, medicalInfo] = await Promise.all([
+    encryptField(fields.firstName),
+    encryptField(fields.lastName),
+    encryptField(fields.passportFirstName),
+    encryptField(fields.passportLastName),
+    encryptField(fields.medicalInfo),
+  ])
+  await adminWrite('userProfiles', uid, 'update', {
+    firstName, lastName, passportFirstName, passportLastName, medicalInfo,
+    jobRole: fields.jobRole ?? null,
+    salesDivision: fields.salesDivision ?? null,
+  }, ['firstName', 'lastName', 'passportFirstName', 'passportLastName', 'medicalInfo', 'jobRole', 'salesDivision'])
+}
+
+export async function saveJobRole(uid: string, jobRole: string, salesDivision?: string | null): Promise<void> {
+  await setDoc(doc(db, 'userProfiles', uid), { jobRole, salesDivision: salesDivision ?? null }, { merge: true })
 }
 
 export async function saveAccountRecord(uid: string, email: string | null, displayName: string | null): Promise<void> {
@@ -680,6 +715,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
         authEmail: authUser.email,
         authDisplayName: authUser.displayName,
         jobRole: null,
+        salesDivision: null,
         firstName: '', lastName: '',
         passportFirstName: '', passportLastName: '',
         medicalInfo: null,
@@ -703,6 +739,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
       authEmail: data.authEmail ?? authUser.email,
       authDisplayName: data.authDisplayName ?? authUser.displayName,
       jobRole: data.jobRole ?? null,
+      salesDivision: data.salesDivision ?? null,
       firstName: firstName ?? '',
       lastName: lastName ?? '',
       passportFirstName: passportFirstName ?? '',

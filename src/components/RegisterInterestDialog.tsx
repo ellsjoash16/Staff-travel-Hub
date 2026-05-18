@@ -15,7 +15,7 @@ const JOB_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admi
 import { useApp } from '@/context/AppContext'
 import type { Trip, NominatedPerson } from '@/lib/types'
 
-type Phase = 'loading' | 'confirm' | 'passport' | 'medical' | 'nominate' | 'questions' | 'banned'
+type Phase = 'loading' | 'confirm' | 'passport' | 'nominate' | 'questions' | 'banned'
 
 interface Props {
   trip: Trip
@@ -40,8 +40,6 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   const [passportLast, setPassportLast]   = useState('')
   const [jobRole, setJobRole]             = useState('')
   const [salesDivision, setSalesDivision] = useState('')
-  const [medicalInfo, setMedicalInfo]     = useState('')
-  const [dataConsent, setDataConsent]     = useState(false)
   const [nominatedPeople, setNominatedPeople] = useState<NominatedPerson[]>([])
   const [visitedBefore, setVisitedBefore]     = useState<boolean | null>(null)
   const [visitedWhen, setVisitedWhen]         = useState('')
@@ -89,7 +87,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   function reset() {
     setPhase('loading'); setSavedProfile(null)
     setPassportFirst(''); setPassportLast(''); setJobRole(''); setSalesDivision('')
-    setMedicalInfo(''); setDataConsent(false); setNominatedPeople([])
+    setNominatedPeople([])
     setVisitedBefore(null); setVisitedWhen(''); setKeyLevel(null)
     setInspiration(''); setWhyChooseYou('')
     setSubmitting(false); setSubmitted(false)
@@ -210,23 +208,14 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         lastName: passportLast.trim() || (user.displayName ?? '').split(' ').slice(1).join(' ') || '',
         passportFirstName: passportFirst.trim(),
         passportLastName: passportLast.trim(),
-        medicalInfo: medicalInfo.trim() || null,
-        dataConsent,
+        medicalInfo: null,
+        dataConsent: false,
         status: 'requested' as const,
         jobRole: jobRole || null,
         salesDivision: salesDivision.trim() || null,
         nominatedPeople,
       }
-      await doSubmit(reg, dataConsent ? {
-        uid: user.uid,
-        jobRole: jobRole || null,
-        salesDivision: salesDivision.trim() || null,
-        firstName: reg.firstName, lastName: reg.lastName,
-        passportFirstName: reg.passportFirstName,
-        passportLastName: reg.passportLastName,
-        medicalInfo: reg.medicalInfo,
-        consent: true,
-      } : null)
+      await doSubmit(reg, null)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
     } finally { setSubmitting(false) }
@@ -273,25 +262,6 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     </div>
   )
 
-  const medicalFields = (
-    <div className="space-y-4">
-      <div className="space-y-1.5">
-        <Label>Medical Conditions <span className="text-muted-foreground font-normal">(optional)</span></Label>
-        <Textarea
-          placeholder="Please list any medical conditions, allergies or requirements we should be aware of…"
-          value={medicalInfo} onChange={e => setMedicalInfo(e.target.value)} rows={3} autoFocus
-        />
-      </div>
-      <label className="flex items-start gap-3 cursor-pointer rounded-xl border border-border p-3 hover:bg-muted/30 transition-colors">
-        <input type="checkbox" checked={dataConsent} onChange={e => setDataConsent(e.target.checked)}
-          className="h-4 w-4 mt-0.5 rounded border-input accent-primary flex-shrink-0" />
-        <div>
-          <p className="text-sm font-medium">Save my details for future trips</p>
-          <p className="text-xs text-muted-foreground mt-0.5">I consent to my passport and medical information being securely stored and reused for future trip registrations.</p>
-        </div>
-      </label>
-    </div>
-  )
 
   const nominateFields = (activeRole: string | null) => (
     <div className="space-y-3">
@@ -415,25 +385,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                     <Button onClick={() => {
                       if (!passportFirst.trim() || !passportLast.trim()) { toast.error('Passport name is required'); return }
                       if (!jobRole) { toast.error('Please select your job role'); return }
-                      setPhase('medical')
+                      setPhase(NOMINATING_ROLES.includes(jobRole) ? 'nominate' : 'questions')
                     }} className="gap-1.5">
-                      Next <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Medical */}
-              {phase === 'medical' && (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-gilbert text-base">Medical & consent</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">Any conditions we should be aware of</p>
-                  </div>
-                  {medicalFields}
-                  <div className="flex justify-between pt-1">
-                    <Button variant="ghost" onClick={() => setPhase('passport')} className="gap-1.5"><ChevronLeft className="h-4 w-4" /> Back</Button>
-                    <Button onClick={() => setPhase(NOMINATING_ROLES.includes(jobRole) ? 'nominate' : 'questions')} className="gap-1.5">
                       Next <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
@@ -445,7 +398,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                 <div className="space-y-4">
                   {nominateFields(savedProfile?.jobRole ?? jobRole)}
                   <div className="flex justify-between pt-1">
-                    <Button variant="ghost" onClick={() => setPhase(savedProfile ? 'confirm' : 'medical')} className="gap-1.5">
+                    <Button variant="ghost" onClick={() => setPhase(savedProfile ? 'confirm' : 'passport')} className="gap-1.5">
                       <ChevronLeft className="h-4 w-4" /> Back
                     </Button>
                     <Button onClick={() => setPhase('questions')} className="gap-1.5">
@@ -513,7 +466,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   </div>
 
                   <div className="flex justify-between pt-1">
-                    <Button variant="ghost" onClick={() => setPhase(NOMINATING_ROLES.includes(savedProfile?.jobRole ?? jobRole) ? 'nominate' : savedProfile ? 'confirm' : 'medical')} className="gap-1.5">
+                    <Button variant="ghost" onClick={() => setPhase(NOMINATING_ROLES.includes(savedProfile?.jobRole ?? jobRole) ? 'nominate' : savedProfile ? 'confirm' : 'passport')} className="gap-1.5">
                       <ChevronLeft className="h-4 w-4" /> Back
                     </Button>
                     <Button onClick={savedProfile ? submitFromConfirm : handleSubmit} disabled={submitting} className="gap-2">

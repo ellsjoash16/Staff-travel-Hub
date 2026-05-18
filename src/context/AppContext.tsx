@@ -196,30 +196,22 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       const uid = authUid ?? auth.currentUser?.uid
       const SETTINGS_KEY = 'dafagram:settings'
 
-      // Superadmins are always admin — no Firestore race can take this away
+      // Superadmins are always admin — set immediately, no network call needed
       if (uid && SUPERADMIN_UIDS.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
 
-      // Fire ensure-admin in parallel — does NOT block settings load.
-      // Returns the current adminUids from Firestore (including any it just added).
-      // We check this result AFTER fetchSettings as a second admin-check pass.
-      const ensureAdminPromise: Promise<{ adminUids: string[] } | null> = uid
-        ? auth.currentUser?.getIdToken()
-            .then(token => {
-              if (!token) return null
-              return apiFetch('/api/ensure-admin', {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
-              }).then(r => r.ok ? (r.json() as Promise<{ adminUids: string[] }>) : null)
-            })
-            .catch(() => null) ?? Promise.resolve(null)
-        : Promise.resolve(null)
+      // Fire ensure-admin silently in background to keep Firestore in sync
+      if (uid) {
+        auth.currentUser?.getIdToken()
+          .then(token => { if (token) apiFetch('/api/ensure-admin', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }) })
+          .catch(() => {})
+      }
 
       // Kick off all data fetches in parallel
       const postsPromise = fetchPosts().catch(() => [] as Post[])
       const tripsPromise = fetchTrips().catch(() => [] as Trip[])
       const locationsPromise = fetchLocations().catch(() => [] as Location[])
 
-      // Unblock the UI immediately using cached settings (stale-while-revalidate)
+      // Show cached settings immediately (stale-while-revalidate)
       let hasCached = false
       try {
         const raw = localStorage.getItem(SETTINGS_KEY)
@@ -236,39 +228,17 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       let resolvedSettings: Settings = DEFAULT_SETTINGS
       try {
         resolvedSettings = await fetchSettings()
+        // Patch superadmin UID into local settings if Firestore hasn't synced yet
+        if (uid && SUPERADMIN_UIDS.includes(uid) && !resolvedSettings.adminUids.includes(uid)) {
+          resolvedSettings = { ...resolvedSettings, adminUids: [...resolvedSettings.adminUids, uid] }
+        }
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings))
       } catch {}
 
-      // If the current user is a superadmin but Firestore hasn't been updated yet
-      // (ensure-admin is still in flight), patch adminUids locally so the admin
-      // panel displays their status correctly right away
-      if (uid && SUPERADMIN_UIDS.includes(uid) && !resolvedSettings.adminUids.includes(uid)) {
-        resolvedSettings = { ...resolvedSettings, adminUids: [...resolvedSettings.adminUids, uid] }
-      }
-
-      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings)) } catch {}
       dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
       if (uid && resolvedSettings.adminUids?.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
       if (!hasCached) dispatch({ type: 'SET_LOADING', value: false })
 
-      // Wait for ensure-admin to finish and do a second admin check.
-      // Second admin check: wait for ensure-admin to finish.
-      // If it returned a fresh adminUids list that includes us, update resolvedSettings
-      // so that the INIT dispatch below uses the correct list — otherwise INIT would
-      // overwrite state.settings.adminUids back to the stale version, making
-      // toggleAdminUid read the wrong array and silently drop UIDs on every grant.
-      try {
-        const ensureResult = await ensureAdminPromise
-        if (uid && ensureResult?.adminUids?.includes(uid)) {
-          dispatch({ type: 'SET_ADMIN', value: true })
-          if (!resolvedSettings.adminUids.includes(uid)) {
-            resolvedSettings = { ...resolvedSettings, adminUids: ensureResult.adminUids }
-            dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
-            try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings)) } catch {}
-          }
-        }
-      } catch {}
-
-      // Load remaining data in the background
       const [posts, trips, locations] = await Promise.all([postsPromise, tripsPromise, locationsPromise])
       dispatch({ type: 'INIT', posts, submissions: [], trips, locations, settings: resolvedSettings })
 

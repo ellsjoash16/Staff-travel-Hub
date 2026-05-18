@@ -41,8 +41,8 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
               {location && (
                 <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{location.name}</span>
               )}
-              {trip.eventBuilding && (
-                <span className="flex items-center gap-1"><Building2 className="h-3 w-3 flex-shrink-0" />{trip.eventBuilding}</span>
+              {trip.eventBuilding && trip.eventBuilding.length > 0 && (
+                <span className="flex items-center gap-1"><Building2 className="h-3 w-3 flex-shrink-0" />{trip.eventBuilding.join(', ')}</span>
               )}
               {trip.eventVenue && (
                 <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{trip.eventVenue}</span>

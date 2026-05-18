@@ -6,6 +6,7 @@ import { saveJobRole } from '@/lib/db'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AppSelect } from '@/components/ui/app-select'
 import { toast } from 'sonner'
 
 const JOB_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM']
@@ -131,14 +132,12 @@ export function LoginScreen() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Job Role <span className="text-destructive">*</span></Label>
-                  <select
+                  <AppSelect
                     value={jobRole}
-                    onChange={e => setJobRole(e.target.value)}
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="">— Select your role —</option>
-                    {JOB_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
+                    onChange={setJobRole}
+                    placeholder="— Select your role —"
+                    options={[{ value: '', label: '— Select your role —' }, ...JOB_ROLES.map(r => ({ value: r, label: r }))]}
+                  />
                 </div>
               </>
             )}

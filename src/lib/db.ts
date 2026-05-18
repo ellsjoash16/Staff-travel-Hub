@@ -380,7 +380,7 @@ function docToTrip(id: string, d: any): Trip {
     showRegisterInterest: d.showRegisterInterest ?? false,
     isEvent: d.isEvent ?? false,
     eventType: d.eventType ?? null,
-    eventBuilding: d.eventBuilding ?? null,
+    eventBuilding: Array.isArray(d.eventBuilding) ? d.eventBuilding : d.eventBuilding ? [d.eventBuilding] : null,
     eventVenue: d.eventVenue ?? null,
     eventSpaces: d.eventSpaces ?? null,
     eventSponsor: d.eventSponsor ?? null,

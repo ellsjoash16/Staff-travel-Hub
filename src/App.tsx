@@ -46,7 +46,6 @@ function SplashScreen() {
 const HomeView      = lazy(() => import('@/components/HomeView').then(m => ({ default: m.HomeView })))
 const FeedView      = lazy(() => import('@/components/FeedView').then(m => ({ default: m.FeedView })))
 const UpcomingTripsView = lazy(() => import('@/components/UpcomingTripsView').then(m => ({ default: m.UpcomingTripsView })))
-const EventsView       = lazy(() => import('@/components/EventsView').then(m => ({ default: m.EventsView })))
 const YearsView     = lazy(() => import('@/components/YearsView').then(m => ({ default: m.YearsView })))
 const SubmitView    = lazy(() => import('@/components/SubmitView').then(m => ({ default: m.SubmitView })))
 const PendingView   = lazy(() => import('@/components/PendingView').then(m => ({ default: m.PendingView })))
@@ -89,7 +88,7 @@ function AppShell() {
         } ${
           state.activeView === 'home'   ? 'px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 lg:py-4 2xl:py-5'
           : state.activeView === 'map'  ? 'p-0 overflow-hidden'
-          : state.activeView === 'submit' || state.activeView === 'years' || state.activeView === 'upcoming' || state.activeView === 'events' || state.activeView === 'interest' ? 'p-0'
+          : state.activeView === 'submit' || state.activeView === 'years' || state.activeView === 'upcoming' || state.activeView === 'interest' ? 'p-0'
           : 'py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12'
         }`}
       >
@@ -107,7 +106,6 @@ function AppShell() {
               </>
             )}
             {state.activeView === 'upcoming' && <UpcomingTripsView />}
-            {state.activeView === 'events' && <EventsView />}
             {state.activeView === 'interest' && <MyRegistrationsView />}
             {state.activeView === 'years' && <YearsView />}
             {state.activeView === 'submit' && <SubmitView />}

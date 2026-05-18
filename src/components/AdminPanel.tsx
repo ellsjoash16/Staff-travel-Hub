@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash2, Pencil, Loader2, CheckCircle2, X, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight, CalendarDays, Plus, KeyRound, Users, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Trash2, Pencil, Loader2, CheckCircle2, X, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight, ChevronDown, CalendarDays, Plus, KeyRound, Users, RefreshCw, ShieldCheck } from 'lucide-react'
+import { AppSelect } from '@/components/ui/app-select'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
 import { parsePdf, type ParsedReview } from '@/lib/parsePdf'
@@ -31,7 +32,7 @@ interface PostForm {
 
 
 interface TripForm {
-  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string; eventVenue: string; eventSpaces: string; eventSponsor: string
+  name: string; description: string; participants: string; date: string; endDate: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string[]; eventVenue: string; eventSpaces: string; eventSponsor: string
 }
 
 interface LocationForm {
@@ -46,7 +47,7 @@ const emptyPostForm = (): PostForm => ({
 })
 
 const emptyTripForm = (): TripForm => ({
-  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: '', eventVenue: '', eventSpaces: '', eventSponsor: '',
+  name: '', description: '', participants: '', date: today(), endDate: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: [], eventVenue: '', eventSpaces: '', eventSponsor: '',
 })
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
@@ -71,6 +72,16 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [pdfParsing, setPdfParsing] = useState(false)
   const [pdfReviews, setPdfReviews] = useState<ParsedReview[]>([])
   const pdfInputRef = useRef<HTMLInputElement>(null)
+  const [buildingOpen, setBuildingOpen] = useState(false)
+  const buildingRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (buildingRef.current && !buildingRef.current.contains(e.target as Node)) setBuildingOpen(false)
+    }
+    if (buildingOpen) document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [buildingOpen])
   const [manageFolder, setManageFolder] = useState<string | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
 
@@ -242,7 +253,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       completed: tripForm.completed,
       isEvent: tripForm.isEvent,
       eventType: tripForm.isEvent ? (tripForm.eventType || null) : null,
-      eventBuilding: tripForm.isEvent ? (tripForm.eventBuilding.trim() || null) : null,
+      eventBuilding: tripForm.isEvent ? (tripForm.eventBuilding.length > 0 ? tripForm.eventBuilding : null) : null,
       eventVenue: tripForm.isEvent ? (tripForm.eventVenue.trim() || null) : null,
       eventSpaces: tripForm.isEvent ? (parseInt(tripForm.eventSpaces) || null) : null,
       eventSponsor: tripForm.isEvent ? (tripForm.eventSponsor.trim() || null) : null,
@@ -275,7 +286,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       completed: trip.completed ?? false,
       isEvent: trip.isEvent ?? false,
       eventType: trip.eventType ?? '',
-      eventBuilding: trip.eventBuilding ?? '',
+      eventBuilding: trip.eventBuilding ?? [],
       eventVenue: trip.eventVenue ?? '',
       eventSpaces: trip.eventSpaces != null ? String(trip.eventSpaces) : '',
       eventSponsor: trip.eventSponsor ?? '',
@@ -478,20 +489,16 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>Location</Label>
-                  <select
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  <AppSelect
                     value={postForm.locationId ?? ''}
-                    onChange={(e) => {
-                      const loc = locations.find(l => l.id === e.target.value)
-                      setPost('locationId', e.target.value || null)
+                    onChange={(val) => {
+                      const loc = locations.find(l => l.id === val)
+                      setPost('locationId', val || null)
                       if (loc) setPost('locName', loc.name)
                     }}
-                  >
-                    <option value="">— no location —</option>
-                    {locations.map(l => (
-                      <option key={l.id} value={l.id}>{l.name}, {l.country}</option>
-                    ))}
-                  </select>
+                    placeholder="— no location —"
+                    options={[{ value: '', label: '— no location —' }, ...locations.map(l => ({ value: l.id, label: `${l.name}, ${l.country}` }))]}
+                  />
                   {locations.length === 0 && (
                     <p className="text-xs text-muted-foreground">Add locations in the Locations tab first</p>
                   )}
@@ -536,16 +543,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               {settings.adminFolders.length > 0 && (
                 <div className="space-y-1.5">
                   <Label>Admin Folder <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <select
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  <AppSelect
                     value={postForm.folder ?? ''}
-                    onChange={e => setPost('folder', e.target.value || null)}
-                  >
-                    <option value="">— no folder —</option>
-                    {settings.adminFolders.map(f => (
-                      <option key={f} value={f}>{f}</option>
-                    ))}
-                  </select>
+                    onChange={val => setPost('folder', val || null)}
+                    placeholder="— no folder —"
+                    options={[{ value: '', label: '— no folder —' }, ...settings.adminFolders.map(f => ({ value: f, label: f }))]}
+                  />
                 </div>
               )}
 
@@ -573,14 +576,13 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 </div>
                 <div className="space-y-1.5">
                   <Label>Country <span className="text-destructive">*</span></Label>
-                  <select
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  <AppSelect
                     value={locationForm.country}
-                    onChange={(e) => setLocationForm(f => ({ ...f, country: e.target.value }))}
-                  >
-                    <option value="">— select country —</option>
-                    {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                    onChange={val => setLocationForm(f => ({ ...f, country: val }))}
+                    placeholder="— select country —"
+                    searchable
+                    options={[{ value: '', label: '— select country —' }, ...COUNTRIES.map(c => ({ value: c, label: c }))]}
+                  />
                 </div>
               </div>
 
@@ -653,16 +655,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
               <div className="space-y-1.5">
                 <Label>Location <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <select
+                <AppSelect
                   value={tripForm.locationId ?? ''}
-                  onChange={(e) => setTrip('locationId', e.target.value || null)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="">— No location —</option>
-                  {[...locations].sort((a, b) => a.name.localeCompare(b.name)).map(loc => (
-                    <option key={loc.id} value={loc.id}>{loc.name} ({loc.country})</option>
-                  ))}
-                </select>
+                  onChange={val => setTrip('locationId', val || null)}
+                  placeholder="— No location —"
+                  options={[{ value: '', label: '— No location —' }, ...[...locations].sort((a, b) => a.name.localeCompare(b.name)).map(loc => ({ value: loc.id, label: `${loc.name} (${loc.country})` }))]}
+                />
               </div>
 
               <div className="flex flex-wrap gap-4">
@@ -733,28 +731,54 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium">Event Type</label>
-                    <select
+                    <AppSelect
                       value={tripForm.eventType}
-                      onChange={(e) => setTrip('eventType', e.target.value)}
-                      className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
-                    >
-                      <option value="">— Select type —</option>
-                      <option value="Drinks">Drinks</option>
-                      <option value="Dinner">Dinner</option>
-                      <option value="Sporting Event">Sporting Event</option>
-                      <option value="Conference">Conference</option>
-                      <option value="Team Building">Team Building</option>
-                      <option value="Social">Social</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Building <span className="text-muted-foreground font-normal">(optional)</span></label>
-                    <Input
-                      placeholder="e.g. Head Office"
-                      value={tripForm.eventBuilding}
-                      onChange={(e) => setTrip('eventBuilding', e.target.value)}
+                      onChange={val => setTrip('eventType', val)}
+                      placeholder="— Select type —"
+                      options={[
+                        { value: '', label: '— Select type —' },
+                        { value: 'Drinks', label: 'Drinks' },
+                        { value: 'Dinner', label: 'Dinner' },
+                        { value: 'Sporting Event', label: 'Sporting Event' },
+                        { value: 'Conference', label: 'Conference' },
+                        { value: 'Team Building', label: 'Team Building' },
+                        { value: 'Social', label: 'Social' },
+                        { value: 'Other', label: 'Other' },
+                      ]}
                     />
+                  </div>
+                  <div className="space-y-1.5 relative" ref={buildingRef}>
+                    <label className="text-sm font-medium">Buildings <span className="text-muted-foreground font-normal">(optional)</span></label>
+                    <button
+                      type="button"
+                      onClick={() => setBuildingOpen(o => !o)}
+                      className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    >
+                      <span className={tripForm.eventBuilding.length === 0 ? 'text-muted-foreground' : ''}>
+                        {tripForm.eventBuilding.length === 0 ? '— Select buildings —' : tripForm.eventBuilding.join(', ')}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                    </button>
+                    {buildingOpen && (
+                      <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-background shadow-md">
+                        {['Boxley', 'Shirley', 'London', 'Sale'].map(b => (
+                          <label key={b} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-border accent-primary"
+                              checked={tripForm.eventBuilding.includes(b)}
+                              onChange={() => {
+                                const next = tripForm.eventBuilding.includes(b)
+                                  ? tripForm.eventBuilding.filter(x => x !== b)
+                                  : [...tripForm.eventBuilding, b]
+                                setTrip('eventBuilding', next)
+                              }}
+                            />
+                            {b}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">

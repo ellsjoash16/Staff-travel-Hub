@@ -1,4 +1,4 @@
-import { Camera, Globe2, Plane, CalendarDays, Send, ChevronLeft, ChevronRight, Settings, Clock, ClipboardCheck, Star } from 'lucide-react'
+import { Camera, Globe2, Plane, CalendarDays, Send, ChevronLeft, ChevronRight, Settings, Clock, ClipboardCheck } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
 import type { View } from '@/lib/types'
@@ -7,7 +7,6 @@ const NAV: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'feed',     label: 'Feed',                    Icon: Camera },
   { id: 'map',      label: 'World Map',               Icon: Globe2 },
   { id: 'upcoming', label: 'Upcoming Trips',          Icon: Plane },
-  { id: 'events',   label: 'Events',                  Icon: Star },
   { id: 'interest', label: 'Registered Interest',     Icon: ClipboardCheck },
   { id: 'years',    label: 'By Year',                 Icon: CalendarDays },
   { id: 'submit',   label: 'Submit Trip',             Icon: Send },

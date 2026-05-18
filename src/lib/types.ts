@@ -102,7 +102,7 @@ export interface Trip {
   showRegisterInterest: boolean
   isEvent: boolean
   eventType: string | null
-  eventBuilding: string | null
+  eventBuilding: string[] | null
   eventVenue: string | null
   eventSpaces: number | null
   eventSponsor: string | null

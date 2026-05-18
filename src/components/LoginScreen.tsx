@@ -11,6 +11,15 @@ import { toast } from 'sonner'
 
 const JOB_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM']
 
+const BUILDINGS = ['London', 'Shirley', 'Boxley', 'Sale']
+
+const DIVISIONS_BY_BUILDING: Record<string, string[]> = {
+  London:  ['Supertravel', 'World Options', 'Which Flight and Travel Solutions'],
+  Shirley: ['Red Admiral', 'Direct Line', 'International Flyer', 'World Travel Service'],
+  Boxley:  ['Fare Deals', 'Flying Start', 'Flightcall (AG)', 'Travel Options'],
+  Sale:    ['Manchester S', 'Manchester R', 'Manchester X'],
+}
+
 const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80'
 
 type Mode = 'signin' | 'signup'
@@ -20,6 +29,7 @@ export function LoginScreen() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName]   = useState('')
   const [jobRole, setJobRole]       = useState('')
+  const [building, setBuilding]           = useState('')
   const [salesDivision, setSalesDivision] = useState('')
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
@@ -54,7 +64,7 @@ export function LoginScreen() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
       await updateProfile(cred.user, { displayName: `${firstName.trim()} ${lastName.trim()}` })
-      await saveJobRole(cred.user.uid, jobRole, salesDivision.trim() || null)
+      await saveJobRole(cred.user.uid, jobRole, salesDivision || null, building || null)
     } catch (err: unknown) {
       const code = (err as { code?: string }).code
       if (code === 'auth/email-already-in-use') {
@@ -141,9 +151,25 @@ export function LoginScreen() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Sales Division <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <Input placeholder="e.g. North, South, Midlands…" value={salesDivision} onChange={e => setSalesDivision(e.target.value)} />
+                  <Label>Building <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                  <AppSelect
+                    value={building}
+                    onChange={v => { setBuilding(v); setSalesDivision('') }}
+                    placeholder="— Select your building —"
+                    options={[{ value: '', label: '— Select your building —' }, ...BUILDINGS.map(b => ({ value: b, label: b }))]}
+                  />
                 </div>
+                {building && (
+                  <div className="space-y-1.5">
+                    <Label>Sales Division <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                    <AppSelect
+                      value={salesDivision}
+                      onChange={setSalesDivision}
+                      placeholder="— Select your division —"
+                      options={[{ value: '', label: '— Select your division —' }, ...(DIVISIONS_BY_BUILDING[building] ?? []).map(d => ({ value: d, label: d }))]}
+                    />
+                  </div>
+                )}
               </>
             )}
 

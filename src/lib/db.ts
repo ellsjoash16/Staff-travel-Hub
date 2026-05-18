@@ -628,6 +628,7 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     authEmail: data.authEmail ?? null,
     authDisplayName: data.authDisplayName ?? null,
     jobRole: data.jobRole ?? null,
+    building: data.building ?? null,
     salesDivision: data.salesDivision ?? null,
     firstName: firstName ?? '',
     lastName: lastName ?? '',
@@ -685,8 +686,8 @@ export async function adminUpdateUserProfile(uid: string, fields: {
   }, ['firstName', 'lastName', 'passportFirstName', 'passportLastName', 'medicalInfo', 'jobRole', 'salesDivision'])
 }
 
-export async function saveJobRole(uid: string, jobRole: string, salesDivision?: string | null): Promise<void> {
-  await setDoc(doc(db, 'userProfiles', uid), { jobRole, salesDivision: salesDivision ?? null }, { merge: true })
+export async function saveJobRole(uid: string, jobRole: string, salesDivision?: string | null, building?: string | null): Promise<void> {
+  await setDoc(doc(db, 'userProfiles', uid), { jobRole, salesDivision: salesDivision ?? null, building: building ?? null }, { merge: true })
 }
 
 export async function saveAccountRecord(uid: string, email: string | null, displayName: string | null): Promise<void> {
@@ -754,6 +755,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
       authEmail: data.authEmail ?? authUser.email,
       authDisplayName: data.authDisplayName ?? authUser.displayName,
       jobRole: data.jobRole ?? null,
+      building: data.building ?? null,
       salesDivision: data.salesDivision ?? null,
       firstName: firstName ?? '',
       lastName: lastName ?? '',

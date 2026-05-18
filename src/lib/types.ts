@@ -121,6 +121,7 @@ export interface UserProfile {
   passportFirstName: string
   passportLastName: string
   jobRole: string | null
+  building: string | null
   salesDivision: string | null
   medicalInfo: string | null
   dataConsent: boolean

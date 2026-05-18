@@ -9,9 +9,18 @@ import { Label } from '@/components/ui/label'
 import { AppSelect } from '@/components/ui/app-select'
 import { Textarea } from '@/components/ui/textarea'
 import { auth } from '@/lib/firebase'
-import { insertRegistration, fetchUserProfile, upsertUserProfile } from '@/lib/db'
+import { insertRegistration, fetchUserProfile, upsertUserProfile, saveJobRole } from '@/lib/db'
 
 const JOB_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM']
+
+const BUILDINGS = ['London', 'Shirley', 'Boxley', 'Sale']
+
+const DIVISIONS_BY_BUILDING: Record<string, string[]> = {
+  London:  ['Supertravel', 'World Options', 'Which Flight and Travel Solutions'],
+  Shirley: ['Red Admiral', 'Direct Line', 'International Flyer', 'World Travel Service'],
+  Boxley:  ['Fare Deals', 'Flying Start', 'Flightcall (AG)', 'Travel Options'],
+  Sale:    ['Manchester S', 'Manchester R', 'Manchester X'],
+}
 import { useApp } from '@/context/AppContext'
 import type { Trip, NominatedPerson } from '@/lib/types'
 
@@ -39,6 +48,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   const [passportFirst, setPassportFirst] = useState('')
   const [passportLast, setPassportLast]   = useState('')
   const [jobRole, setJobRole]             = useState('')
+  const [building, setBuilding]           = useState('')
   const [salesDivision, setSalesDivision] = useState('')
   const [nominatedPeople, setNominatedPeople] = useState<NominatedPerson[]>([])
   const [visitedBefore, setVisitedBefore]     = useState<boolean | null>(null)
@@ -54,6 +64,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     firstName: string; lastName: string
     passportFirstName: string; passportLastName: string
     jobRole: string | null
+    building: string | null
     salesDivision: string | null
     medicalInfo: string | null
   } | null>(null)
@@ -78,6 +89,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         const parts = (user.displayName ?? '').split(' ')
         if (parts[0]) setPassportFirst(f => f || parts[0])
         if (profile?.jobRole) setJobRole(profile.jobRole)
+        if (profile?.building) setBuilding(profile.building)
         if (profile?.salesDivision) setSalesDivision(profile.salesDivision)
         setPhase('passport')
       }
@@ -86,7 +98,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
 
   function reset() {
     setPhase('loading'); setSavedProfile(null)
-    setPassportFirst(''); setPassportLast(''); setJobRole(''); setSalesDivision('')
+    setPassportFirst(''); setPassportLast(''); setJobRole(''); setBuilding(''); setSalesDivision('')
     setNominatedPeople([])
     setVisitedBefore(null); setVisitedWhen(''); setKeyLevel(null)
     setInspiration(''); setWhyChooseYou('')
@@ -132,7 +144,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
 
   async function doSubmit(
     reg: Parameters<typeof insertRegistration>[0],
-    profile: { uid: string; jobRole: string | null; salesDivision: string | null; firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; consent: boolean } | null
+    profile: { uid: string; jobRole: string | null; building: string | null; salesDivision: string | null; firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; consent: boolean } | null
   ) {
     await insertRegistration({ ...reg, ...questionAnswers() })
     sendRegEmail(reg.email, reg.firstName, reg.tripName)
@@ -142,6 +154,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         authEmail: auth.currentUser?.email ?? null,
         authDisplayName: auth.currentUser?.displayName ?? null,
         jobRole: profile.jobRole,
+        building: profile.building,
         salesDivision: profile.salesDivision,
         firstName: profile.firstName,
         lastName: profile.lastName,
@@ -212,9 +225,10 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         dataConsent: false,
         status: 'requested' as const,
         jobRole: jobRole || null,
-        salesDivision: salesDivision.trim() || null,
+        salesDivision: salesDivision || null,
         nominatedPeople,
       }
+      if (user.uid && jobRole) saveJobRole(user.uid, jobRole, salesDivision || null, building || null).catch(() => {})
       await doSubmit(reg, null)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
@@ -256,9 +270,25 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         />
       </div>
       <div className="space-y-1.5">
-        <Label>Sales Division <span className="text-muted-foreground font-normal">(optional)</span></Label>
-        <Input placeholder="e.g. North, South, Midlands…" value={salesDivision} onChange={e => setSalesDivision(e.target.value)} />
+        <Label>Building <span className="text-muted-foreground font-normal">(optional)</span></Label>
+        <AppSelect
+          value={building}
+          onChange={v => { setBuilding(v); setSalesDivision('') }}
+          placeholder="— Select your building —"
+          options={[{ value: '', label: '— Select your building —' }, ...BUILDINGS.map(b => ({ value: b, label: b }))]}
+        />
       </div>
+      {building && (
+        <div className="space-y-1.5">
+          <Label>Sales Division <span className="text-muted-foreground font-normal">(optional)</span></Label>
+          <AppSelect
+            value={salesDivision}
+            onChange={setSalesDivision}
+            placeholder="— Select your division —"
+            options={[{ value: '', label: '— Select your division —' }, ...(DIVISIONS_BY_BUILDING[building] ?? []).map(d => ({ value: d, label: d }))]}
+          />
+        </div>
+      )}
     </div>
   )
 

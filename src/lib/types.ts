@@ -150,6 +150,11 @@ export interface Registration {
   jobRole: string | null
   salesDivision: string | null
   nominatedPeople: NominatedPerson[]
+  visitedBefore?: boolean | null
+  visitedWhen?: string | null
+  keyLevel?: 'key' | 'super_key' | null
+  destinationInspiration?: string | null
+  whyChooseYou?: string | null
 }
 
 export type View = 'home' | 'feed' | 'map' | 'upcoming' | 'events' | 'years' | 'submit' | 'settings' | 'pending' | 'interest'

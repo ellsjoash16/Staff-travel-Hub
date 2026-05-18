@@ -492,6 +492,11 @@ export async function insertRegistration(reg: Registration): Promise<void> {
     jobRole: reg.jobRole ?? null,
     salesDivision: reg.salesDivision ?? null,
     nominatedPeople: reg.nominatedPeople ?? [],
+    visitedBefore: reg.visitedBefore ?? null,
+    visitedWhen: reg.visitedWhen ?? null,
+    keyLevel: reg.keyLevel ?? null,
+    destinationInspiration: reg.destinationInspiration ?? null,
+    whyChooseYou: reg.whyChooseYou ?? null,
     status: 'requested',
     submittedAt: serverTimestamp(),
   })
@@ -530,6 +535,11 @@ export async function fetchRegistrations(): Promise<Registration[]> {
         jobRole: data.jobRole ?? null,
         salesDivision: data.salesDivision ?? null,
         nominatedPeople: Array.isArray(data.nominatedPeople) ? data.nominatedPeople : [],
+        visitedBefore: data.visitedBefore ?? null,
+        visitedWhen: data.visitedWhen ?? null,
+        keyLevel: data.keyLevel ?? null,
+        destinationInspiration: data.destinationInspiration ?? null,
+        whyChooseYou: data.whyChooseYou ?? null,
       } as Registration
     } catch {
       // Decryption failed for this doc — return a placeholder so it still shows
@@ -582,9 +592,9 @@ export async function fetchMyRegistrations(uid: string): Promise<Registration[]>
         decryptField(data.passportLastName ?? null),
         decryptField(data.medicalInfo ?? null),
       ])
-      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: firstName ?? '', lastName: lastName ?? '', email: email ?? '', passportFirstName: passportFirstName ?? '', passportLastName: passportLastName ?? '', medicalInfo, dataConsent: data.dataConsent ?? false, status: (data.status ?? 'requested') as RegistrationStatus, jobRole: data.jobRole ?? null, salesDivision: data.salesDivision ?? null, nominatedPeople: Array.isArray(data.nominatedPeople) ? data.nominatedPeople : [] } as Registration
+      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: firstName ?? '', lastName: lastName ?? '', email: email ?? '', passportFirstName: passportFirstName ?? '', passportLastName: passportLastName ?? '', medicalInfo, dataConsent: data.dataConsent ?? false, status: (data.status ?? 'requested') as RegistrationStatus, jobRole: data.jobRole ?? null, salesDivision: data.salesDivision ?? null, nominatedPeople: Array.isArray(data.nominatedPeople) ? data.nominatedPeople : [], visitedBefore: data.visitedBefore ?? null, visitedWhen: data.visitedWhen ?? null, keyLevel: data.keyLevel ?? null, destinationInspiration: data.destinationInspiration ?? null, whyChooseYou: data.whyChooseYou ?? null } as Registration
     } catch {
-      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: '', lastName: '', email: '', passportFirstName: '', passportLastName: '', medicalInfo: null, dataConsent: false, status: (data.status ?? 'requested') as RegistrationStatus, jobRole: null, salesDivision: null, nominatedPeople: [] } as Registration
+      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: '', lastName: '', email: '', passportFirstName: '', passportLastName: '', medicalInfo: null, dataConsent: false, status: (data.status ?? 'requested') as RegistrationStatus, jobRole: null, salesDivision: null, nominatedPeople: [], visitedBefore: null, visitedWhen: null, keyLevel: null, destinationInspiration: null, whyChooseYou: null } as Registration
     }
   }))
   return results

@@ -1079,6 +1079,32 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                       ))}
                                     </div>
                                   )}
+                                  {(r.visitedBefore != null || r.keyLevel || r.destinationInspiration || r.whyChooseYou) && (
+                                    <div className="mt-2 pt-2 border-t border-border/50 space-y-1.5">
+                                      {r.visitedBefore != null && (
+                                        <p className="text-xs text-muted-foreground">
+                                          <span className="font-medium text-foreground">Visited before:</span> {r.visitedBefore ? `Yes${r.visitedWhen ? ` (${r.visitedWhen})` : ''}` : 'No'}
+                                        </p>
+                                      )}
+                                      {r.keyLevel && (
+                                        <p className="text-xs text-muted-foreground">
+                                          <span className="font-medium text-foreground">Key level:</span> {r.keyLevel === 'super_key' ? 'Super Key' : 'Key'}
+                                        </p>
+                                      )}
+                                      {r.destinationInspiration && (
+                                        <div>
+                                          <p className="text-xs font-medium text-foreground">What inspires you:</p>
+                                          <p className="text-xs text-muted-foreground mt-0.5">{r.destinationInspiration}</p>
+                                        </div>
+                                      )}
+                                      {r.whyChooseYou && (
+                                        <div>
+                                          <p className="text-xs font-medium text-foreground">Why choose them:</p>
+                                          <p className="text-xs text-muted-foreground mt-0.5">{r.whyChooseYou}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                                 <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[r.status]}`}>
                                   {STATUS_LABELS[r.status]}

@@ -15,7 +15,7 @@ const JOB_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admi
 import { useApp } from '@/context/AppContext'
 import type { Trip, NominatedPerson } from '@/lib/types'
 
-type Phase = 'loading' | 'confirm' | 'passport' | 'medical' | 'nominate' | 'banned'
+type Phase = 'loading' | 'confirm' | 'passport' | 'medical' | 'nominate' | 'questions' | 'banned'
 
 interface Props {
   trip: Trip
@@ -43,8 +43,13 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   const [medicalInfo, setMedicalInfo]     = useState('')
   const [dataConsent, setDataConsent]     = useState(false)
   const [nominatedPeople, setNominatedPeople] = useState<NominatedPerson[]>([])
-  const [submitting, setSubmitting]       = useState(false)
-  const [submitted, setSubmitted]         = useState(false)
+  const [visitedBefore, setVisitedBefore]     = useState<boolean | null>(null)
+  const [visitedWhen, setVisitedWhen]         = useState('')
+  const [keyLevel, setKeyLevel]               = useState<'key' | 'super_key' | null>(null)
+  const [inspiration, setInspiration]         = useState('')
+  const [whyChooseYou, setWhyChooseYou]       = useState('')
+  const [submitting, setSubmitting]           = useState(false)
+  const [submitted, setSubmitted]             = useState(false)
 
   // Saved profile for confirm screen
   const [savedProfile, setSavedProfile] = useState<{
@@ -85,6 +90,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     setPhase('loading'); setSavedProfile(null)
     setPassportFirst(''); setPassportLast(''); setJobRole(''); setSalesDivision('')
     setMedicalInfo(''); setDataConsent(false); setNominatedPeople([])
+    setVisitedBefore(null); setVisitedWhen(''); setKeyLevel(null)
+    setInspiration(''); setWhyChooseYou('')
     setSubmitting(false); setSubmitted(false)
   }
 
@@ -115,11 +122,21 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     }).catch(() => {})
   }
 
+  function questionAnswers() {
+    return {
+      visitedBefore: visitedBefore ?? null,
+      visitedWhen: visitedBefore ? (visitedWhen.trim() || null) : null,
+      keyLevel: keyLevel ?? null,
+      destinationInspiration: inspiration.trim() || null,
+      whyChooseYou: whyChooseYou.trim() || null,
+    }
+  }
+
   async function doSubmit(
     reg: Parameters<typeof insertRegistration>[0],
     profile: { uid: string; jobRole: string | null; salesDivision: string | null; firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; consent: boolean } | null
   ) {
-    await insertRegistration(reg)
+    await insertRegistration({ ...reg, ...questionAnswers() })
     sendRegEmail(reg.email, reg.firstName, reg.tripName)
     if (profile?.consent) {
       await upsertUserProfile({
@@ -162,6 +179,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         jobRole: savedProfile.jobRole,
         salesDivision: savedProfile.salesDivision,
         nominatedPeople,
+        ...questionAnswers(),
       })
       sendRegEmail(email, savedProfile.firstName, trip.name)
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#05979a','#07c5b0','#064e5a','#f59e0b','#ffffff','#34d399'] })
@@ -379,15 +397,9 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">Your saved details will be used for this registration.</p>
-                  {savedProfile.jobRole && NOMINATING_ROLES.includes(savedProfile.jobRole) ? (
-                    <Button onClick={() => setPhase('nominate')} className="w-full gap-2">
-                      Next <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button onClick={submitFromConfirm} disabled={submitting} className="w-full gap-2">
-                      {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><Send className="h-4 w-4" /> Register Interest</>}
-                    </Button>
-                  )}
+                  <Button onClick={() => setPhase(savedProfile.jobRole && NOMINATING_ROLES.includes(savedProfile.jobRole) ? 'nominate' : 'questions')} className="w-full gap-2">
+                    Next <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
 
@@ -401,12 +413,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   {passportFields}
                   <div className="flex justify-end pt-1">
                     <Button onClick={() => {
-                      if (!passportFirst.trim() || !passportLast.trim()) {
-                        toast.error('Passport name is required'); return
-                      }
-                      if (!jobRole) {
-                        toast.error('Please select your job role'); return
-                      }
+                      if (!passportFirst.trim() || !passportLast.trim()) { toast.error('Passport name is required'); return }
+                      if (!jobRole) { toast.error('Please select your job role'); return }
                       setPhase('medical')
                     }} className="gap-1.5">
                       Next <ChevronRight className="h-4 w-4" />
@@ -425,15 +433,9 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   {medicalFields}
                   <div className="flex justify-between pt-1">
                     <Button variant="ghost" onClick={() => setPhase('passport')} className="gap-1.5"><ChevronLeft className="h-4 w-4" /> Back</Button>
-                    {NOMINATING_ROLES.includes(jobRole) ? (
-                      <Button onClick={() => setPhase('nominate')} className="gap-1.5">
-                        Next <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <Button onClick={handleSubmit} disabled={submitting} className="gap-2">
-                        {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><Send className="h-4 w-4" /> Register Interest</>}
-                      </Button>
-                    )}
+                    <Button onClick={() => setPhase(NOMINATING_ROLES.includes(jobRole) ? 'nominate' : 'questions')} className="gap-1.5">
+                      Next <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               )}
@@ -446,11 +448,75 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                     <Button variant="ghost" onClick={() => setPhase(savedProfile ? 'confirm' : 'medical')} className="gap-1.5">
                       <ChevronLeft className="h-4 w-4" /> Back
                     </Button>
-                    <Button
-                      onClick={savedProfile ? submitFromConfirm : handleSubmit}
-                      disabled={submitting}
-                      className="gap-2"
-                    >
+                    <Button onClick={() => setPhase('questions')} className="gap-1.5">
+                      Next <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Questions */}
+              {phase === 'questions' && (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-gilbert text-base">A few questions</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">All optional — takes 30 seconds</p>
+                  </div>
+
+                  {/* Visited before */}
+                  <div className="space-y-2">
+                    <Label>Have you visited this destination before?</Label>
+                    <div className="flex gap-2">
+                      {([true, false] as const).map(val => (
+                        <button
+                          key={String(val)}
+                          type="button"
+                          onClick={() => { setVisitedBefore(v => v === val ? null : val); if (!val) setVisitedWhen('') }}
+                          className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${visitedBefore === val ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}
+                        >
+                          {val ? 'Yes' : 'No'}
+                        </button>
+                      ))}
+                    </div>
+                    {visitedBefore === true && (
+                      <Input placeholder="When? e.g. 2019, summer 2022…" value={visitedWhen} onChange={e => setVisitedWhen(e.target.value)} />
+                    )}
+                  </div>
+
+                  {/* Key level */}
+                  <div className="space-y-2">
+                    <Label>Are you Key or Super Key?</Label>
+                    <div className="flex gap-2">
+                      {(['key', 'super_key'] as const).map(val => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => setKeyLevel(k => k === val ? null : val)}
+                          className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${keyLevel === val ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}
+                        >
+                          {val === 'key' ? 'Key' : 'Super Key'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Inspiration */}
+                  <div className="space-y-1.5">
+                    <Label>What inspires you about this destination? <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                    <Textarea placeholder="Tell us what excites you about this trip…" value={inspiration} onChange={e => setInspiration(e.target.value)} rows={3} />
+                  </div>
+
+                  {/* Why choose you */}
+                  <div className="space-y-1.5">
+                    <Label>Why should we choose you? <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                    <Textarea placeholder="What makes you the right person for this trip…" value={whyChooseYou} onChange={e => setWhyChooseYou(e.target.value)} rows={3} />
+                  </div>
+
+                  <div className="flex justify-between pt-1">
+                    <Button variant="ghost" onClick={() => setPhase(NOMINATING_ROLES.includes(savedProfile?.jobRole ?? jobRole) ? 'nominate' : savedProfile ? 'confirm' : 'medical')} className="gap-1.5">
+                      <ChevronLeft className="h-4 w-4" /> Back
+                    </Button>
+                    <Button onClick={savedProfile ? submitFromConfirm : handleSubmit} disabled={submitting} className="gap-2">
                       {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><Send className="h-4 w-4" /> Register Interest</>}
                     </Button>
                   </div>

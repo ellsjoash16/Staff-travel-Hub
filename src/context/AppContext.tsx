@@ -236,8 +236,16 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       let resolvedSettings: Settings = DEFAULT_SETTINGS
       try {
         resolvedSettings = await fetchSettings()
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings))
       } catch {}
+
+      // If the current user is a superadmin but Firestore hasn't been updated yet
+      // (ensure-admin is still in flight), patch adminUids locally so the admin
+      // panel displays their status correctly right away
+      if (uid && SUPERADMIN_UIDS.includes(uid) && !resolvedSettings.adminUids.includes(uid)) {
+        resolvedSettings = { ...resolvedSettings, adminUids: [...resolvedSettings.adminUids, uid] }
+      }
+
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings)) } catch {}
       dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
       if (uid && resolvedSettings.adminUids?.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
       if (!hasCached) dispatch({ type: 'SET_LOADING', value: false })

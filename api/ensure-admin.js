@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
     // Only these UIDs are permitted to self-enrol as admins
     const ALLOWED_UIDS = [
-      'zjq9ki2IUNg3fUHGlda7N3pn6ko1',
+      'zjq9ki2IUNg3fUHGldA7N3pn6ko1',
       'UdIhjIXCVfdPBwaQ6HnzM1jDYoa2',
     ]
     if (!ALLOWED_UIDS.includes(callerUid)) {

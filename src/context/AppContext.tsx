@@ -21,7 +21,7 @@ import { hexToHsl, extractStoragePath } from '@/lib/utils'
 import { auth } from '@/lib/firebase'
 
 // UIDs that are always admin — mirrors api/ensure-admin.js ALLOWED_UIDS
-export const SUPERADMIN_UIDS = ['zjq9ki2IUNg3fUHGlda7N3pn6ko1', 'UdIhjIXCVfdPBwaQ6HnzM1jDYoa2']
+export const SUPERADMIN_UIDS = ['zjq9ki2IUNg3fUHGldA7N3pn6ko1', 'UdIhjIXCVfdPBwaQ6HnzM1jDYoa2']
 
 const BUCKET = 'post-images'
 

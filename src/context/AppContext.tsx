@@ -68,7 +68,7 @@ type Action =
   | { type: 'UPDATE_REGISTRATION_STATUS'; id: string; status: RegistrationStatus }
   | { type: 'DELETE_REGISTRATION'; id: string }
   | { type: 'DELETE_USER_PROFILE'; uid: string }
-  | { type: 'SET_USER_BANNED'; uid: string; banned: boolean }
+  | { type: 'SET_USER_BANNED'; uid: string; banned: boolean; banUntil: string | null }
   | { type: 'SET_MY_REGISTRATIONS'; registrations: Registration[] }
   | { type: 'ADD_MY_REGISTRATION'; registration: Registration }
   | { type: 'SET_CURRENT_USER_PROFILE'; profile: { jobRole: string | null; salesDivision: string | null } | null }
@@ -104,7 +104,7 @@ function reducer(state: AppState, action: Action): AppState {
     case 'UPDATE_REGISTRATION_STATUS': return { ...state, registrations: state.registrations.map(r => r.id === action.id ? { ...r, status: action.status } : r) }
     case 'DELETE_REGISTRATION': return { ...state, registrations: state.registrations.filter(r => r.id !== action.id) }
     case 'DELETE_USER_PROFILE': return { ...state, userProfiles: state.userProfiles.filter(u => u.uid !== action.uid) }
-    case 'SET_USER_BANNED': return { ...state, userProfiles: state.userProfiles.map(u => u.uid === action.uid ? { ...u, banned: action.banned } : u) }
+    case 'SET_USER_BANNED': return { ...state, userProfiles: state.userProfiles.map(u => u.uid === action.uid ? { ...u, banned: action.banned, banUntil: action.banUntil } : u) }
     case 'SET_MY_REGISTRATIONS': return { ...state, myRegistrations: action.registrations }
     case 'ADD_MY_REGISTRATION': return { ...state, myRegistrations: [...state.myRegistrations, action.registration] }
     case 'SET_CURRENT_USER_PROFILE': return { ...state, currentUserProfile: action.profile }
@@ -175,7 +175,7 @@ interface AppContextValue {
   loadUserProfiles: () => Promise<void>
   loadMyRegistrations: () => Promise<void>
   toggleAdminUid: (uid: string, isCurrentlyAdmin?: boolean) => Promise<void>
-  banUser: (uid: string, banned: boolean) => Promise<void>
+  banUser: (uid: string, banned: boolean, banUntil?: string | null) => Promise<void>
   editUserProfile: (uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; salesDivision: string | null }) => Promise<void>
 }
 
@@ -342,9 +342,9 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     dispatch({ type: 'UPDATE_USER_PROFILE', uid, fields: { isAdmin: action === 'add' } })
   }
 
-  async function banUser(uid: string, banned: boolean): Promise<void> {
-    await setUserBanned(uid, banned)
-    dispatch({ type: 'SET_USER_BANNED', uid, banned })
+  async function banUser(uid: string, banned: boolean, banUntil: string | null = null): Promise<void> {
+    await setUserBanned(uid, banned, banUntil)
+    dispatch({ type: 'SET_USER_BANNED', uid, banned, banUntil })
   }
 
   async function editUserProfile(uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; salesDivision: string | null }): Promise<void> {

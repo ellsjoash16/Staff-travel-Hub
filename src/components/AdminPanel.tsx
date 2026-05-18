@@ -100,6 +100,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [updatingRegId, setUpdatingRegId] = useState<string | null>(null)
   const [registrationsLoading, setRegistrationsLoading] = useState(false)
   const [togglingAdminUid, setTogglingAdminUid] = useState<string | null>(null)
+  const [banningUser, setBanningUser] = useState<{ uid: string; name: string } | null>(null)
+  const [banSaving, setBanSaving] = useState(false)
   const [deletingProfileUid, setDeletingProfileUid] = useState<string | null>(null)
   const [editingProfileUid, setEditingProfileUid] = useState<string | null>(null)
   const [profileEditForm, setProfileEditForm] = useState({ firstName: '', lastName: '', passportFirstName: '', passportLastName: '', medicalInfo: '', jobRole: '', salesDivision: '' })
@@ -1411,8 +1413,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               </p>
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
-                              {u.banned && (
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">Banned</span>
+                              {u.banned && (u.banUntil == null || new Date(u.banUntil) > new Date()) && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
+                                  {u.banUntil ? `Banned until ${new Date(u.banUntil).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Banned'}
+                                </span>
                               )}
                               {u.isAdmin === true && (
                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Admin</span>
@@ -1554,7 +1558,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               <div className="flex flex-wrap items-center gap-2 pt-1">
                                 {(() => {
                                   const isUserAdmin = u.isAdmin === true || (settings.adminUids ?? []).includes(u.uid) || SUPERADMIN_UIDS.includes(u.uid)
-                                  const isBanned = u.banned ?? false
+                                  const isBanned = (u.banned ?? false) && (u.banUntil == null || new Date(u.banUntil) > new Date())
                                   return (
                                     <>
                                       <Button
@@ -1587,12 +1591,16 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                         onClick={async (e) => {
                                           e.preventDefault()
                                           e.stopPropagation()
-                                          toast.info('Updating…')
-                                          try {
-                                            await banUser(u.uid, !isBanned)
-                                            toast.success(isBanned ? 'User unbanned' : 'User banned from registering interest')
-                                          } catch (err: unknown) {
-                                            toast.error((err as Error)?.message ?? 'Failed to update ban status')
+                                          if (isBanned) {
+                                            toast.info('Updating…')
+                                            try {
+                                              await banUser(u.uid, false, null)
+                                              toast.success('User unbanned')
+                                            } catch (err: unknown) {
+                                              toast.error((err as Error)?.message ?? 'Failed to unban user')
+                                            }
+                                          } else {
+                                            setBanningUser({ uid: u.uid, name: `${u.firstName || u.authDisplayName || u.authEmail}` })
                                           }
                                         }}
                                         className={`gap-1.5 ${!isBanned ? 'text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10' : ''}`}
@@ -1725,18 +1733,72 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
           </Tabs>
   )
 
-  if (inline) return tabsContent
+  const BAN_DURATIONS = [
+    { label: '1 week',   days: 7 },
+    { label: '2 weeks',  days: 14 },
+    { label: '1 month',  days: 30 },
+    { label: '3 months', days: 90 },
+    { label: '6 months', days: 180 },
+    { label: '1 year',   days: 365 },
+    { label: 'Permanent', days: null },
+  ]
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg">
+  const banDialog = (
+    <Dialog open={!!banningUser} onOpenChange={(o) => { if (!o && !banSaving) setBanningUser(null) }}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Admin Panel</DialogTitle>
+          <DialogTitle>Ban {banningUser?.name}</DialogTitle>
         </DialogHeader>
-        <DialogBody className="pt-2">
-          {tabsContent}
+        <DialogBody className="space-y-3 pt-2">
+          <p className="text-sm text-muted-foreground">How long should this ban last?</p>
+          <div className="grid grid-cols-2 gap-2">
+            {BAN_DURATIONS.map(({ label, days }) => (
+              <Button
+                key={label}
+                variant="secondary"
+                disabled={banSaving}
+                onClick={async () => {
+                  if (!banningUser) return
+                  setBanSaving(true)
+                  try {
+                    const until = days != null
+                      ? new Date(Date.now() + days * 86400_000).toISOString()
+                      : null
+                    await banUser(banningUser.uid, true, until)
+                    toast.success(`${banningUser.name} banned${days != null ? ` for ${label.toLowerCase()}` : ' permanently'}`)
+                    setBanningUser(null)
+                  } catch (err: unknown) {
+                    toast.error((err as Error)?.message ?? 'Failed to ban user')
+                  } finally {
+                    setBanSaving(false)
+                  }
+                }}
+                className={`justify-center ${days == null ? 'col-span-2 border-destructive/40 text-destructive hover:bg-destructive/10' : ''}`}
+              >
+                {banSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : label}
+              </Button>
+            ))}
+          </div>
         </DialogBody>
       </DialogContent>
     </Dialog>
+  )
+
+  if (inline) return <>{tabsContent}{banDialog}</>
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent size="lg">
+          <DialogHeader>
+            <DialogTitle>Admin Panel</DialogTitle>
+          </DialogHeader>
+          <DialogBody className="pt-2">
+            {tabsContent}
+          </DialogBody>
+        </DialogContent>
+      </Dialog>
+      {banDialog}
+    </>
   )
 }

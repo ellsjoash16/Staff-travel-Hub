@@ -311,8 +311,8 @@ export async function setAdminUids(uids: string[]): Promise<void> {
   await setDoc(doc(db, 'settings', 'main'), { adminUids: uids }, { merge: true })
 }
 
-export async function setUserBanned(uid: string, banned: boolean): Promise<void> {
-  await adminWrite('userProfiles', uid, 'update', { banned }, ['banned'])
+export async function setUserBanned(uid: string, banned: boolean, banUntil: string | null = null): Promise<void> {
+  await adminWrite('userProfiles', uid, 'update', { banned, banUntil }, ['banned', 'banUntil'])
 }
 
 export async function updatePanelImages(panelImages: Settings['panelImages']): Promise<void> {
@@ -626,6 +626,7 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     medicalInfo,
     dataConsent: data.dataConsent ?? false,
     banned: data.banned ?? false,
+    banUntil: data.banUntil ?? null,
     isAdmin: data.isAdmin ?? false,
   }
 }
@@ -751,6 +752,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
       medicalInfo,
       dataConsent: data.dataConsent ?? false,
       banned: data.banned ?? false,
+      banUntil: data.banUntil ?? null,
       isAdmin: data.isAdmin ?? false,
       updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null,
     } as UserProfile & { updatedAt: string | null }

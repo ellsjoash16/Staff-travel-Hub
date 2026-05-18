@@ -182,10 +182,12 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children, authUid }: { children: ReactNode; authUid: string | null }) {
+  const uid0 = authUid ?? auth.currentUser?.uid ?? null
   const [state, dispatch] = useReducer(reducer, {
     posts: [], courses: [], submissions: [], trips: [], locations: [],
     settings: DEFAULT_SETTINGS,
-    isAdmin: false, activeView: 'home', activeFilter: null, loading: true,
+    isAdmin: uid0 != null && SUPERADMIN_UIDS.includes(uid0),
+    activeView: 'home', activeFilter: null, loading: true,
     pendingPosts: [], registrations: [], userProfiles: [], myRegistrations: [],
     currentUserProfile: null,
   })

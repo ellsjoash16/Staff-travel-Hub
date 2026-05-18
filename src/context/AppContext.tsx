@@ -335,20 +335,21 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
 
   async function toggleAdminUid(uid: string): Promise<void> {
     const current = state.settings.adminUids ?? []
-    const updated = current.includes(uid) ? current.filter(u => u !== uid) : [...current, uid]
-    // Use server-side API to bypass Firestore rules (which require the caller to already be in adminUids)
+    const action = current.includes(uid) ? 'remove' : 'add'
     const token = await auth.currentUser?.getIdToken()
     if (!token) throw new Error('Not authenticated')
+    // Send a single-UID mutation — server reads Firestore authoritatively so no
+    // stale client state can corrupt the list
     const apiRes = await apiFetch('/api/set-admin-uids', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminUids: updated }),
+      body: JSON.stringify({ uid, action }),
     })
-    if (!apiRes.ok) {
-      const body = await apiRes.json().catch(() => ({})) as { error?: string }
-      throw new Error(body.error ?? `API error ${apiRes.status}`)
-    }
-    const newSettings = { ...state.settings, adminUids: updated }
+    const resBody = await apiRes.json().catch(() => ({})) as { adminUids?: string[]; error?: string }
+    if (!apiRes.ok) throw new Error(resBody.error ?? `API error ${apiRes.status}`)
+    // Use the server's returned adminUids as the new source of truth
+    const freshUids: string[] = resBody.adminUids ?? [...(state.settings.adminUids ?? []), uid]
+    const newSettings = { ...state.settings, adminUids: freshUids }
     dispatch({ type: 'UPDATE_SETTINGS', settings: newSettings })
     try { localStorage.setItem('dafagram:settings', JSON.stringify(newSettings)) } catch {}
   }

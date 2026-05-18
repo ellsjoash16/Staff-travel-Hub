@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
     const fsBase = `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents`
 
-    // Read current adminUids
+    // Read authoritative adminUids from Firestore
     const settingsRes = await fetch(`${fsBase}/settings/main`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
@@ -26,12 +26,25 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Forbidden' })
     }
 
-    const { adminUids: newUids } = req.body
-    if (!Array.isArray(newUids) || !newUids.every(u => typeof u === 'string')) {
-      return res.status(400).json({ error: 'adminUids must be an array of strings' })
+    // Accept a single UID + action — never trust the client's full array
+    const { uid: targetUid, action } = req.body
+    if (!targetUid || typeof targetUid !== 'string') {
+      return res.status(400).json({ error: 'uid must be a string' })
     }
-    if (newUids.length === 0) {
-      return res.status(400).json({ error: 'Cannot remove all admins' })
+    if (action !== 'add' && action !== 'remove') {
+      return res.status(400).json({ error: 'action must be "add" or "remove"' })
+    }
+
+    let newUids
+    if (action === 'add') {
+      newUids = storedAdminUids.includes(targetUid)
+        ? storedAdminUids
+        : [...storedAdminUids, targetUid]
+    } else {
+      newUids = storedAdminUids.filter(u => u !== targetUid)
+      if (newUids.length === 0) {
+        return res.status(400).json({ error: 'Cannot remove all admins' })
+      }
     }
 
     const patchRes = await fetch(
@@ -49,7 +62,7 @@ export default async function handler(req, res) {
       throw new Error(`Firestore write failed: ${patchRes.status} ${txt.slice(0, 200)}`)
     }
 
-    console.log(`[set-admin-uids] ${callerUid} updated adminUids → [${newUids.join(', ')}]`)
+    console.log(`[set-admin-uids] ${callerUid} ${action}ed ${targetUid} → [${newUids.join(', ')}]`)
     res.status(200).json({ adminUids: newUids })
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Internal error'

@@ -189,9 +189,15 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
 
   // Initial data load
   useEffect(() => {
+    // UIDs that are always admin regardless of Firestore state (mirrors ensure-admin.js)
+    const SUPERADMIN_UIDS = ['zjq9ki2IUNg3fUHGlda7N3pn6ko1', 'UdIhjIXCVfdPBwaQ6HnzM1jDYoa2']
+
     async function init() {
       const uid = authUid ?? auth.currentUser?.uid
       const SETTINGS_KEY = 'dafagram:settings'
+
+      // Superadmins are always admin — no Firestore race can take this away
+      if (uid && SUPERADMIN_UIDS.includes(uid)) dispatch({ type: 'SET_ADMIN', value: true })
 
       // Fire ensure-admin in parallel — does NOT block settings load.
       // Returns the current adminUids from Firestore (including any it just added).

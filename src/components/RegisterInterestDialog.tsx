@@ -105,11 +105,22 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     setNominatedPeople(p => p.filter((_, idx) => idx !== i))
   }
 
+  async function sendRegEmail(to: string, name: string, tripName: string) {
+    auth.currentUser?.getIdToken().then(token => {
+      fetch('/api/send-registration-email', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'registered', to, name, tripName }),
+      }).catch(() => {})
+    }).catch(() => {})
+  }
+
   async function doSubmit(
     reg: Parameters<typeof insertRegistration>[0],
     profile: { uid: string; jobRole: string | null; salesDivision: string | null; firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; consent: boolean } | null
   ) {
     await insertRegistration(reg)
+    sendRegEmail(reg.email, reg.firstName, reg.tripName)
     if (profile?.consent) {
       await upsertUserProfile({
         uid: profile.uid,
@@ -135,11 +146,12 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     if (!user || !savedProfile) return
     setSubmitting(true)
     try {
+      const email = user.email ?? ''
       await insertRegistration({
         id: crypto.randomUUID(),
         tripId: trip.id, tripName: trip.name,
         uid: user.uid,
-        email: user.email ?? '',
+        email,
         firstName: savedProfile.firstName,
         lastName: savedProfile.lastName,
         passportFirstName: savedProfile.passportFirstName,
@@ -151,6 +163,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         salesDivision: savedProfile.salesDivision,
         nominatedPeople,
       })
+      sendRegEmail(email, savedProfile.firstName, trip.name)
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#05979a','#07c5b0','#064e5a','#f59e0b','#ffffff','#34d399'] })
       await loadMyRegistrations()
       setSubmitted(true)

@@ -16,9 +16,9 @@ const JOB_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admi
 const BUILDINGS = ['London', 'Shirley', 'Boxley', 'Sale']
 
 const DIVISIONS_BY_BUILDING: Record<string, string[]> = {
-  London:  ['Supertravel', 'World Options', 'Which Flight and Travel Solutions'],
+  London:  ['Supertravel', 'World Options', 'Which Flight', 'Travel Solutions'],
   Shirley: ['Red Admiral', 'Direct Line', 'International Flyer', 'World Travel Service'],
-  Boxley:  ['Fare Deals', 'Flying Start', 'Flightcall (AG)', 'Travel Options'],
+  Boxley:  ['Fare Deals', 'Flying Start', 'Flightcall', 'Travel Options'],
   Sale:    ['Manchester S', 'Manchester R', 'Manchester X'],
 }
 import { useApp } from '@/context/AppContext'

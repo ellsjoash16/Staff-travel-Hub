@@ -60,31 +60,27 @@ function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)       // mobile drawer
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false) // desktop collapsed
 
-  const showSidebar = state.activeView !== 'home'
-
   if (state.loading) return <SplashScreen />
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden bg-background">
       <Header
-        showMenuButton={showSidebar}
+        showMenuButton
         onMenuClick={() => setSidebarOpen(o => !o)}
-        showSidebar={showSidebar}
+        showSidebar
         sidebarCollapsed={sidebarCollapsed}
       />
 
-      {showSidebar && (
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onCollapsedChange={setSidebarCollapsed}
-          mobileOpen={sidebarOpen}
-          onMobileClose={() => setSidebarOpen(false)}
-        />
-      )}
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
 
       <main
         className={`flex-1 min-h-0 overflow-auto transition-all duration-300 ${
-          showSidebar ? (sidebarCollapsed ? 'lg:ml-16 xl:ml-20' : 'lg:ml-60 xl:ml-72') : ''
+          sidebarCollapsed ? 'lg:ml-16 xl:ml-20' : 'lg:ml-60 xl:ml-72'
         } ${
           state.activeView === 'home'   ? 'px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 lg:py-4 2xl:py-5'
           : state.activeView === 'map'  ? 'p-0 overflow-hidden'
@@ -124,6 +120,10 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false)
   const [signedIn, setSignedIn]   = useState(false)
   const [authUid, setAuthUid]     = useState<string | null>(null)
+
+  useEffect(() => {
+    document.getElementById('pre-splash')?.remove()
+  }, [])
 
   useEffect(() => {
     return onAuthStateChanged(auth, user => {

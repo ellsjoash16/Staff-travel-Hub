@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Shield, Menu, Sun, Moon, Settings, Search, LogOut } from 'lucide-react'
+import { useState } from 'react'
+import { Shield, Menu, Settings, Search, LogOut } from 'lucide-react'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { useApp } from '@/context/AppContext'
@@ -16,15 +16,9 @@ interface Props {
 export function Header({ showMenuButton, onMenuClick, showSidebar, sidebarCollapsed }: Props) {
   const { state, dispatch } = useApp()
   const { isAdmin } = state
-  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
   const [searchOpen, setSearchOpen] = useState(false)
 
   const logoOffset = (() => { try { const s = localStorage.getItem('logo-offset'); return s ? JSON.parse(s) : { x: 0, y: 0 } } catch { return { x: 0, y: 0 } } })()
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark)
-    localStorage.setItem('theme', dark ? 'dark' : 'light')
-  }, [dark])
 
   return (
     <>
@@ -90,14 +84,6 @@ export function Header({ showMenuButton, onMenuClick, showSidebar, sidebarCollap
                 <Search className="h-5 w-5" />
               </button>
             )}
-
-            <button
-              onClick={() => setDark(d => !d)}
-              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              aria-label="Toggle theme"
-            >
-              {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
 
             <button
               onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}

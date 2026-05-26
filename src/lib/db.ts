@@ -807,15 +807,19 @@ export async function uploadImage(
   dataUrl: string,
   id: string,
 ): Promise<{ url: string; path: string }> {
+  console.log('[uploadImage] start', id)
   const blob = dataUrl.startsWith('data:image/jpeg')
     ? await fetch(dataUrl).then((r) => r.blob())
     : dataUrl.startsWith('data:')
       ? await compressImage(dataUrl)
       : await fetch(dataUrl).then((r) => r.blob())
+  console.log('[uploadImage] blob ready', id, blob.size)
   const path = `images/${id}-${Date.now()}.jpg`
   const storageRef = ref(storage, path)
   await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' })
+  console.log('[uploadImage] uploaded', id)
   const url = await getDownloadURL(storageRef)
+  console.log('[uploadImage] url ready', id)
   return { url, path }
 }
 

@@ -46,6 +46,7 @@ interface AppState {
   activeView: View
   activeFilter: string | null
   loading: boolean
+  postsLoaded: boolean
   pendingPosts: Post[]
   registrations: Registration[]
   userProfiles: (UserProfile & { updatedAt: string | null })[]
@@ -74,6 +75,7 @@ type Action =
   | { type: 'SET_CURRENT_USER_PROFILE'; profile: { jobRole: string | null; salesDivision: string | null } | null }
   | { type: 'UPDATE_USER_PROFILE'; uid: string; fields: Partial<UserProfile> }
   | { type: 'UPDATE_TRIP_PARTICIPANTS'; tripId: string; name: string; action: 'add' | 'remove' }
+  | { type: 'SET_POSTS_LOADED' }
   | { type: 'APPROVE_POST'; id: string }
   | { type: 'ADD_POST'; post: Post }
   | { type: 'UPDATE_POST'; post: Post }
@@ -94,6 +96,7 @@ function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'INIT':
       return { ...state, posts: action.posts, courses: [], submissions: action.submissions, trips: action.trips, locations: action.locations, settings: action.settings }
+    case 'SET_POSTS_LOADED': return { ...state, postsLoaded: true }
     case 'SET_LOADING': return { ...state, loading: action.value }
     case 'SET_VIEW': return { ...state, activeView: action.view }
     case 'SET_FILTER': return { ...state, activeFilter: action.filter }
@@ -154,7 +157,7 @@ interface AppContextValue {
   editPost: (post: Post, newDataUrls: string[], staffImageDataUrl: string | null) => Promise<void>
   deletePost: (id: string) => Promise<void>
 
-  submitReview: (submission: Submission, imageDataUrls: string[]) => Promise<void>
+  submitReview: (submission: Submission, imageDataUrls: string[], onProgress?: (uploaded: number, total: number) => void) => Promise<void>
   editSubmission: (submission: Submission, newDataUrls: string[]) => Promise<void>
   deleteSubmission: (id: string) => Promise<void>
   addTrip: (trip: Trip, imageDataUrl: string | null) => Promise<void>
@@ -173,6 +176,7 @@ interface AppContextValue {
   removeRegistration: (id: string) => Promise<void>
   removeUserProfile: (uid: string) => Promise<void>
   loadUserProfiles: () => Promise<void>
+  loadPosts: () => Promise<void>
   loadMyRegistrations: () => Promise<void>
   toggleAdminUid: (uid: string, isCurrentlyAdmin?: boolean) => Promise<void>
   banUser: (uid: string, banned: boolean, banUntil?: string | null) => Promise<void>
@@ -188,7 +192,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     settings: DEFAULT_SETTINGS,
     isAdmin: uid0 != null && SUPERADMIN_UIDS.includes(uid0),
     activeView: 'home', activeFilter: null, loading: true,
-    pendingPosts: [], registrations: [], userProfiles: [], myRegistrations: [],
+    postsLoaded: false, pendingPosts: [], registrations: [], userProfiles: [], myRegistrations: [],
     currentUserProfile: null,
   })
 
@@ -206,25 +210,21 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
           .catch(() => {})
       }
 
-      // Kick off everything in parallel
-      const postsPromise = fetchPosts().catch(() => [] as Post[])
+      // Kick off everything in parallel (posts are lazy-loaded on first FeedView visit)
       const tripsPromise = fetchTrips().catch(() => [] as Trip[])
       const locationsPromise = fetchLocations().catch(() => [] as Location[])
       const profilePromise = uid ? fetchUserProfile(uid).catch(() => null) : Promise.resolve(null)
+      const myRegsPromise = uid ? fetchMyRegistrations(uid).catch(() => []) : Promise.resolve([])
+      myRegsPromise.then(myRegs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: myRegs }))
 
-      // Show cached settings immediately (stale-while-revalidate)
-      let hasCached = false
+      // Apply cached settings immediately, then show the shell — don't wait for Firestore
       try {
         const raw = localStorage.getItem(SETTINGS_KEY)
-        if (raw) {
-          const cached: Settings = JSON.parse(raw)
-          dispatch({ type: 'UPDATE_SETTINGS', settings: cached })
-          dispatch({ type: 'SET_LOADING', value: false })
-          hasCached = true
-        }
+        if (raw) dispatch({ type: 'UPDATE_SETTINGS', settings: JSON.parse(raw) })
       } catch {}
+      dispatch({ type: 'SET_LOADING', value: false })
 
-      // Fetch settings and own profile in parallel
+      // Fetch settings and profile in the background
       const [resolvedSettings, profile] = await Promise.all([
         fetchSettings().catch(() => DEFAULT_SETTINGS),
         profilePromise,
@@ -233,7 +233,6 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings)) } catch {}
       dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
 
-      // isAdmin = profile flag (written by server) OR in adminUids OR superadmin UID
       const isAdminUser =
         profile?.isAdmin === true ||
         (uid != null && resolvedSettings.adminUids.includes(uid)) ||
@@ -243,14 +242,9 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       if (profile) {
         dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision } })
       }
-      if (!hasCached) dispatch({ type: 'SET_LOADING', value: false })
 
-      const [posts, trips, locations] = await Promise.all([postsPromise, tripsPromise, locationsPromise])
-      dispatch({ type: 'INIT', posts, submissions: [], trips, locations, settings: resolvedSettings })
-
-      if (uid) {
-        fetchMyRegistrations(uid).then(regs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: regs })).catch(() => {})
-      }
+      const [trips, locations] = await Promise.all([tripsPromise, locationsPromise])
+      dispatch({ type: 'INIT', posts: [], submissions: [], trips, locations, settings: resolvedSettings })
     }
     init()
   }, [])
@@ -265,6 +259,13 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     }
   }, [state.settings.color])
 
+
+  async function loadPosts(): Promise<void> {
+    if (state.postsLoaded) return
+    const posts = await fetchPosts()
+    dispatch({ type: 'INIT', posts, submissions: [], trips: state.trips, locations: state.locations, settings: state.settings })
+    dispatch({ type: 'SET_POSTS_LOADED' })
+  }
 
   async function approvePostFn(id: string): Promise<void> {
     await approvePost(id)
@@ -409,8 +410,12 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
   }
 
 
-  async function submitReview(submission: Submission, imageDataUrls: string[]): Promise<void> {
-    const uploadedResults = await Promise.all(imageDataUrls.map((url, i) => uploadImage(url, `${submission.id}-${i}`)))
+  async function submitReview(submission: Submission, imageDataUrls: string[], onProgress?: (uploaded: number, total: number) => void): Promise<void> {
+    let done = 0
+    const total = imageDataUrls.length
+    const uploadedResults = await Promise.all(imageDataUrls.map((url, i) =>
+      uploadImage(url, `${submission.id}-${i}`).then(r => { onProgress?.(++done, total); return r })
+    ))
     const uploadedImages = uploadedResults.map(r => r.url)
     const uploadedPaths = uploadedResults.map(r => r.path)
 
@@ -434,7 +439,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
     }
 
     await submitPendingPost(post, uploadedPaths)
-    // Don't add to state.posts — it's pending, not approved
+    dispatch({ type: 'SET_PENDING', posts: [...state.pendingPosts, post] })
   }
 
   async function editSubmission(submission: Submission, newDataUrls: string[]): Promise<void> {
@@ -566,6 +571,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
       addTrip, editTrip, deleteTrip, completeTrip,
       addLocation, editLocation, deleteLocation,
       saveSettings, savePageImages,
+      loadPosts,
       approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
     }}>
       {children}

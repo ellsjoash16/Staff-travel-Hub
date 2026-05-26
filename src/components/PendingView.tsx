@@ -11,7 +11,7 @@ import type { Post } from '@/lib/types'
 export function PendingView() {
   const { state, fetchPending, approvePostFn, dispatch } = useApp()
   const { pendingPosts } = state
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [actionId, setActionId] = useState<string | null>(null)
   const [editPost, setEditPost] = useState<Post | null>(null)
 

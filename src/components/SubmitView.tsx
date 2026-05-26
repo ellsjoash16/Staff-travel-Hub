@@ -93,6 +93,7 @@ export function SubmitView() {
   const [salesNote,  setSalesNote]  = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted,  setSubmitted]  = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null)
 
   const stepInfo = STEPS[step - 1]
 
@@ -122,6 +123,7 @@ export function SubmitView() {
 
     const newDataUrls = images.filter(i => i.startsWith('data:'))
     setSubmitting(true)
+    setUploadProgress({ done: 0, total: newDataUrls.length })
     try {
       await submitReview(
         {
@@ -136,8 +138,10 @@ export function SubmitView() {
           extras,
           salesNote: salesNote.trim() || null,
         },
-        newDataUrls
+        newDataUrls,
+        (done, total) => setUploadProgress({ done, total }),
       )
+      toast.success('Trip submitted — it will appear once approved')
       confetti({
         particleCount: 130,
         spread: 75,
@@ -150,6 +154,7 @@ export function SubmitView() {
       toast.error(err?.message ?? 'Something went wrong')
     } finally {
       setSubmitting(false)
+      setUploadProgress(null)
     }
   }
 
@@ -339,7 +344,7 @@ export function SubmitView() {
           {step === 6 && (
             <Button onClick={handleSubmit} disabled={submitting} className="gap-2">
               {submitting
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> {uploadProgress && uploadProgress.done < uploadProgress.total ? `Uploading ${uploadProgress.done}/${uploadProgress.total} photos…` : 'Submitting…'}</>
                 : <><Send className="h-4 w-4" /> Submit Trip</>
               }
             </Button>

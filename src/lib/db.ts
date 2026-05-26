@@ -83,7 +83,7 @@ function docToPost(id: string, d: any): Post {
 }
 
 export async function fetchPosts(): Promise<Post[]> {
-  const q = query(collection(db, 'posts'), where('status', '==', 'approved'), limit(150))
+  const q = query(collection(db, 'posts'), where('status', '==', 'approved'), limit(200))
   const snap = await getDocs(q)
   return snap.docs
     .map((d) => docToPost(d.id, d.data()))
@@ -390,7 +390,7 @@ function docToTrip(id: string, d: any): Trip {
 }
 
 export async function fetchTrips(): Promise<Trip[]> {
-  const snap = await getDocs(query(collection(db, 'trips'), limit(500)))
+  const snap = await getDocs(query(collection(db, 'trips'), limit(200)))
   return snap.docs
     .map((d) => docToTrip(d.id, d.data()))
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
@@ -582,22 +582,27 @@ export async function removeTripParticipant(tripId: string, name: string): Promi
 
 export async function fetchMyRegistrations(uid: string): Promise<Registration[]> {
   const snap = await getDocs(query(collection(db, 'registrations'), where('uid', '==', uid)))
-  const results = await Promise.all(snap.docs.map(async d => {
+  return snap.docs.map(d => {
     const data = d.data()
-    try {
-      const [firstName, lastName, email, passportFirstName, passportLastName, medicalInfo] = await Promise.all([
-        decryptField(data.firstName ?? null), decryptField(data.lastName ?? null),
-        decryptField(data.email ?? null),
-        decryptField(data.passportFirstName ?? null),
-        decryptField(data.passportLastName ?? null),
-        decryptField(data.medicalInfo ?? null),
-      ])
-      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: firstName ?? '', lastName: lastName ?? '', email: email ?? '', passportFirstName: passportFirstName ?? '', passportLastName: passportLastName ?? '', medicalInfo, dataConsent: data.dataConsent ?? false, status: (data.status ?? 'requested') as RegistrationStatus, jobRole: data.jobRole ?? null, salesDivision: data.salesDivision ?? null, nominatedPeople: Array.isArray(data.nominatedPeople) ? data.nominatedPeople : [], visitedBefore: data.visitedBefore ?? null, visitedWhen: data.visitedWhen ?? null, keyLevel: data.keyLevel ?? null, destinationInspiration: data.destinationInspiration ?? null, whyChooseYou: data.whyChooseYou ?? null } as Registration
-    } catch {
-      return { id: d.id, tripId: data.tripId ?? '', tripName: data.tripName ?? '', uid: data.uid ?? null, firstName: '', lastName: '', email: '', passportFirstName: '', passportLastName: '', medicalInfo: null, dataConsent: false, status: (data.status ?? 'requested') as RegistrationStatus, jobRole: null, salesDivision: null, nominatedPeople: [], visitedBefore: null, visitedWhen: null, keyLevel: null, destinationInspiration: null, whyChooseYou: null } as Registration
-    }
-  }))
-  return results
+    return {
+      id: d.id,
+      tripId: data.tripId ?? '',
+      tripName: data.tripName ?? '',
+      uid: data.uid ?? null,
+      firstName: '', lastName: '', email: '',
+      passportFirstName: '', passportLastName: '',
+      medicalInfo: null, dataConsent: false,
+      status: (data.status ?? 'requested') as RegistrationStatus,
+      jobRole: data.jobRole ?? null,
+      salesDivision: data.salesDivision ?? null,
+      nominatedPeople: Array.isArray(data.nominatedPeople) ? data.nominatedPeople : [],
+      visitedBefore: data.visitedBefore ?? null,
+      visitedWhen: data.visitedWhen ?? null,
+      keyLevel: data.keyLevel ?? null,
+      destinationInspiration: data.destinationInspiration ?? null,
+      whyChooseYou: data.whyChooseYou ?? null,
+    } as Registration
+  })
 }
 
 export async function deleteRegistration(id: string): Promise<void> {
@@ -802,9 +807,11 @@ export async function uploadImage(
   dataUrl: string,
   id: string,
 ): Promise<{ url: string; path: string }> {
-  const blob = dataUrl.startsWith('data:')
-    ? await compressImage(dataUrl)
-    : await fetch(dataUrl).then((r) => r.blob())
+  const blob = dataUrl.startsWith('data:image/jpeg')
+    ? await fetch(dataUrl).then((r) => r.blob())
+    : dataUrl.startsWith('data:')
+      ? await compressImage(dataUrl)
+      : await fetch(dataUrl).then((r) => r.blob())
   const path = `images/${id}-${Date.now()}.jpg`
   const storageRef = ref(storage, path)
   await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' })

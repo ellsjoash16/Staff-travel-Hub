@@ -17,7 +17,7 @@ import { ImageUpload } from './ImageUpload'
 import { DatePicker } from './DatePicker'
 import { useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
-import { seedDemoData, clearDemoData } from '@/lib/seed'
+import { seedDemoData } from '@/lib/seed'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
 
 
@@ -1747,8 +1747,15 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     <Button size="sm" variant="destructive" onClick={async () => {
                       if (!confirm('Remove all demo data? This will delete the 5 seed locations, 5 seed posts and 5 seed trips.')) return
                       try {
-                        await clearDemoData()
-                        toast.success('Demo data cleared — refresh to see changes')
+                        const postIds = ['seed-post-1', 'seed-post-2', 'seed-post-3', 'seed-post-4', 'seed-post-5']
+                        const tripIds = ['seed-trip-1', 'seed-trip-2', 'seed-trip-3', 'seed-trip-past-1', 'seed-trip-past-2']
+                        const locationIds = ['seed-loc-1', 'seed-loc-2', 'seed-loc-3', 'seed-loc-4', 'seed-loc-5']
+                        await Promise.all([
+                          ...postIds.map(id => deletePost(id)),
+                          ...tripIds.map(id => deleteTrip(id)),
+                          ...locationIds.map(id => deleteLocation(id)),
+                        ])
+                        toast.success('Demo data cleared')
                       } catch (err) {
                         toast.error((err as Error)?.message || 'Failed to clear demo data')
                       }

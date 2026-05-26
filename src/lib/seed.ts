@@ -1,4 +1,4 @@
-import { setDoc, doc } from 'firebase/firestore'
+import { setDoc, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import type { Post, Location, Trip } from '@/lib/types'
 
@@ -310,4 +310,18 @@ export async function seedDemoData(): Promise<void> {
   }
 
   await Promise.all(writes)
+}
+
+export async function clearDemoData(): Promise<void> {
+  const locationIds = LOCATIONS.map(l => l.id)
+  const postIds = POSTS.map(p => p.id)
+  const tripIds = [...TRIPS, ...COMPLETED_TRIPS].map(t => t.id)
+
+  const deletes: Promise<void>[] = [
+    ...locationIds.map(id => deleteDoc(doc(db, 'locations', id))),
+    ...postIds.map(id => deleteDoc(doc(db, 'posts', id))),
+    ...tripIds.map(id => deleteDoc(doc(db, 'trips', id))),
+  ]
+
+  await Promise.all(deletes)
 }

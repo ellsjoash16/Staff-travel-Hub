@@ -17,7 +17,7 @@ import { ImageUpload } from './ImageUpload'
 import { DatePicker } from './DatePicker'
 import { useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
-import { seedDemoData } from '@/lib/seed'
+import { seedDemoData, clearDemoData } from '@/lib/seed'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
 
 
@@ -1743,15 +1743,26 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 </div>
                 <div className="px-5 py-4 flex items-center justify-between gap-3">
                   <p className="text-xs text-muted-foreground">Adds 5 destinations, 5 posts, 3 upcoming trips and 2 past trips. Safe to run multiple times — existing seed data will be overwritten, not duplicated.</p>
-                  <Button size="sm" variant="secondary" className="flex-shrink-0" onClick={async () => {
-                    if (!confirm('Load demo data? This will add placeholder posts, locations and trips.')) return
-                    try {
-                      await seedDemoData()
-                      toast.success('Demo data loaded — refresh to see changes')
-                    } catch (err) {
-                      toast.error((err as Error)?.message || 'Failed to load demo data')
-                    }
-                  }}>Load Demo Data</Button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Button size="sm" variant="destructive" onClick={async () => {
+                      if (!confirm('Remove all demo data? This will delete the 5 seed locations, 5 seed posts and 5 seed trips.')) return
+                      try {
+                        await clearDemoData()
+                        toast.success('Demo data cleared — refresh to see changes')
+                      } catch (err) {
+                        toast.error((err as Error)?.message || 'Failed to clear demo data')
+                      }
+                    }}>Clear Demo Data</Button>
+                    <Button size="sm" variant="secondary" onClick={async () => {
+                      if (!confirm('Load demo data? This will add placeholder posts, locations and trips.')) return
+                      try {
+                        await seedDemoData()
+                        toast.success('Demo data loaded — refresh to see changes')
+                      } catch (err) {
+                        toast.error((err as Error)?.message || 'Failed to load demo data')
+                      }
+                    }}>Load Demo Data</Button>
+                  </div>
                 </div>
               </div>
             </TabsContent>

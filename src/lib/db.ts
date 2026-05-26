@@ -4,7 +4,7 @@ import {
   query, where, limit, serverTimestamp,
 } from 'firebase/firestore'
 import {
-  ref, uploadBytes, getDownloadURL, deleteObject,
+  ref, uploadBytes, deleteObject,
 } from 'firebase/storage'
 import { db, storage, auth } from './firebase'
 import type { Post, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile } from './types'
@@ -779,7 +779,7 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
 
 // ── Storage ───────────────────────────────────────────────────────────────
 
-function compressImage(dataUrl: string, maxWidth = 1920, quality = 0.82): Promise<Blob> {
+function compressImage(dataUrl: string, maxWidth = 1920, quality = 0.75): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onerror = reject
@@ -807,19 +807,16 @@ export async function uploadImage(
   dataUrl: string,
   id: string,
 ): Promise<{ url: string; path: string }> {
-  console.log('[uploadImage] start', id)
   const blob = dataUrl.startsWith('data:image/jpeg')
     ? await fetch(dataUrl).then((r) => r.blob())
     : dataUrl.startsWith('data:')
       ? await compressImage(dataUrl)
       : await fetch(dataUrl).then((r) => r.blob())
-  console.log('[uploadImage] blob ready', id, blob.size)
   const path = `images/${id}-${Date.now()}.jpg`
   const storageRef = ref(storage, path)
   await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' })
-  console.log('[uploadImage] uploaded', id)
-  const url = await getDownloadURL(storageRef)
-  console.log('[uploadImage] url ready', id)
+  const bucket = storageRef.bucket
+  const url = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(path)}?alt=media`
   return { url, path }
 }
 

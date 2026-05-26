@@ -81,7 +81,7 @@ export function compressImage(file: File): Promise<string> {
         canvas.width = w
         canvas.height = h
         canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
-        resolve(canvas.toDataURL('image/jpeg', 0.82))
+        resolve(canvas.toDataURL('image/jpeg', 0.75))
       }
       img.src = e.target!.result as string
     }

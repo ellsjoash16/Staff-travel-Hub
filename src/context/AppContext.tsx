@@ -228,7 +228,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       const myRegsPromise = uid ? fetchMyRegistrations(uid).catch(() => []) : Promise.resolve([])
 
       const [posts, trips, locations, resolvedSettings, profile, myRegs] = await Promise.all([
-        fetchPosts().catch((err) => { console.error('[init] fetchPosts error:', err); return [] as Post[] }),
+        fetchPosts().catch((err) => { console.error('[init] fetchPosts error:', err); import('sonner').then(m => m.toast.error('Posts fetch failed: ' + (err?.message ?? String(err)))); return [] as Post[] }),
         fetchTrips().catch(() => [] as Trip[]),
         fetchLocations().catch(() => [] as Location[]),
         fetchSettings().catch(() => DEFAULT_SETTINGS),

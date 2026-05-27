@@ -216,26 +216,31 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
           .catch(() => {})
       }
 
-      // Kick off everything in parallel
-      const postsPromise = fetchPosts().catch(() => [] as Post[])
-      const tripsPromise = fetchTrips().catch(() => [] as Trip[])
-      const locationsPromise = fetchLocations().catch(() => [] as Location[])
-      const profilePromise = uid ? fetchUserProfile(uid).catch(() => null) : Promise.resolve(null)
-      const myRegsPromise = uid ? fetchMyRegistrations(uid).catch(() => []) : Promise.resolve([])
-      myRegsPromise.then(myRegs => dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: myRegs }))
-
-      // Apply cached settings immediately, then show the shell — don't wait for Firestore
+      // Apply cached settings immediately so the shell can render without waiting
       try {
         const raw = localStorage.getItem(SETTINGS_KEY)
         if (raw) dispatch({ type: 'UPDATE_SETTINGS', settings: JSON.parse(raw) })
       } catch {}
       dispatch({ type: 'SET_LOADING', value: false })
 
-      // Fetch settings and profile in the background
-      const [resolvedSettings, profile] = await Promise.all([
+      // Kick off ALL network fetches in parallel — nothing blocks anything else
+      const profilePromise = uid ? fetchUserProfile(uid).catch(() => null) : Promise.resolve(null)
+      const myRegsPromise = uid ? fetchMyRegistrations(uid).catch(() => []) : Promise.resolve([])
+
+      const [posts, trips, locations, resolvedSettings, profile, myRegs] = await Promise.all([
+        fetchPosts().catch((err) => { console.error('[init] fetchPosts error:', err); return [] as Post[] }),
+        fetchTrips().catch(() => [] as Trip[]),
+        fetchLocations().catch(() => [] as Location[]),
         fetchSettings().catch(() => DEFAULT_SETTINGS),
         profilePromise,
+        myRegsPromise,
       ])
+
+      console.log('[init] loaded:', posts.length, 'posts,', trips.length, 'trips,', locations.length, 'locations')
+
+      dispatch({ type: 'SET_POSTS', posts })
+      dispatch({ type: 'SET_TRIPS_LOCATIONS', trips, locations })
+      dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: myRegs })
 
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings)) } catch {}
       dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
@@ -249,10 +254,6 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       if (profile) {
         dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision } })
       }
-
-      const [posts, trips, locations] = await Promise.all([postsPromise, tripsPromise, locationsPromise])
-      dispatch({ type: 'SET_POSTS', posts })
-      dispatch({ type: 'SET_TRIPS_LOCATIONS', trips, locations })
     }
     init()
   }, [])

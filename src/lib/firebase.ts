@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore'
+import { initializeFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 import { getAuth, OAuthProvider } from 'firebase/auth'
 // import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
@@ -26,9 +26,7 @@ const app = initializeApp(firebaseConfig)
 // environment blocks WebChannel streaming (e.g. Vercel's CDN edge network).
 // Safe to use now that all admin writes go through the serverless API instead
 // of the Firestore SDK — the original write-queuing issue no longer applies.
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-})
+export const db = initializeFirestore(app, {})
 export const storage = getStorage(app)
 export const auth = getAuth(app)
 export const microsoftProvider = new OAuthProvider('microsoft.com')

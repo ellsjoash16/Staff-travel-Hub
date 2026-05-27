@@ -1,5 +1,5 @@
 import {
-  collection, doc, getDoc, getDocs,
+  collection, doc, getDoc, getDocs, getDocsFromServer,
   setDoc, updateDoc, deleteDoc,
   query, where, limit, serverTimestamp,
 } from 'firebase/firestore'
@@ -84,7 +84,7 @@ function docToPost(id: string, d: any): Post {
 
 export async function fetchPosts(): Promise<Post[]> {
   const q = query(collection(db, 'posts'), where('status', '==', 'approved'), limit(200))
-  const snap = await getDocs(q)
+  const snap = await getDocsFromServer(q)
   return snap.docs
     .map((d) => docToPost(d.id, d.data()))
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))

@@ -17,7 +17,7 @@ import { ImageUpload } from './ImageUpload'
 import { DatePicker } from './DatePicker'
 import { useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
-import { seedDemoData } from '@/lib/seed'
+import { seedDemoData, clearDemoData } from '@/lib/seed'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
 
 
@@ -55,7 +55,7 @@ const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
 interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
 export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
-  const { state, togglePin, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile } = useApp()
+  const { state, dispatch, togglePin, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile } = useApp()
   const { posts, courses, trips, locations, settings, registrations, userProfiles } = state
 
   const [tab, setTab] = useState('post')
@@ -1747,14 +1747,13 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     <Button size="sm" variant="destructive" onClick={async () => {
                       if (!confirm('Remove all demo data? This will delete the 5 seed locations, 5 seed posts and 5 seed trips.')) return
                       try {
+                        await clearDemoData()
                         const postIds = ['seed-post-1', 'seed-post-2', 'seed-post-3', 'seed-post-4', 'seed-post-5']
                         const tripIds = ['seed-trip-1', 'seed-trip-2', 'seed-trip-3', 'seed-trip-past-1', 'seed-trip-past-2']
                         const locationIds = ['seed-loc-1', 'seed-loc-2', 'seed-loc-3', 'seed-loc-4', 'seed-loc-5']
-                        await Promise.all([
-                          ...postIds.map(id => deletePost(id)),
-                          ...tripIds.map(id => deleteTrip(id)),
-                          ...locationIds.map(id => deleteLocation(id)),
-                        ])
+                        for (const id of postIds) dispatch({ type: 'DELETE_POST', id })
+                        for (const id of tripIds) dispatch({ type: 'DELETE_TRIP', id })
+                        for (const id of locationIds) dispatch({ type: 'DELETE_LOCATION', id })
                         toast.success('Demo data cleared')
                       } catch (err) {
                         toast.error((err as Error)?.message || 'Failed to clear demo data')

@@ -30,8 +30,8 @@ service cloud.firestore {
     match /settings/{id} {
       allow read: if isAuthenticated();
       allow write: if isAdmin() ||
-        // Bootstrap: allow write when no admins exist yet
-        (resource == null || !('adminUids' in resource.data) || resource.data.adminUids.size() == 0);
+        // Bootstrap: allow write only when authenticated and no admins exist yet
+        (isAuthenticated() && (resource == null || !('adminUids' in resource.data) || resource.data.adminUids.size() == 0));
     }
 
     // Locations — authenticated read, admin write
@@ -54,9 +54,13 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // User profiles — users manage their own; admins can do everything
+    // User profiles — users manage their own (safe fields only); admins can do everything
     match /userProfiles/{uid} {
-      allow get, write: if isAuthenticated() && request.auth.uid == uid;
+      allow get: if isAuthenticated() && request.auth.uid == uid;
+      allow write: if isAuthenticated() && request.auth.uid == uid &&
+        !('isAdmin' in request.resource.data) &&
+        !('banned' in request.resource.data) &&
+        !('banUntil' in request.resource.data);
       allow list, get, write, delete: if isAdmin();
     }
   }

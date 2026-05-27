@@ -241,7 +241,6 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
         myRegsPromise,
       ])
 
-      console.log('[init] loaded:', posts.length, 'posts,', trips.length, 'trips,', locations.length, 'locations')
 
       dispatch({ type: 'SET_POSTS', posts })
       dispatch({ type: 'SET_TRIPS_LOCATIONS', trips, locations })
@@ -376,7 +375,8 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
 
 async function togglePin(id: string, pinned: boolean): Promise<void> {
     await togglePinPost(id, pinned)
-    dispatch({ type: 'UPDATE_POST', post: { ...state.posts.find(p => p.id === id)!, pinned } })
+    const post = state.posts.find(p => p.id === id)
+    if (post) dispatch({ type: 'UPDATE_POST', post: { ...post, pinned } })
   }
 
   async function addPost(post: Post, newDataUrls: string[], staffImageDataUrl: string | null): Promise<void> {

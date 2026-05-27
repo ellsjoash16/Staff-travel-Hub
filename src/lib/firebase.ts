@@ -4,13 +4,14 @@ import { getStorage } from 'firebase/storage'
 import { getAuth, OAuthProvider } from 'firebase/auth'
 // import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 
+const e = (k: string) => (import.meta.env[k] as string ?? '').trim()
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string,
-  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string).trim(),
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
+  apiKey: e('VITE_FIREBASE_API_KEY'),
+  authDomain: e('VITE_FIREBASE_AUTH_DOMAIN'),
+  projectId: e('VITE_FIREBASE_PROJECT_ID'),
+  storageBucket: e('VITE_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: e('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: e('VITE_FIREBASE_APP_ID'),
 }
 const app = initializeApp(firebaseConfig)
 // App Check temporarily disabled pending reCAPTCHA domain configuration

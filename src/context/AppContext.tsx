@@ -208,8 +208,13 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       const uid = authUid ?? auth.currentUser?.uid
       const SETTINGS_KEY = 'dafagram:settings'
 
-      // Fire ensure-admin silently in background — keeps settings/main.adminUids
-      // in sync for Firestore security rules, and writes isAdmin to the user's profile
+      // Warm up the auth token so Firestore requests are authenticated immediately.
+      // Without this, getDocs can race and fire before the SDK has the token.
+      if (auth.currentUser) {
+        await auth.currentUser.getIdToken().catch(() => {})
+      }
+
+      // Fire ensure-admin silently in background
       if (uid) {
         auth.currentUser?.getIdToken()
           .then(token => { if (token) apiFetch('/api/ensure-admin', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }) })

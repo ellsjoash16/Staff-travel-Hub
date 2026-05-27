@@ -7,7 +7,9 @@
     "dev": "vercel dev --listen 5177",
     "dev:vite": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "playwright test",
+    "test:setup": "playwright test tests/auth.setup.ts"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.0",
@@ -38,6 +40,7 @@
     "tailwind-merge": "^2.5.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/leaflet": "^1.9.12",
     "@types/node": "^25.6.0",
     "@types/react": "^18.3.5",

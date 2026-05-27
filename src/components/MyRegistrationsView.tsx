@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { Plane, MapPin, Calendar, CheckCircle, Clock, XCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { Plane, MapPin, Calendar, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
 import type { Registration } from '@/lib/types'
@@ -62,13 +61,8 @@ function RegistrationCard({ reg, trip }: { reg: Registration; trip: { name: stri
 }
 
 export function MyRegistrationsView() {
-  const { state, loadMyRegistrations } = useApp()
+  const { state } = useApp()
   const { myRegistrations, trips, locations } = state
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadMyRegistrations().finally(() => setLoading(false))
-  }, [])
 
   function getTripInfo(reg: Registration) {
     const trip = trips.find(t => t.id === reg.tripId)
@@ -84,11 +78,7 @@ export function MyRegistrationsView() {
         <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
       </div>
 
-      {loading ? (
-        <div className="relative flex items-center justify-center h-full" style={{ zIndex: 1 }}>
-          <Loader2 className="h-6 w-6 animate-spin text-white/50" />
-        </div>
-      ) : myRegistrations.length === 0 ? (
+      {myRegistrations.length === 0 ? (
         <div className="relative flex flex-col items-center justify-center h-full text-white/70" style={{ zIndex: 1 }}>
           <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-5">
             <Plane className="h-10 w-10 text-white/50" />

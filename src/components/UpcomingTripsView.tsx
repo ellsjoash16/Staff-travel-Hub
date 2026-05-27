@@ -250,24 +250,17 @@ const BG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=fo
 
 export function UpcomingTripsView() {
   const { state } = useApp()
-  const { trips, locations, currentUserProfile, isAdmin } = state
+  const { trips, locations } = state
   const [tab, setTab] = useState<'trips' | 'events'>('trips')
 
   const todayStr = new Date().toISOString().slice(0, 10)
-  const myRole = currentUserProfile?.jobRole ?? null
-
-  function isVisible(trip: { allowedRoles: string[] | null }) {
-    if (isAdmin) return true
-    if (!trip.allowedRoles || trip.allowedRoles.length === 0) return true
-    return myRole !== null && trip.allowedRoles.includes(myRole)
-  }
 
   const upcoming = trips
-    .filter(t => t.date >= todayStr && !t.completed && !t.isEvent && isVisible(t))
+    .filter(t => t.date >= todayStr && !t.completed && !t.isEvent)
     .sort((a, b) => a.date.localeCompare(b.date))
 
   const events = trips
-    .filter(t => t.isEvent && !t.completed && (t.endDate ?? t.date) >= todayStr && isVisible(t))
+    .filter(t => t.isEvent && !t.completed && (t.endDate ?? t.date) >= todayStr)
     .sort((a, b) => a.date.localeCompare(b.date))
 
   function getLocation(locationId: string | null): Location | null {

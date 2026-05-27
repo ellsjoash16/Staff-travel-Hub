@@ -267,10 +267,8 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
 
 
   async function loadPosts(): Promise<void> {
-    if (state.postsLoaded) return
     const posts = await fetchPosts()
     dispatch({ type: 'SET_POSTS', posts })
-    dispatch({ type: 'SET_POSTS_LOADED' })
   }
 
   async function approvePostFn(id: string): Promise<void> {

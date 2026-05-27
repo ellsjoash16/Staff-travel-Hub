@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
-import { CheckCircle, ChevronLeft, ChevronRight, Send, Loader2, Plane, Ban, Plus, Trash2 } from 'lucide-react'
+import { CheckCircle, ChevronLeft, ChevronRight, Send, Loader2, Plane, Ban, Plus, Trash2, User, Users } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,9 +22,10 @@ const DIVISIONS_BY_BUILDING: Record<string, string[]> = {
   Sale:    ['Manchester S', 'Manchester R', 'Manchester X'],
 }
 import { useApp } from '@/context/AppContext'
+import { ContactAdminDialog } from '@/components/ContactAdminDialog'
 import type { Trip, NominatedPerson } from '@/lib/types'
 
-type Phase = 'loading' | 'confirm' | 'passport' | 'nominate' | 'questions' | 'banned'
+type Phase = 'loading' | 'forWhom' | 'onBehalf' | 'confirm' | 'passport' | 'nominate' | 'questions' | 'banned' | 'roleBlocked'
 
 interface Props {
   trip: Trip
@@ -51,6 +52,10 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   const [building, setBuilding]           = useState('')
   const [salesDivision, setSalesDivision] = useState('')
   const [nominatedPeople, setNominatedPeople] = useState<NominatedPerson[]>([])
+  const [forSelf, setForSelf]                 = useState(true)
+  const [onBehalfFirst, setOnBehalfFirst]     = useState('')
+  const [onBehalfLast, setOnBehalfLast]       = useState('')
+  const [onBehalfEmail, setOnBehalfEmail]     = useState('')
   const [visitedBefore, setVisitedBefore]     = useState<boolean | null>(null)
   const [visitedWhen, setVisitedWhen]         = useState('')
   const [keyLevel, setKeyLevel]               = useState<'key' | 'super_key' | null>(null)
@@ -58,6 +63,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   const [whyChooseYou, setWhyChooseYou]       = useState('')
   const [submitting, setSubmitting]           = useState(false)
   const [submitted, setSubmitted]             = useState(false)
+  const [contactOpen, setContactOpen]         = useState(false)
 
   // Saved profile for confirm screen
   const [savedProfile, setSavedProfile] = useState<{
@@ -82,16 +88,21 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         setPhase('banned' as Phase)
         return
       }
+      if (trip.allowedRoles && trip.allowedRoles.length > 0 && (!profile?.jobRole || !trip.allowedRoles.includes(profile.jobRole))) {
+        setPhase('roleBlocked')
+        return
+      }
+      const isDsm = profile?.jobRole === 'DSM'
       if (profile && profile.dataConsent) {
         setSavedProfile(profile)
-        setPhase('confirm')
+        setPhase(isDsm ? 'forWhom' : 'confirm')
       } else {
         const parts = (user.displayName ?? '').split(' ')
         if (parts[0]) setPassportFirst(f => f || parts[0])
         if (profile?.jobRole) setJobRole(profile.jobRole)
         if (profile?.building) setBuilding(profile.building)
         if (profile?.salesDivision) setSalesDivision(profile.salesDivision)
-        setPhase('passport')
+        setPhase(isDsm ? 'forWhom' : 'passport')
       }
     }).catch(() => setPhase('passport'))
   }, [open])
@@ -100,6 +111,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     setPhase('loading'); setSavedProfile(null)
     setPassportFirst(''); setPassportLast(''); setJobRole(''); setBuilding(''); setSalesDivision('')
     setNominatedPeople([])
+    setForSelf(true); setOnBehalfFirst(''); setOnBehalfLast(''); setOnBehalfEmail('')
     setVisitedBefore(null); setVisitedWhen(''); setKeyLevel(null)
     setInspiration(''); setWhyChooseYou('')
     setSubmitting(false); setSubmitted(false)
@@ -174,16 +186,19 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     if (!user || !savedProfile) return
     setSubmitting(true)
     try {
-      const email = user.email ?? ''
+      const isOnBehalf = !forSelf
+      const email = isOnBehalf ? onBehalfEmail : (user.email ?? '')
+      const firstName = isOnBehalf ? onBehalfFirst.trim() : savedProfile.firstName
+      const lastName = isOnBehalf ? onBehalfLast.trim() : savedProfile.lastName
       await insertRegistration({
         id: crypto.randomUUID(),
         tripId: trip.id, tripName: trip.name,
         uid: user.uid,
         email,
-        firstName: savedProfile.firstName,
-        lastName: savedProfile.lastName,
-        passportFirstName: savedProfile.passportFirstName,
-        passportLastName: savedProfile.passportLastName,
+        firstName,
+        lastName,
+        passportFirstName: isOnBehalf ? firstName : savedProfile.passportFirstName,
+        passportLastName: isOnBehalf ? lastName : savedProfile.passportLastName,
         medicalInfo: savedProfile.medicalInfo,
         dataConsent: true,
         status: 'requested',
@@ -229,6 +244,33 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         nominatedPeople,
       }
       if (user.uid && jobRole) saveJobRole(user.uid, jobRole, salesDivision || null, building || null).catch(() => {})
+      await doSubmit(reg, null)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+    } finally { setSubmitting(false) }
+  }
+
+  async function submitOnBehalf() {
+    const user = auth.currentUser
+    if (!user) { toast.error('Not signed in'); return }
+    setSubmitting(true)
+    try {
+      const reg = {
+        id: crypto.randomUUID(),
+        tripId: trip.id, tripName: trip.name,
+        uid: user.uid,
+        email: onBehalfEmail.trim(),
+        firstName: onBehalfFirst.trim(),
+        lastName: onBehalfLast.trim(),
+        passportFirstName: onBehalfFirst.trim(),
+        passportLastName: onBehalfLast.trim(),
+        medicalInfo: null,
+        dataConsent: false,
+        status: 'requested' as const,
+        jobRole: (savedProfile?.jobRole ?? jobRole) || null,
+        salesDivision: (savedProfile?.salesDivision ?? salesDivision) || null,
+        nominatedPeople,
+      }
       await doSubmit(reg, null)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
@@ -332,6 +374,8 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
   )
 
   return (
+    <>
+    <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -380,8 +424,105 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                     <Ban className="h-8 w-8 text-destructive" />
                   </div>
                   <h3 className="font-gilbert text-xl mb-1">Registration Unavailable</h3>
-                  <p className="text-sm text-muted-foreground mb-5">You are not permitted to register interest in trips. Please contact an admin if you think this is a mistake.</p>
-                  <Button variant="secondary" onClick={() => handleOpenChange(false)}>Close</Button>
+                  <p className="text-sm text-muted-foreground mb-5">You are not permitted to register interest in trips at this time.</p>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => handleOpenChange(false)}>Close</Button>
+                    <Button onClick={() => setContactOpen(true)}>Contact Admin</Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Role blocked */}
+              {phase === 'roleBlocked' && (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
+                    <Ban className="h-8 w-8 text-amber-500" />
+                  </div>
+                  <h3 className="font-gilbert text-xl mb-1">Not eligible</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    This trip is only open to <span className="font-medium text-foreground">{trip.allowedRoles?.join(', ')}</span>.
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-5">Contact an admin if you think this is a mistake.</p>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => handleOpenChange(false)}>Close</Button>
+                    <Button onClick={() => setContactOpen(true)}>Contact Admin</Button>
+                  </div>
+                </div>
+              )}
+
+              {/* For Whom — DSM only */}
+              {phase === 'forWhom' && (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-gilbert text-base">Who are you registering?</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">As a DSM you can register on behalf of someone in your division</p>
+                  </div>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => { setForSelf(true); setPhase(savedProfile ? 'confirm' : 'passport') }}
+                      className="w-full flex items-center gap-3 rounded-xl border border-border p-4 text-left hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Myself</p>
+                        <p className="text-xs text-muted-foreground">Register for this trip as yourself</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setForSelf(false); setPhase('onBehalf') }}
+                      className="w-full flex items-center gap-3 rounded-xl border border-border p-4 text-left hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Users className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Someone else from my division</p>
+                        <p className="text-xs text-muted-foreground">Register a colleague on their behalf</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* On Behalf — DSM registering for someone else */}
+              {phase === 'onBehalf' && (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-gilbert text-base">Their details</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Enter the details of the person you are registering</p>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label>First Name <span className="text-destructive">*</span></Label>
+                        <Input placeholder="First name" value={onBehalfFirst} onChange={e => setOnBehalfFirst(e.target.value)} autoFocus />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Last Name <span className="text-destructive">*</span></Label>
+                        <Input placeholder="Last name" value={onBehalfLast} onChange={e => setOnBehalfLast(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Email Address <span className="text-destructive">*</span></Label>
+                      <Input type="email" placeholder="colleague@dialaflight.co.uk" value={onBehalfEmail} onChange={e => setOnBehalfEmail(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="flex justify-between pt-1">
+                    <Button variant="ghost" onClick={() => setPhase('forWhom')} className="gap-1.5">
+                      <ChevronLeft className="h-4 w-4" /> Back
+                    </Button>
+                    <Button onClick={() => {
+                      if (!onBehalfFirst.trim() || !onBehalfLast.trim()) { toast.error('Please enter their name'); return }
+                      if (!onBehalfEmail.trim()) { toast.error('Please enter their email'); return }
+                      setPhase('questions')
+                    }} className="gap-1.5">
+                      Next <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -496,10 +637,13 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   </div>
 
                   <div className="flex justify-between pt-1">
-                    <Button variant="ghost" onClick={() => setPhase(NOMINATING_ROLES.includes(savedProfile?.jobRole ?? jobRole) ? 'nominate' : savedProfile ? 'confirm' : 'passport')} className="gap-1.5">
+                    <Button variant="ghost" onClick={() => {
+                      if (!forSelf) { setPhase('onBehalf'); return }
+                      setPhase(NOMINATING_ROLES.includes(savedProfile?.jobRole ?? jobRole) ? 'nominate' : savedProfile ? 'confirm' : 'passport')
+                    }} className="gap-1.5">
                       <ChevronLeft className="h-4 w-4" /> Back
                     </Button>
-                    <Button onClick={savedProfile ? submitFromConfirm : handleSubmit} disabled={submitting} className="gap-2">
+                    <Button onClick={!forSelf ? (savedProfile ? submitFromConfirm : submitOnBehalf) : (savedProfile ? submitFromConfirm : handleSubmit)} disabled={submitting} className="gap-2">
                       {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><Send className="h-4 w-4" /> Register Interest</>}
                     </Button>
                   </div>
@@ -510,5 +654,6 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
         </DialogBody>
       </DialogContent>
     </Dialog>
+    </>
   )
 }

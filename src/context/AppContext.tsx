@@ -242,6 +242,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       ])
 
       console.log('[init] loaded:', posts.length, 'posts,', trips.length, 'trips,', locations.length, 'locations')
+      import('sonner').then(m => m.toast.info(`Loaded ${posts.length} posts, ${trips.length} trips, ${locations.length} locs`))
 
       dispatch({ type: 'SET_POSTS', posts })
       dispatch({ type: 'SET_TRIPS_LOCATIONS', trips, locations })

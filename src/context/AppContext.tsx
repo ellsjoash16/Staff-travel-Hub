@@ -57,6 +57,7 @@ interface AppState {
 type Action =
   | { type: 'INIT'; posts: Post[]; submissions: Submission[]; trips: Trip[]; locations: Location[]; settings: Settings }
   | { type: 'SET_TRIPS_LOCATIONS'; trips: Trip[]; locations: Location[] }
+  | { type: 'SET_POSTS'; posts: Post[] }
   | { type: 'ADD_COURSE'; course: Course }
   | { type: 'UPDATE_COURSE'; course: Course }
   | { type: 'DELETE_COURSE'; id: string }
@@ -99,6 +100,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, posts: action.posts, courses: [], submissions: action.submissions, trips: action.trips, locations: action.locations, settings: action.settings }
     case 'SET_TRIPS_LOCATIONS':
       return { ...state, trips: action.trips, locations: action.locations }
+    case 'SET_POSTS':
+      return { ...state, posts: action.posts }
     case 'SET_POSTS_LOADED': return { ...state, postsLoaded: true }
     case 'SET_LOADING': return { ...state, loading: action.value }
     case 'SET_VIEW': return { ...state, activeView: action.view }
@@ -266,7 +269,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   async function loadPosts(): Promise<void> {
     if (state.postsLoaded) return
     const posts = await fetchPosts()
-    dispatch({ type: 'INIT', posts, submissions: [], trips: state.trips, locations: state.locations, settings: state.settings })
+    dispatch({ type: 'SET_POSTS', posts })
     dispatch({ type: 'SET_POSTS_LOADED' })
   }
 

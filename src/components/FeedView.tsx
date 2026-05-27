@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Globe, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+import { useState } from 'react'
+import { Globe } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { PostDetailDialog } from './PostDetailDialog'
@@ -86,24 +85,11 @@ function getRegion(country: string | undefined): string | null {
 const PAGE_SIZE = 24
 
 export function FeedView() {
-  const { state, loadPosts } = useApp()
-  const { posts, locations, settings, postsLoaded } = state
+  const { state } = useApp()
+  const { posts, locations, settings } = state
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [activeRegion, setActiveRegion] = useState<string | null>(null)
   const [visible, setVisible] = useState(PAGE_SIZE)
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (!postsLoaded) {
-      setLoading(true)
-      loadPosts()
-        .catch(err => {
-          console.error('[FeedView] loadPosts failed:', err)
-          toast.error(`Failed to load posts: ${err?.message ?? err}`)
-        })
-        .finally(() => setLoading(false))
-    }
-  }, [])
 
   // Build a set of regions that have at least one post
   const regionSet = new Set<string>()
@@ -147,11 +133,7 @@ export function FeedView() {
       </Tabs>
 
       {/* Feed */}
-      {loading ? (
-        <div className="flex items-center justify-center py-32 text-muted-foreground">
-          <Loader2 className="h-6 w-6 animate-spin" />
-        </div>
-      ) : sorted.length === 0 ? (
+      {sorted.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-32 text-muted-foreground">
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
             <Globe className="h-10 w-10 text-primary/50" />

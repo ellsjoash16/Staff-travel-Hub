@@ -216,7 +216,8 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
           .catch(() => {})
       }
 
-      // Kick off everything in parallel (posts are lazy-loaded on first FeedView visit)
+      // Kick off everything in parallel
+      const postsPromise = fetchPosts().catch(() => [] as Post[])
       const tripsPromise = fetchTrips().catch(() => [] as Trip[])
       const locationsPromise = fetchLocations().catch(() => [] as Location[])
       const profilePromise = uid ? fetchUserProfile(uid).catch(() => null) : Promise.resolve(null)
@@ -249,7 +250,8 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
         dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision } })
       }
 
-      const [trips, locations] = await Promise.all([tripsPromise, locationsPromise])
+      const [posts, trips, locations] = await Promise.all([postsPromise, tripsPromise, locationsPromise])
+      dispatch({ type: 'SET_POSTS', posts })
       dispatch({ type: 'SET_TRIPS_LOCATIONS', trips, locations })
     }
     init()

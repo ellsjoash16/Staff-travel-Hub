@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Globe } from 'lucide-react'
+import { Globe, RefreshCw } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { PostDetailDialog } from './PostDetailDialog'
@@ -85,11 +85,18 @@ function getRegion(country: string | undefined): string | null {
 const PAGE_SIZE = 24
 
 export function FeedView() {
-  const { state } = useApp()
+  const { state, loadPosts } = useApp()
   const { posts, locations, settings } = state
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [activeRegion, setActiveRegion] = useState<string | null>(null)
   const [visible, setVisible] = useState(PAGE_SIZE)
+  const [refreshing, setRefreshing] = useState(false)
+
+  async function handleRefresh() {
+    setRefreshing(true)
+    await loadPosts().catch(() => {})
+    setRefreshing(false)
+  }
 
   // Build a set of regions that have at least one post
   const regionSet = new Set<string>()
@@ -139,7 +146,15 @@ export function FeedView() {
             <Globe className="h-10 w-10 text-primary/50" />
           </div>
           <h3 className="font-gilbert text-xl mb-1 text-foreground">No trips posted yet</h3>
-          <p className="text-sm text-center max-w-xs">Admins can upload photos and reviews from staff trips in the admin panel</p>
+          <p className="text-sm text-center max-w-xs mb-4">Admins can upload photos and reviews from staff trips in the admin panel</p>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Loading…' : 'Retry'}
+          </button>
         </div>
       ) : (
         <>

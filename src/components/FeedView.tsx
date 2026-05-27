@@ -116,7 +116,7 @@ export function FeedView() {
     <div className="flex flex-col">
       {/* Section header */}
       <div className="w-full mb-5">
-        <h2 className="font-gilbert text-3xl xl:text-4xl text-foreground leading-tight">{settings.heading} <span className="text-xs font-mono text-muted-foreground">[{posts.length} posts in state]</span></h2>
+        <h2 className="font-gilbert text-3xl xl:text-4xl text-foreground leading-tight">{settings.heading}</h2>
         {settings.welcome && (
           <p className="text-sm text-muted-foreground mt-1.5">{settings.welcome}</p>
         )}

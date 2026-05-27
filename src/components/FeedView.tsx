@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Globe, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { PostDetailDialog } from './PostDetailDialog'
@@ -95,7 +96,12 @@ export function FeedView() {
   useEffect(() => {
     if (!postsLoaded) {
       setLoading(true)
-      loadPosts().finally(() => setLoading(false))
+      loadPosts()
+        .catch(err => {
+          console.error('[FeedView] loadPosts failed:', err)
+          toast.error(`Failed to load posts: ${err?.message ?? err}`)
+        })
+        .finally(() => setLoading(false))
     }
   }, [])
 

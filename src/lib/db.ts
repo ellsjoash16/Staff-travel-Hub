@@ -84,7 +84,13 @@ function docToPost(id: string, d: any): Post {
 
 export async function fetchPosts(): Promise<Post[]> {
   const q = query(collection(db, 'posts'), where('status', '==', 'approved'), limit(200))
-  const snap = await getDocsFromServer(q)
+  let snap
+  try {
+    snap = await getDocsFromServer(q)
+  } catch (err) {
+    console.warn('[fetchPosts] getDocsFromServer failed, falling back to getDocs:', err)
+    snap = await getDocs(q)
+  }
   return snap.docs
     .map((d) => docToPost(d.id, d.data()))
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))

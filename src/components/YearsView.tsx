@@ -13,10 +13,12 @@ const MONTH_NAMES = [
 export function YearsView() {
   const { state } = useApp()
   const { trips, locations } = state
-  const [externalOnly, setExternalOnly] = useState(false)
+  const [tab, setTab] = useState<'fam' | 'external'>('fam')
 
   const completedTrips = trips.filter((t) => t.completed)
-  const visibleTrips = externalOnly ? completedTrips.filter((t) => t.external) : completedTrips
+  const visibleTrips = tab === 'external'
+    ? completedTrips.filter((t) => t.external)
+    : completedTrips.filter((t) => !t.external)
 
   const sorted = [...visibleTrips].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
 
@@ -73,16 +75,21 @@ export function YearsView() {
                 {visibleTrips.length} trip{visibleTrips.length !== 1 ? 's' : ''} across {yearKeys.length} year{yearKeys.length !== 1 ? 's' : ''}
               </p>
             </div>
-            <button
-              onClick={() => setExternalOnly((v) => !v)}
-              className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-all ${
-                externalOnly
-                  ? 'bg-primary/10 border-primary/30 text-primary'
-                  : 'bg-card/60 border-border text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              External only
-            </button>
+            <div className="flex items-center gap-1 bg-card/60 border border-border rounded-lg p-0.5">
+              {(['fam', 'external'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-md transition-all ${
+                    tab === t
+                      ? 'bg-primary/10 border border-primary/30 text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {t === 'fam' ? 'FAM Trips' : 'External'}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Timeline */}

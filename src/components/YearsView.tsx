@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CalendarDays, MapPin, Plane } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 
@@ -13,6 +13,7 @@ export function YearsView() {
   const { state } = useApp()
   const { trips, locations } = state
   const [tab, setTab] = useState<'fam' | 'external'>('fam')
+  const [selectedYear, setSelectedYear] = useState<string | null>(null)
 
   const completedTrips = trips.filter((t) => t.completed)
   const visibleTrips = tab === 'external'
@@ -21,7 +22,6 @@ export function YearsView() {
 
   const sorted = [...visibleTrips].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
 
-  // Group by year → month
   const yearMap = new Map<string, Map<string, typeof sorted>>()
   sorted.forEach(trip => {
     const year  = trip.date?.slice(0, 4) || 'Unknown'
@@ -32,6 +32,12 @@ export function YearsView() {
     mMap.get(month)!.push(trip)
   })
   const yearKeys = [...yearMap.keys()].sort((a, b) => b.localeCompare(a))
+
+  const activeYear = selectedYear && yearKeys.includes(selectedYear) ? selectedYear : yearKeys[0] ?? null
+
+  useEffect(() => {
+    setSelectedYear(null)
+  }, [tab])
 
   if (completedTrips.length === 0) {
     return (
@@ -50,6 +56,9 @@ export function YearsView() {
     )
   }
 
+  const yearTrips = activeYear ? yearMap.get(activeYear)! : new Map<string, typeof sorted>()
+  const monthKeys = [...yearTrips.keys()].sort((a, b) => b.localeCompare(a))
+
   return (
     <div className="relative h-full overflow-auto">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -67,7 +76,7 @@ export function YearsView() {
         <div className="w-full max-w-[680px]">
 
           {/* Header */}
-          <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-5 mb-6 flex items-center justify-between">
+          <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-5 mb-4 flex items-center justify-between">
             <div>
               <h2 className="font-gilbert text-2xl text-foreground leading-tight">By Year</h2>
               <p className="text-muted-foreground text-sm mt-0.5">
@@ -91,74 +100,93 @@ export function YearsView() {
             </div>
           </div>
 
-          {/* Timeline */}
-          <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-5 space-y-8">
-            {yearKeys.map(year => {
-              const mMap   = yearMap.get(year)!
-              const mKeys  = [...mMap.keys()].sort((a, b) => b.localeCompare(a))
-              return (
-                <div key={year}>
-                  <h3 className="font-gilbert text-xl text-foreground mb-4">{year}</h3>
-                  <div className="space-y-6 pl-4 border-l-2 border-primary/30">
-                    {mKeys.map(monthKey => {
-                      const mTrips    = mMap.get(monthKey)!
-                      const monthName = monthKey === 'unknown'
-                        ? 'Unknown Date'
-                        : MONTH_NAMES[parseInt(monthKey.split('-')[1], 10) - 1]
-                      return (
-                        <div key={monthKey}>
-                          <p className="text-xs font-semibold uppercase tracking-widest text-primary/70 mb-3">{monthName}</p>
-                          <div className="space-y-2">
-                            {mTrips.map(trip => {
-                              const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
-                              return (
-                                <div key={trip.id} className="flex items-center gap-3 p-3 bg-background/50 rounded-xl border border-border/30">
-                                  <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden">
-                                    {trip.image ? (
-                                      <img src={trip.image} alt="" className="w-full h-full object-cover" />
-                                    ) : (
-                                      <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                                        <Plane className="h-5 w-5 text-primary/50" />
-                                      </div>
-                                    )}
+          {/* Year tabs */}
+          {yearKeys.length > 0 && (
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
+              {yearKeys.map(year => (
+                <button
+                  key={year}
+                  onClick={() => setSelectedYear(year)}
+                  className={`flex-shrink-0 text-sm font-medium px-4 py-2 rounded-xl border transition-all ${
+                    year === activeYear
+                      ? 'bg-background/90 backdrop-blur-xl border-primary/30 text-primary shadow-lg'
+                      : 'bg-background/50 backdrop-blur-md border-white/10 text-white/70 hover:text-white hover:bg-background/70'
+                  }`}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Timeline for selected year */}
+          {activeYear && (
+            <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-5 space-y-6">
+              <h3 className="font-gilbert text-xl text-foreground">{activeYear}</h3>
+              <div className="space-y-6 pl-4 border-l-2 border-primary/30">
+                {monthKeys.map(monthKey => {
+                  const mTrips    = yearTrips.get(monthKey)!
+                  const monthName = monthKey === 'unknown'
+                    ? 'Unknown Date'
+                    : MONTH_NAMES[parseInt(monthKey.split('-')[1], 10) - 1]
+                  return (
+                    <div key={monthKey}>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-primary/70 mb-3">{monthName}</p>
+                      <div className="space-y-2">
+                        {mTrips.map(trip => {
+                          const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
+                          return (
+                            <div key={trip.id} className="flex items-center gap-3 p-3 bg-background/50 rounded-xl border border-border/30">
+                              <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden">
+                                {trip.image ? (
+                                  <img src={trip.image} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                    <Plane className="h-5 w-5 text-primary/50" />
                                   </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                      <p className="font-semibold text-sm text-foreground truncate">{trip.name}</p>
-                                      {trip.external && (
-                                        <span className="flex-shrink-0 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 rounded px-1.5 py-0.5">
-                                          External
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                                      {loc && (
-                                        <span className="text-xs text-primary flex items-center gap-1">
-                                          <MapPin className="h-3 w-3" />{loc.name}, {loc.country}
-                                        </span>
-                                      )}
-                                      {trip.participants.length > 0 && (
-                                        <span className="text-xs text-muted-foreground">{trip.participants.join(', ')}</span>
-                                      )}
-                                      {trip.date && (
-                                        <span className="text-[11px] text-muted-foreground/60">
-                                          {new Date(trip.date + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <p className="font-semibold text-sm text-foreground truncate">{trip.name}</p>
+                                  {trip.external && (
+                                    <span className="flex-shrink-0 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 rounded px-1.5 py-0.5">
+                                      External
+                                    </span>
+                                  )}
                                 </div>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                                <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                                  {loc && (
+                                    <span className="text-xs text-primary flex items-center gap-1">
+                                      <MapPin className="h-3 w-3" />{loc.name}, {loc.country}
+                                    </span>
+                                  )}
+                                  {trip.participants.length > 0 && (
+                                    <span className="text-xs text-muted-foreground">{trip.participants.join(', ')}</span>
+                                  )}
+                                  {trip.date && (
+                                    <span className="text-[11px] text-muted-foreground/60">
+                                      {new Date(trip.date + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeYear === null && visibleTrips.length === 0 && (
+            <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-10 text-center text-muted-foreground text-sm">
+              No trips in this category yet.
+            </div>
+          )}
 
         </div>
       </div>

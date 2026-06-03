@@ -268,7 +268,6 @@ export function UpcomingTripsView() {
   }
 
   const [featured, ...rest] = upcoming
-
   const isEmpty = tab === 'trips' ? upcoming.length === 0 : events.length === 0
 
   return (

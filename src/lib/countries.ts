@@ -15,7 +15,7 @@ export const COUNTRIES = [
   'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kosovo', 'Kuwait',
   'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya',
   'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali',
-  'Mauritania', 'Mexico', 'Moldova', 'Mongolia', 'Montenegro', 'Morocco',
+  'Mauritania', 'Mauritius', 'Mexico', 'Moldova', 'Mongolia', 'Montenegro', 'Morocco',
   'Mozambique', 'Myanmar', 'Namibia', 'Nepal', 'Netherlands', 'New Caledonia',
   'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia',
   'Norway', 'Oman', 'Pakistan', 'Palestine', 'Panama', 'Papua New Guinea',

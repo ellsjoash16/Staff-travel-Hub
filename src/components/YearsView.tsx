@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { CalendarDays, MapPin, Plane } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
-import { fmtDate } from '@/lib/utils'
 
 const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=40'
 
@@ -142,7 +141,9 @@ export function YearsView() {
                                         <span className="text-xs text-muted-foreground">{trip.participants.join(', ')}</span>
                                       )}
                                       {trip.date && (
-                                        <span className="text-[11px] text-muted-foreground/60">{fmtDate(trip.date)}</span>
+                                        <span className="text-[11px] text-muted-foreground/60">
+                                          {new Date(trip.date + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+                                        </span>
                                       )}
                                     </div>
                                   </div>

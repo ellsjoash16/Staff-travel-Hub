@@ -42,7 +42,7 @@ export function YearsView() {
   if (completedTrips.length === 0) {
     return (
       <div className="relative h-full overflow-auto">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
         </div>
         <div className="relative flex flex-col items-center justify-center h-full text-white/70">
@@ -61,7 +61,7 @@ export function YearsView() {
 
   return (
     <div className="relative h-full overflow-auto">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div style={{
           position: 'absolute', inset: 0,
           backgroundImage: `url(${BG})`,

@@ -272,7 +272,7 @@ export function UpcomingTripsView() {
 
   return (
     <div className="relative h-full overflow-auto">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
       </div>
       <div className="relative flex flex-col px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-5 lg:py-6 xl:py-8" style={{ zIndex: 1 }}>

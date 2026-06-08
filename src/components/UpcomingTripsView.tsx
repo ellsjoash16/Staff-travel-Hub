@@ -56,6 +56,8 @@ function CountdownTimer({ dateStr }: { dateStr: string }) {
 
 function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location | null }) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
   return (
     <>
     <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
@@ -99,7 +101,7 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
             {trip.description && (
               <p className="text-sm text-muted-foreground leading-relaxed">{trip.description}</p>
             )}
-            {trip.showRegisterInterest && (
+            {registrationOpen && (
               <div className="mt-4">
                 <Button onClick={() => setDialogOpen(true)} className="gap-2">
                   <Plane className="h-4 w-4" /> Register Interest
@@ -118,6 +120,8 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
 
 function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; location: Location | null; showRegisterInterest: boolean }) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const registrationOpen = showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
 
   return (
     <>
@@ -152,7 +156,7 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
             <p className="text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-2">{trip.description}</p>
           )}
         </div>
-        {showRegisterInterest && (
+        {registrationOpen && (
           <div className="flex justify-end">
             <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1.5">
               <Plane className="h-3.5 w-3.5" /> Register Interest
@@ -169,6 +173,8 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
 
 function EventCard({ trip, location }: { trip: Trip; location: Location | null }) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
 
   const dateStr = trip.endDate
     ? `${fmtDate(trip.date)} – ${fmtDate(trip.endDate)}`
@@ -224,7 +230,7 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
               <p className="text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-2">{trip.description}</p>
             )}
           </div>
-          {trip.showRegisterInterest && (() => {
+          {registrationOpen && (() => {
             const full = trip.eventSpaces != null && trip.participants.length >= trip.eventSpaces
             return (
               <div className="flex justify-end">

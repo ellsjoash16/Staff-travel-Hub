@@ -76,6 +76,7 @@ function docToPost(id: string, d: any): Post {
     pinned: d.pinned ?? false,
     extras,
     salesNote: d.salesNote ?? null,
+    riseUrl: d.riseUrl ?? null,
     userId: d.userId ?? null,
     status: d.status ?? 'approved',
     folder: d.folder ?? null,
@@ -118,6 +119,7 @@ export async function submitPendingPost(post: Post, imagePaths: string[]): Promi
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
     salesNote: post.salesNote ?? null,
+    riseUrl: post.riseUrl ?? null,
     userId: post.userId ?? null,
     status: 'pending',
     folder: post.folder ?? null,
@@ -146,6 +148,7 @@ export async function insertPost(
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
     salesNote: post.salesNote ?? null,
+    riseUrl: post.riseUrl ?? null,
     userId: post.userId ?? null,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
@@ -193,6 +196,7 @@ export async function updatePost(
     pinned: post.pinned ?? false,
     extras: post.extras ?? EMPTY_EXTRAS,
     salesNote: post.salesNote ?? null,
+    riseUrl: post.riseUrl ?? null,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
   }
@@ -744,35 +748,54 @@ export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt
         updatedAt: null,
       } as UserProfile & { updatedAt: string | null }
     }
-    const [
-      firstName, lastName,
-      passportFirstName, passportLastName,
-      medicalInfo,
-    ] = await Promise.all([
-      decryptField(data.firstName ?? null),
-      decryptField(data.lastName ?? null),
-      decryptField(data.passportFirstName ?? null),
-      decryptField(data.passportLastName ?? null),
-      decryptField(data.medicalInfo ?? null),
-    ])
-    return {
-      uid: authUser.uid,
-      authEmail: data.authEmail ?? authUser.email,
-      authDisplayName: data.authDisplayName ?? authUser.displayName,
-      jobRole: data.jobRole ?? null,
-      building: data.building ?? null,
-      salesDivision: data.salesDivision ?? null,
-      firstName: firstName ?? '',
-      lastName: lastName ?? '',
-      passportFirstName: passportFirstName ?? '',
-      passportLastName: passportLastName ?? '',
-      medicalInfo,
-      dataConsent: data.dataConsent ?? false,
-      banned: data.banned ?? false,
-      banUntil: data.banUntil ?? null,
-      isAdmin: data.isAdmin ?? false,
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null,
-    } as UserProfile & { updatedAt: string | null }
+    try {
+      const [
+        firstName, lastName,
+        passportFirstName, passportLastName,
+        medicalInfo,
+      ] = await Promise.all([
+        decryptField(data.firstName ?? null),
+        decryptField(data.lastName ?? null),
+        decryptField(data.passportFirstName ?? null),
+        decryptField(data.passportLastName ?? null),
+        decryptField(data.medicalInfo ?? null),
+      ])
+      return {
+        uid: authUser.uid,
+        authEmail: data.authEmail ?? authUser.email,
+        authDisplayName: data.authDisplayName ?? authUser.displayName,
+        jobRole: data.jobRole ?? null,
+        building: data.building ?? null,
+        salesDivision: data.salesDivision ?? null,
+        firstName: firstName ?? '',
+        lastName: lastName ?? '',
+        passportFirstName: passportFirstName ?? '',
+        passportLastName: passportLastName ?? '',
+        medicalInfo,
+        dataConsent: data.dataConsent ?? false,
+        banned: data.banned ?? false,
+        banUntil: data.banUntil ?? null,
+        isAdmin: data.isAdmin ?? false,
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null,
+      } as UserProfile & { updatedAt: string | null }
+    } catch {
+      return {
+        uid: authUser.uid,
+        authEmail: data.authEmail ?? authUser.email,
+        authDisplayName: data.authDisplayName ?? authUser.displayName,
+        jobRole: data.jobRole ?? null,
+        building: data.building ?? null,
+        salesDivision: data.salesDivision ?? null,
+        firstName: '[encrypted]', lastName: '[encrypted]',
+        passportFirstName: '', passportLastName: '',
+        medicalInfo: null,
+        dataConsent: data.dataConsent ?? false,
+        banned: data.banned ?? false,
+        banUntil: data.banUntil ?? null,
+        isAdmin: data.isAdmin ?? false,
+        updatedAt: null,
+      } as UserProfile & { updatedAt: string | null }
+    }
   }))
   return results
 }

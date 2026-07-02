@@ -27,7 +27,7 @@ interface PostForm {
   title: string; staff: string; staffImage: string | null
   review: string; locName: string; locationId: string | null
   date: string; tags: string; images: string[]
-  extras: PostExtras; salesNote: string; folder: string | null
+  extras: PostExtras; salesNote: string; riseUrl: string; folder: string | null
 }
 
 
@@ -43,7 +43,7 @@ const emptyPostForm = (): PostForm => ({
   title: '', staff: '', staffImage: null, review: '', locName: '',
   locationId: null, date: today(), tags: '', images: [],
   extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
-  salesNote: '', folder: null,
+  salesNote: '', riseUrl: '', folder: null,
 })
 
 const emptyTripForm = (): TripForm => ({
@@ -123,7 +123,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       await loadUserProfiles()
       setUsersLoaded(true)
     } catch (err: unknown) {
-      toast.error(`Failed to load users: ${(err as Error)?.message ?? 'unknown error'}`)
+      console.error('[handleLoadUsers]', err)
+      toast.error(`Failed to load users: ${(err as Error)?.message || String(err) || 'unknown error'}`)
     } finally { setUsersLoading(false) }
   }
 
@@ -134,8 +135,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   // ── Post ──────────────────────────────────────────────────────────────────
 
   async function submitPost() {
-    if (!postForm.title || !postForm.staff || !postForm.review) {
-      toast.error('Title, staff member and review are required'); return
+    if (!postForm.title || !postForm.staff || (!postForm.review && !postForm.riseUrl)) {
+      toast.error('Title, staff member and either a review or Rise 360 URL are required'); return
     }
     const id = editingPostId || crypto.randomUUID()
     const existingImages = postForm.images.filter((i) => i.startsWith('https:'))
@@ -154,6 +155,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       pinned: editingPostId ? (posts.find(p => p.id === editingPostId)?.pinned ?? false) : false,
       extras: postForm.extras ?? EMPTY_EXTRAS,
       salesNote: postForm.salesNote.trim() || null,
+      riseUrl: postForm.riseUrl.trim() || null,
       userId: null,
       status: 'approved',
       folder: postForm.folder ?? null,
@@ -182,6 +184,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       images: post.images,
       extras: post.extras ?? EMPTY_EXTRAS,
       salesNote: post.salesNote ?? '',
+      riseUrl: post.riseUrl ?? '',
       folder: post.folder ?? null,
     })
     setEditingPostId(post.id); setTab('post')
@@ -229,6 +232,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       images: r.images,
       extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
       salesNote: '',
+      riseUrl: '',
       folder: null,
     })
     setEditingPostId(null)
@@ -495,6 +499,16 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   value={postForm.salesNote}
                   onChange={(e) => setPost('salesNote', e.target.value)}
                   rows={3}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Rise 360 URL <span className="text-muted-foreground font-normal">(optional — replaces written review with a launch button)</span></Label>
+                <Input
+                  type="url"
+                  placeholder="https://rise.articulate.com/share/…"
+                  value={postForm.riseUrl}
+                  onChange={(e) => setPost('riseUrl', e.target.value)}
                 />
               </div>
 

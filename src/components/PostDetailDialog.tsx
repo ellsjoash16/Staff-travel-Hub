@@ -1,4 +1,4 @@
-import { MapPin, Calendar, Hotel, Plane, Ship, Zap, Building2, X } from 'lucide-react'
+import { MapPin, Calendar, Hotel, Plane, Ship, Zap, Building2, X, PlayCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -182,25 +182,39 @@ export function PostDetailDialog({ post, onOpenChange }: Props) {
               </div>
             )}
 
-            {/* ── Review body ── */}
-            <div className="space-y-5">
-              {blocks.map((block, i) =>
-                block.type === 'text' ? (
-                  <p key={i} className="text-sm sm:text-[15px] leading-[1.85] text-foreground/85">
-                    {block.content}
-                  </p>
-                ) : (
-                  <div key={i} className="rounded-2xl overflow-hidden shadow-md -mx-2 sm:-mx-4">
-                    <img
-                      src={block.src}
-                      alt=""
-                      className="w-full object-cover max-h-[500px]"
-                      loading="lazy"
-                    />
-                  </div>
-                )
-              )}
-            </div>
+            {/* ── Review body / Video ── */}
+            {post.riseUrl ? (
+              <a
+                href={post.riseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center gap-4 py-10 rounded-2xl border border-border/60 bg-muted/30 hover:bg-muted/60 transition-colors group"
+              >
+                <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                  <PlayCircle className="h-10 w-10 text-primary" />
+                </div>
+                <span className="text-sm font-semibold text-primary">Launch Rise 360</span>
+              </a>
+            ) : (
+              <div className="space-y-5">
+                {blocks.map((block, i) =>
+                  block.type === 'text' ? (
+                    <p key={i} className="text-sm sm:text-[15px] leading-[1.85] text-foreground/85">
+                      {block.content}
+                    </p>
+                  ) : (
+                    <div key={i} className="rounded-2xl overflow-hidden shadow-md -mx-2 sm:-mx-4">
+                      <img
+                        src={block.src}
+                        alt=""
+                        className="w-full object-cover max-h-[500px]"
+                        loading="lazy"
+                      />
+                    </div>
+                  )
+                )}
+              </div>
+            )}
 
             {/* ── Tags ── */}
             {post.tags.length > 0 && (

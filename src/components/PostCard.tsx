@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MapPin, Images, Pin, Globe } from 'lucide-react'
+import { MapPin, Images, Pin, Globe, PlayCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { fmtDate, initials } from '@/lib/utils'
@@ -46,6 +46,14 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
+        {post.riseUrl && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm border border-white/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <PlayCircle className="h-8 w-8 text-white drop-shadow-lg" />
+            </div>
+          </div>
+        )}
+
         {post.pinned && (
           <span className="absolute top-3 left-3 flex items-center gap-1 bg-primary backdrop-blur-sm text-primary-foreground text-xs font-semibold rounded-full px-2.5 py-1">
             <Pin className="h-3 w-3" /> Featured
@@ -91,7 +99,14 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
           </div>
         )}
         <h3 className="relative font-bold text-base 2xl:text-lg mb-1.5 leading-snug">{post.title}</h3>
-        <p className="relative text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-3">{post.review}</p>
+        {post.riseUrl ? (
+          <p className="relative text-sm text-primary font-medium flex items-center gap-1.5">
+            <PlayCircle className="h-3.5 w-3.5 flex-shrink-0" />
+            Launch Rise 360
+          </p>
+        ) : (
+          <p className="relative text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-3">{post.review}</p>
+        )}
       </div>
 
       {post.tags.length > 0 && (

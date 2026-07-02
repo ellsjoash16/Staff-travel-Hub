@@ -255,6 +255,19 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
         (uid != null && SUPERADMIN_UIDS.includes(uid))
       if (isAdminUser) dispatch({ type: 'SET_ADMIN', value: true })
 
+      if (isAdminUser) {
+        const today = new Date().toISOString().slice(0, 10)
+        const expired = trips.filter(t => {
+          const expiry = t.endDate || t.date
+          return expiry && expiry < today && !t.completed
+        })
+        for (const t of expired) {
+          markTripComplete(t.id)
+            .then(() => dispatch({ type: 'UPDATE_TRIP', trip: { ...t, completed: true } }))
+            .catch(() => {})
+        }
+      }
+
       if (profile) {
         dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision } })
       }
@@ -446,6 +459,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
       pinned: false,
       extras: submission.extras,
       salesNote: submission.salesNote ?? null,
+      riseUrl: null,
       userId: null,
       status: 'pending',
     }

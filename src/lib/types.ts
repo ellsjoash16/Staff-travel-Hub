@@ -38,6 +38,7 @@ export interface Post {
   pinned: boolean
   extras: PostExtras
   salesNote: string | null
+  riseUrl: string | null
   userId: string | null
   status: 'pending' | 'approved'
   folder?: string | null

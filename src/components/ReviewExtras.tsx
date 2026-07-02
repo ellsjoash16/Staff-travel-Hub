@@ -5,6 +5,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import type { PostExtras, ReviewItem } from '@/lib/types'
 
+const MIN_DESC_WORDS = 100
+
+function wordCount(s: string) {
+  return s.trim() === '' ? 0 : s.trim().split(/\s+/).length
+}
+
 const SECTIONS = [
   { key: 'airlines'   as const, label: 'Airlines',   singular: 'Airline',  img: '/airlines.jpg'    },
   { key: 'hotels'     as const, label: 'Hotels',     singular: 'Hotel',    img: '/hotels.webp'     },
@@ -44,6 +50,7 @@ export function ReviewExtras({ value, onChange }: Props) {
 
   function saveDraft() {
     if (!draft || !draft.name.trim() || draft.rating === 0) return
+    if (draft.description.trim() && wordCount(draft.description) < MIN_DESC_WORDS) return
     const newItem: ReviewItem = {
       name: draft.name.trim(),
       rating: draft.rating,
@@ -169,29 +176,44 @@ export function ReviewExtras({ value, onChange }: Props) {
                     </span>
                   </div>
                 </div>
-                <Textarea
-                  placeholder="Description (optional)"
-                  value={draft!.description}
-                  onChange={e => setDraft(d => d ? { ...d, description: e.target.value } : d)}
-                  className="text-sm min-h-[80px]"
-                  spellCheck={true}
-                />
+                <div className="space-y-1">
+                  <Textarea
+                    placeholder="Description (optional)"
+                    value={draft!.description}
+                    onChange={e => setDraft(d => d ? { ...d, description: e.target.value } : d)}
+                    className="text-sm min-h-[80px]"
+                    spellCheck={true}
+                  />
+                  {(() => {
+                    const wc = wordCount(draft!.description)
+                    const hasText = draft!.description.trim().length > 0
+                    const met = wc >= MIN_DESC_WORDS
+                    if (!hasText) return (
+                      <p className="text-xs text-muted-foreground">Minimum {MIN_DESC_WORDS} words required if applicable</p>
+                    )
+                    return (
+                      <p className={`text-xs ${met ? 'text-muted-foreground' : 'text-amber-600 dark:text-amber-400'}`}>
+                        {wc} / {MIN_DESC_WORDS} words minimum{met ? ' ✓' : ''}
+                      </p>
+                    )
+                  })()}
+                </div>
                 <div className="flex items-center justify-between">
-                  {(!draft!.name.trim() || draft!.rating === 0) ? (
-                    <p className="text-xs text-muted-foreground">
-                      {!draft!.name.trim() && draft!.rating === 0
-                        ? 'Enter a name and select a star rating'
-                        : !draft!.name.trim()
-                          ? 'Enter a name to save'
-                          : 'Select a star rating to save'
-                      }
-                    </p>
-                  ) : <span />}
+                  {(() => {
+                    const descTooShort = draft!.description.trim() && wordCount(draft!.description) < MIN_DESC_WORDS
+                    const noName = !draft!.name.trim()
+                    const noRating = draft!.rating === 0
+                    if (noName && noRating) return <p className="text-xs text-muted-foreground">Enter a name and select a star rating</p>
+                    if (noName) return <p className="text-xs text-muted-foreground">Enter a name to save</p>
+                    if (noRating) return <p className="text-xs text-muted-foreground">Select a star rating to save</p>
+                    if (descTooShort) return <p className="text-xs text-amber-600 dark:text-amber-400">Description needs at least {MIN_DESC_WORDS} words</p>
+                    return <span />
+                  })()}
                   <div className="flex gap-2">
                     <Button size="sm" variant="secondary" onClick={() => setDraft(null)}>Cancel</Button>
                     <Button
                       size="sm"
-                      disabled={!draft!.name.trim() || draft!.rating === 0}
+                      disabled={!draft!.name.trim() || draft!.rating === 0 || !!(draft!.description.trim() && wordCount(draft!.description) < MIN_DESC_WORDS)}
                       onClick={saveDraft}
                     >
                       {draft!.editIndex !== null ? 'Update' : 'Save'}

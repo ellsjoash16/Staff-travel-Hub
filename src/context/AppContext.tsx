@@ -18,7 +18,7 @@ import {
   fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
-import { auth } from '@/lib/firebase'
+import { auth, appCheck, getAppCheckToken } from '@/lib/firebase'
 
 // UIDs that are always admin — mirrors api/ensure-admin.js ALLOWED_UIDS
 export const SUPERADMIN_UIDS = ['zjq9ki2IUNg3fUHGldA7N3pn6ko1', 'UdIhjIXCVfdPBwaQ6HnzM1jDYoa2']
@@ -29,7 +29,14 @@ async function apiFetch(url: string, init: RequestInit): Promise<Response> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 20000)
   try {
-    return await fetch(url, { ...init, signal: controller.signal })
+    const headers: Record<string, string> = { ...(init.headers as Record<string, string>) }
+    if (appCheck) {
+      try {
+        const { token } = await getAppCheckToken(appCheck)
+        headers['X-Firebase-AppCheck'] = token
+      } catch {}
+    }
+    return await fetch(url, { ...init, headers, signal: controller.signal })
   } finally {
     clearTimeout(timeout)
   }

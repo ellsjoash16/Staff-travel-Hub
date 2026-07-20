@@ -191,34 +191,6 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
           {/* Expanded account actions */}
           {accountOpen && (
             <>
-              {/* Theme picker */}
-              {!collapsed ? (
-                <div className="px-1 py-1">
-                  <div className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5">
-                    {(['light', 'system', 'dark'] as const).map(t => (
-                      <button
-                        key={t}
-                        onClick={() => setTheme(t)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium transition-colors ${theme === t ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                      >
-                        {t === 'light' && <Sun className="h-3.5 w-3.5" />}
-                        {t === 'system' && <Monitor className="h-3.5 w-3.5" />}
-                        {t === 'dark' && <Moon className="h-3.5 w-3.5" />}
-                        <span className="capitalize">{t}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={cycleTheme}
-                  title={nextThemeLabel}
-                  className="w-full flex justify-center p-2.5 xl:p-3 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-accent-foreground"
-                >
-                  <ThemeIcon className="h-[1.1rem] w-[1.1rem] xl:h-5 xl:w-5" />
-                </button>
-              )}
-
               {/* Change password */}
               <button
                 onClick={() => { setChangePwdOpen(true); setAccountOpen(false); onMobileClose() }}
@@ -244,15 +216,57 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
           )}
         </div>
 
-        {/* ── Collapse toggle (desktop only) ── */}
-        <div className="px-2 py-2 border-t border-border hidden lg:flex items-center justify-end">
+        {/* ── Theme + Collapse toggle ── */}
+        <div className={`px-2 py-2 border-t border-border hidden lg:flex items-center ${collapsed ? 'flex-col gap-1' : 'gap-1'}`}>
+          {collapsed ? (
+            <button
+              onClick={cycleTheme}
+              title={nextThemeLabel}
+              className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-accent-foreground"
+            >
+              <ThemeIcon className="h-4 w-4" />
+            </button>
+          ) : (
+            <div className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5 flex-1">
+              {(['light', 'system', 'dark'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium transition-colors ${theme === t ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  {t === 'light' && <Sun className="h-3.5 w-3.5" />}
+                  {t === 'system' && <Monitor className="h-3.5 w-3.5" />}
+                  {t === 'dark' && <Moon className="h-3.5 w-3.5" />}
+                  <span className="capitalize">{t}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <button
             onClick={() => onCollapsedChange(!collapsed)}
-            className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-accent-foreground"
+            className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-accent-foreground ml-auto"
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
+        </div>
+
+        {/* Mobile theme picker */}
+        <div className="lg:hidden px-2 pb-2 border-t border-border pt-2">
+          <div className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5">
+            {(['light', 'system', 'dark'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setTheme(t)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium transition-colors ${theme === t ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {t === 'light' && <Sun className="h-3.5 w-3.5" />}
+                {t === 'system' && <Monitor className="h-3.5 w-3.5" />}
+                {t === 'dark' && <Moon className="h-3.5 w-3.5" />}
+                <span className="capitalize">{t}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />

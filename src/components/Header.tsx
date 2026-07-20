@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { Shield, Menu, Settings, Search, LogOut } from 'lucide-react'
-import { signOut } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
+import { Shield, Menu, Settings, Search } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { DestinationSearch } from './DestinationSearch'
 
@@ -93,13 +91,6 @@ export function Header({ showMenuButton, onMenuClick, showSidebar, sidebarCollap
               {isAdmin ? <Shield className="h-5 w-5" /> : <Settings className="h-5 w-5" />}
             </button>
 
-            <button
-              onClick={() => signOut(auth)}
-              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              aria-label="Sign out"
-            >
-              <LogOut className="h-5 w-5" />
-            </button>
           </div>
         </div>
 

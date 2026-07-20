@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     const sa = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
     const accessToken = await getAccessToken(sa)
-    const callerUid = await verifyIdToken(token, sa.project_id)
+    const { uid: callerUid } = await verifyIdToken(token, sa.project_id)
 
     const fsBase = `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents`
 
@@ -42,7 +42,6 @@ export default async function handler(req, res) {
     if (body.title !== undefined) addStr('title', body.title)
     if (body.heading !== undefined) addStr('heading', body.heading)
     if (body.color !== undefined) addStr('color', body.color)
-    if (body.password !== undefined) addStr('password', body.password)
     if (body.welcome !== undefined) addStr('welcome', body.welcome)
     if (body.notice !== undefined) addStr('notice', body.notice)
     if (body.departureName !== undefined) addStr('departureName', body.departureName)

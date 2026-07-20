@@ -79,7 +79,6 @@ export interface Settings {
   title: string
   heading: string
   color: string
-  password: string
   welcome: string
   notice: string
   departureAirport: { name: string; lat: number; lng: number }

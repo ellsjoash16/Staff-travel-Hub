@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     const sa = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
     const accessToken = await getAccessToken(sa)
-    const uid = await verifyIdToken(token, sa.project_id)
+    const { uid } = await verifyIdToken(token, sa.project_id)
 
     const fsBase = `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents`
 

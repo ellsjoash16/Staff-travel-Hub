@@ -545,7 +545,6 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
         title: settings.title,
         heading: settings.heading,
         color: settings.color,
-        password: settings.password,
         welcome: settings.welcome,
         notice: settings.notice ?? '',
         departureName: settings.departureAirport?.name ?? 'LHR',

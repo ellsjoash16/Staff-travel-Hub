@@ -1,7 +1,22 @@
-import { parseServiceAccount, getAccessToken, verifyIdToken } from './_lib.js'
+import { parseServiceAccount, getAccessToken, verifyIdToken, checkRateLimit } from './_lib.js'
+
+async function isCallerAdmin(fsBase, accessToken, uid) {
+  const res = await fetch(`${fsBase}/settings/main`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!res.ok) return false
+  const doc = await res.json()
+  const adminUids = doc.fields?.adminUids?.arrayValue?.values
+    ?.map(v => v.stringValue).filter(Boolean) ?? []
+  return adminUids.includes(uid)
+}
 
 const FAM_ADMIN_EMAIL = 'famadmin@dialaflight.co.uk'
 const LOTUS_LINK = 'http://lotusprofiles/PassportDetails'
+
+function esc(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
 
 function statusLabel(status) {
   switch (status) {
@@ -13,15 +28,16 @@ function statusLabel(status) {
 }
 
 function buildEmail({ type, to, name, tripName, status }) {
-  const firstName = name.split(' ')[0] || name
+  const firstName = esc(name.split(' ')[0] || name)
+  const safeTrip = esc(tripName)
 
   if (type === 'registered') {
     return {
-      subject: `Registration received – ${tripName}`,
+      subject: `Registration received – ${safeTrip}`,
       html: `
         <div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a">
           <h2 style="color:#1a1a1a">Hi ${firstName},</h2>
-          <p>Thanks for registering your interest in <strong>${tripName}</strong>.</p>
+          <p>Thanks for registering your interest in <strong>${safeTrip}</strong>.</p>
           <p>We've received your registration and will be in touch soon with next steps.</p>
           <p style="color:#666;font-size:13px;margin-top:32px">— The DAFagram Team</p>
         </div>
@@ -30,15 +46,15 @@ function buildEmail({ type, to, name, tripName, status }) {
   }
 
   if (type === 'status_change') {
-    const label = statusLabel(status)
+    const label = esc(statusLabel(status))
     const isConfirmed = status === 'confirmed'
     const isRefused = status === 'refused'
 
     const bodyText = isConfirmed
-      ? `Great news — your registration for <strong>${tripName}</strong> has been <strong style="color:#16a34a">confirmed</strong>!`
+      ? `Great news — your registration for <strong>${safeTrip}</strong> has been <strong style="color:#16a34a">confirmed</strong>!`
       : isRefused
-      ? `Unfortunately, your registration for <strong>${tripName}</strong> has been <strong style="color:#dc2626">unsuccessful</strong> at this time.`
-      : `Your registration for <strong>${tripName}</strong> has been updated to <strong>${label}</strong>.`
+      ? `Unfortunately, your registration for <strong>${safeTrip}</strong> has been <strong style="color:#dc2626">unsuccessful</strong> at this time.`
+      : `Your registration for <strong>${safeTrip}</strong> has been updated to <strong>${label}</strong>.`
 
     const lotusSection = isConfirmed ? `
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:24px 0">
@@ -49,7 +65,7 @@ function buildEmail({ type, to, name, tripName, status }) {
     ` : ''
 
     return {
-      subject: `Registration update: ${label} – ${tripName}`,
+      subject: `Registration update: ${label} – ${safeTrip}`,
       html: `
         <div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a">
           <h2 style="color:#1a1a1a">Hi ${firstName},</h2>
@@ -75,11 +91,35 @@ export default async function handler(req, res) {
 
   try {
     const sa = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
-    await verifyIdToken(token, sa.project_id)
+    const accessToken = await getAccessToken(sa)
+    const { uid: callerUid } = await verifyIdToken(token, sa.project_id)
+    const fsBase = `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents`
 
     const { type, to, name, tripName, status } = req.body
     if (!to || !name || !tripName || !type) {
       return res.status(400).json({ error: 'Missing required fields' })
+    }
+    if (typeof to !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to) || to.length > 200) {
+      return res.status(400).json({ error: 'Invalid recipient' })
+    }
+    if (String(name).length > 100 || String(tripName).length > 150) {
+      return res.status(400).json({ error: 'Input too long' })
+    }
+
+    // Status-change emails announce confirmation/refusal and CC the fam admin —
+    // only real admins may trigger them. "registered" emails stay open to any
+    // authenticated user because they also go to nominated colleagues, so the
+    // open path is rate-limited per caller to prevent abuse of the mail relay.
+    if (type === 'status_change') {
+      if (!(await isCallerAdmin(fsBase, accessToken, callerUid))) {
+        return res.status(403).json({ error: 'Forbidden' })
+      }
+    } else {
+      const rl = await checkRateLimit(fsBase, accessToken, `email_reg_${callerUid}`, { limit: 15, windowSeconds: 3600 })
+      if (!rl.allowed) {
+        res.setHeader('Retry-After', String(rl.retryAfter))
+        return res.status(429).json({ error: 'Too many registration emails — please try again later.' })
+      }
     }
 
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'DAFagram <noreply@dialaflight.co.uk>'

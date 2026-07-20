@@ -72,7 +72,7 @@ export async function getAccessToken(sa) {
 }
 
 /**
- * Verifies a Firebase ID token and returns the caller's UID.
+ * Verifies a Firebase ID token and returns the caller's { uid, email }.
  */
 export async function verifyIdToken(token, projectId) {
   const { createVerify } = await import('crypto')
@@ -80,6 +80,8 @@ export async function verifyIdToken(token, projectId) {
   if (parts.length !== 3) throw new Error('Malformed ID token')
   const header = JSON.parse(Buffer.from(parts[0], 'base64url').toString())
   const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+
+  if (header.alg !== 'RS256') throw new Error('Unexpected token algorithm')
 
   const certsRes = await fetch('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com')
   const certs = await certsRes.json()
@@ -89,8 +91,66 @@ export async function verifyIdToken(token, projectId) {
   const verifier = createVerify('RSA-SHA256')
   verifier.update(`${parts[0]}.${parts[1]}`)
   if (!verifier.verify(cert, parts[2], 'base64url')) throw new Error('Invalid token signature')
-  if ((payload.exp ?? 0) <= Math.floor(Date.now() / 1000)) throw new Error('Token expired')
+  const now = Math.floor(Date.now() / 1000)
+  if ((payload.exp ?? 0) <= now) throw new Error('Token expired')
+  if ((payload.iat ?? now + 1) > now + 300) throw new Error('Token issued in the future')
   if (payload.aud !== projectId) throw new Error('Token audience mismatch')
+  if (payload.iss !== `https://securetoken.google.com/${projectId}`) throw new Error('Token issuer mismatch')
   if (!payload.sub) throw new Error('No subject in token')
-  return payload.sub
+  return { uid: payload.sub, email: payload.email ?? null }
+}
+
+/**
+ * Fixed-window rate limiter backed by a Firestore document at rateLimits/{key}.
+ * Uses the service-account access token, so it works regardless of security
+ * rules (clients have no rule granting access to the rateLimits collection).
+ *
+ * Fails open on any Firestore error — a transient outage should never block a
+ * legitimate email. Read-modify-write is not strictly atomic; adequate for
+ * low-volume abuse prevention on an internal app.
+ *
+ * @returns {Promise<{ allowed: boolean, retryAfter: number }>} retryAfter in seconds
+ */
+export async function checkRateLimit(fsBase, accessToken, key, { limit, windowSeconds }) {
+  const docUrl = `${fsBase}/rateLimits/${encodeURIComponent(key)}`
+  const now = Math.floor(Date.now() / 1000)
+  let windowStart = now
+  let count = 0
+
+  try {
+    const readRes = await fetch(docUrl, { headers: { Authorization: `Bearer ${accessToken}` } })
+    if (readRes.ok) {
+      const doc = await readRes.json()
+      const ws = Number(doc.fields?.windowStart?.integerValue ?? 0)
+      const c = Number(doc.fields?.count?.integerValue ?? 0)
+      // Reuse the current window only if it hasn't expired
+      if (ws && now - ws < windowSeconds) {
+        windowStart = ws
+        count = c
+      }
+    }
+  } catch {
+    return { allowed: true, retryAfter: 0 }  // fail open on read error
+  }
+
+  if (count >= limit) {
+    return { allowed: false, retryAfter: Math.max(1, windowSeconds - (now - windowStart)) }
+  }
+
+  try {
+    await fetch(`${docUrl}?updateMask.fieldPaths=windowStart&updateMask.fieldPaths=count`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          windowStart: { integerValue: String(windowStart) },
+          count: { integerValue: String(count + 1) },
+        },
+      }),
+    })
+  } catch {
+    // best-effort write; if it fails the next request just resets the window
+  }
+
+  return { allowed: true, retryAfter: 0 }
 }

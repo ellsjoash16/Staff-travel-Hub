@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   try {
     const sa = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
     const accessToken = await getAccessToken(sa)
-    const callerUid = await verifyIdToken(token, sa.project_id)
+    const { uid: callerUid } = await verifyIdToken(token, sa.project_id)
 
     const fsBase = `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents`
 
@@ -46,6 +46,18 @@ export default async function handler(req, res) {
 
     const { collection, id, op, data, updateFields } = req.body
     if (!collection || !id || !op) return res.status(400).json({ error: 'collection, id and op are required' })
+
+    // Only these collections may be written through this generic endpoint.
+    // settings/userProfiles/adminUids have dedicated, guard-railed endpoints
+    // and must never be reachable here.
+    const ALLOWED_COLLECTIONS = ['posts', 'submissions', 'locations', 'trips', 'registrations']
+    if (!ALLOWED_COLLECTIONS.includes(collection)) {
+      return res.status(403).json({ error: `Collection not permitted: ${collection}` })
+    }
+    // Reject anything that could break out of the intended document path.
+    if (typeof id !== 'string' || !/^[A-Za-z0-9_-]{1,1500}$/.test(id)) {
+      return res.status(400).json({ error: 'Invalid document id' })
+    }
 
     const docPath = `${fsBase}/${collection}/${id}`
 

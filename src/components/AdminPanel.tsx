@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash2, Pencil, Loader2, CheckCircle2, X, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight, ChevronDown, CalendarDays, Plus, KeyRound, Users, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Trash2, Pencil, Loader2, CheckCircle2, X, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight, ChevronDown, CalendarDays, Plus, Users, RefreshCw, ShieldCheck } from 'lucide-react'
 import { AppSelect } from '@/components/ui/app-select'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
@@ -88,7 +88,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [manageFolder, setManageFolder] = useState<string | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
 
-  const [sPwd, setSPwd] = useState('')
   const [sNotice, setSNotice] = useState('')
 
 
@@ -109,7 +108,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
   useEffect(() => {
     if (open || inline) {
-      setSPwd('')
       setSNotice(settings.notice ?? '')
       if (initialPost) startEditPost(initialPost)
       setUsersLoaded(false)
@@ -359,15 +357,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   }
 
   // ── Settings ──────────────────────────────────────────────────────────────
-
-  async function handleSaveSettings() {
-    if (!sPwd) { toast.error('Enter a new PIN'); return }
-    if (sPwd.length !== 4) { toast.error('PIN must be exactly 4 digits'); return }
-    try {
-      await saveSettings({ ...settings, password: sPwd })
-      setSPwd(''); toast.success('PIN updated!')
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : 'Failed to save') }
-  }
 
 
   // ── Folders ───────────────────────────────────────────────────────────────
@@ -1711,37 +1700,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     }}>Save Notice</Button>
                   </div>
                 </div>
-              </div>
-
-              {/* PIN */}
-              <div className="rounded-2xl border border-border bg-card overflow-hidden">
-                <div className="px-5 py-4 border-b border-border flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <KeyRound className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">Security</p>
-                    <p className="text-xs text-muted-foreground">Change the admin PIN — leave blank to keep existing</p>
-                  </div>
-                </div>
-                <div className="p-5">
-                  <div className="max-w-[180px] space-y-1.5">
-                    <Label>New Admin PIN</Label>
-                    <Input
-                      type="password"
-                      inputMode="numeric"
-                      maxLength={4}
-                      placeholder="••••"
-                      value={sPwd}
-                      onChange={(e) => setSPwd(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      className="font-mono tracking-[0.5em] text-center text-lg"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-1 pb-1">
-                <Button onClick={handleSaveSettings} className="px-6">Save PIN</Button>
               </div>
 
               {/* Demo Data */}

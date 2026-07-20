@@ -68,6 +68,7 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
   const { activeView, isAdmin, pendingPosts } = state
   const [contactOpen, setContactOpen] = useState(false)
   const [changePwdOpen, setChangePwdOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
     const stored = localStorage.getItem('theme')
     return (stored === 'light' || stored === 'dark' || stored === 'system') ? stored : 'system'
@@ -172,37 +173,47 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
 
         {/* ── Account & sign-out ── */}
         <div className="px-2 pt-1 pb-1 border-t border-border space-y-0.5">
-          {/* User identity */}
-          <div className={`flex items-center gap-2.5 px-3 py-2.5 ${collapsed ? 'justify-center' : ''}`} title={collapsed ? displayName : undefined}>
+          {/* User identity row — click to expand */}
+          <button
+            onClick={() => setAccountOpen(v => !v)}
+            title={collapsed ? displayName : undefined}
+            className={`w-full flex items-center rounded-lg transition-all duration-150 text-muted-foreground hover:bg-accent hover:text-accent-foreground
+              ${collapsed ? 'justify-center p-2.5 xl:p-3' : 'gap-2.5 px-3 py-2'}`}
+          >
             <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-bold text-primary">{initials}</span>
             </div>
             {!collapsed && (
-              <p className="text-xs text-muted-foreground truncate flex-1 leading-tight">{displayName}</p>
+              <p className="text-xs truncate flex-1 text-left leading-tight">{displayName}</p>
             )}
-          </div>
-
-          {/* Change password */}
-          <button
-            onClick={() => { setChangePwdOpen(true); onMobileClose() }}
-            title={collapsed ? 'Change Password' : undefined}
-            className={`w-full flex items-center rounded-lg transition-all duration-150 text-muted-foreground hover:bg-accent hover:text-accent-foreground group
-              ${collapsed ? 'justify-center p-2.5 xl:p-3' : 'gap-3 px-3 py-2'}`}
-          >
-            <KeyRound className="h-[1.1rem] w-[1.1rem] xl:h-5 xl:w-5 flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
-            {!collapsed && <span className="text-sm font-medium">Change Password</span>}
           </button>
 
-          {/* Log out */}
-          <button
-            onClick={() => signOut(auth)}
-            title={collapsed ? 'Log out' : undefined}
-            className={`w-full flex items-center rounded-lg transition-all duration-150 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group
-              ${collapsed ? 'justify-center p-2.5 xl:p-3' : 'gap-3 px-3 py-2'}`}
-          >
-            <LogOut className="h-[1.1rem] w-[1.1rem] xl:h-5 xl:w-5 flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
-            {!collapsed && <span className="text-sm font-medium">Log out</span>}
-          </button>
+          {/* Expanded account actions */}
+          {accountOpen && (
+            <>
+              {/* Change password */}
+              <button
+                onClick={() => { setChangePwdOpen(true); setAccountOpen(false); onMobileClose() }}
+                title={collapsed ? 'Change Password' : undefined}
+                className={`w-full flex items-center rounded-lg transition-all duration-150 text-muted-foreground hover:bg-accent hover:text-accent-foreground group
+                  ${collapsed ? 'justify-center p-2.5 xl:p-3' : 'gap-3 px-3 py-2'}`}
+              >
+                <KeyRound className="h-[1.1rem] w-[1.1rem] xl:h-5 xl:w-5 flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
+                {!collapsed && <span className="text-sm font-medium">Change Password</span>}
+              </button>
+
+              {/* Log out */}
+              <button
+                onClick={() => signOut(auth)}
+                title={collapsed ? 'Log out' : undefined}
+                className={`w-full flex items-center rounded-lg transition-all duration-150 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group
+                  ${collapsed ? 'justify-center p-2.5 xl:p-3' : 'gap-3 px-3 py-2'}`}
+              >
+                <LogOut className="h-[1.1rem] w-[1.1rem] xl:h-5 xl:w-5 flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
+                {!collapsed && <span className="text-sm font-medium">Log out</span>}
+              </button>
+            </>
+          )}
         </div>
 
         {/* ── Theme + Collapse toggle ── */}

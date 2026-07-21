@@ -30,13 +30,13 @@ function NavItem({
         w-full flex items-center rounded-xl transition-all duration-150 group relative
         ${expanded ? 'gap-3 px-3 py-2.5' : 'justify-center p-2.5 xl:p-3'}
         ${active
-          ? 'bg-primary/10 text-primary'
-          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          ? 'bg-muted text-foreground'
+          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
         }
       `}
     >
       {active && expanded && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-primary/60" />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-foreground/30" />
       )}
       <div className="relative flex-shrink-0">
         <Icon className={`h-[1.1rem] w-[1.1rem] xl:h-[1.2rem] xl:w-[1.2rem] transition-transform duration-150 ${active ? '' : 'group-hover:scale-110'}`} />
@@ -195,8 +195,8 @@ export function Sidebar() {
             className={`w-full flex items-center rounded-xl transition-all duration-150 text-muted-foreground hover:bg-accent hover:text-accent-foreground
               ${expanded ? 'gap-2.5 px-3 py-2.5' : 'justify-center p-2.5 xl:p-3'}`}
           >
-            <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-bold text-primary">{initials}</span>
+            <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-bold text-foreground">{initials}</span>
             </div>
             {expanded && (
               <>

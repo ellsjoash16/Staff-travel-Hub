@@ -53,8 +53,8 @@ export function MobileTabBar() {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-4 pt-3 pb-2">
-              <span className="text-black/60 text-xs font-semibold uppercase tracking-widest">More</span>
-              <button onClick={() => setMoreOpen(false)} className="text-black/50 hover:text-black transition-colors">
+              <span className="text-black/60 dark:text-white/60 text-xs font-semibold uppercase tracking-widest">More</span>
+              <button onClick={() => setMoreOpen(false)} className="text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -64,7 +64,7 @@ export function MobileTabBar() {
                   key={item.id}
                   onClick={() => go(item.id)}
                   className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-                    ${activeView === item.id ? 'bg-black/20 text-black' : 'text-black/60 hover:bg-black/10 hover:text-black'}`}
+                    ${activeView === item.id ? 'bg-black/20 dark:bg-white/20 text-black dark:text-white' : 'text-black/60 dark:text-white/60 hover:bg-black/10 dark:hover:bg-white/10 hover:text-black dark:hover:text-white'}`}
                 >
                   <item.Icon className="h-5 w-5" />
                   <span className="text-[10px] font-medium leading-tight text-center">{item.label}</span>
@@ -75,7 +75,7 @@ export function MobileTabBar() {
                   key={item.id}
                   onClick={() => go(item.id)}
                   className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors relative drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-                    ${activeView === item.id ? 'bg-black/20 text-black' : 'text-black/60 hover:bg-black/10 hover:text-black'}`}
+                    ${activeView === item.id ? 'bg-black/20 dark:bg-white/20 text-black dark:text-white' : 'text-black/60 dark:text-white/60 hover:bg-black/10 dark:hover:bg-white/10 hover:text-black dark:hover:text-white'}`}
                 >
                   <div className="relative">
                     <item.Icon className="h-5 w-5" />
@@ -90,7 +90,7 @@ export function MobileTabBar() {
               ))}
               <button
                 onClick={() => { setContactOpen(true); setMoreOpen(false) }}
-                className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-black/60 hover:bg-black/10 hover:text-black transition-colors drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
+                className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-black/60 dark:text-white/60 hover:bg-black/10 dark:hover:bg-white/10 hover:text-black dark:hover:text-white transition-colors drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
               >
                 <MessageCircle className="h-5 w-5" />
                 <span className="text-[10px] font-medium leading-tight text-center">Contact</span>
@@ -114,9 +114,9 @@ export function MobileTabBar() {
                 data-slot="button"
                 onClick={() => { go(item.id); setMoreOpen(false) }}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-                  ${active ? 'text-black' : 'text-black/55 hover:text-black'}`}
+                  ${active ? 'text-black dark:text-white' : 'text-black/55 dark:text-white/55 hover:text-black dark:hover:text-white'}`}
               >
-                {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-black/60" />}
+                {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-black/60 dark:bg-white/60" />}
                 <item.Icon className="h-[1.1rem] w-[1.1rem]" />
                 <span className={`text-[9px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
               </button>
@@ -127,9 +127,9 @@ export function MobileTabBar() {
             data-slot="button"
             onClick={() => setMoreOpen(v => !v)}
             className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-              ${moreActive && !moreOpen ? 'text-black' : moreOpen ? 'text-black' : 'text-black/55 hover:text-black'}`}
+              ${moreActive && !moreOpen ? 'text-black dark:text-white' : moreOpen ? 'text-black dark:text-white' : 'text-black/55 dark:text-white/55 hover:text-black dark:hover:text-white'}`}
           >
-            {moreActive && !moreOpen && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-black/60" />}
+            {moreActive && !moreOpen && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-black/60 dark:bg-white/60" />}
             <MoreHorizontal className="h-[1.1rem] w-[1.1rem]" />
             <span className="text-[9px] leading-none font-medium">More</span>
           </button>

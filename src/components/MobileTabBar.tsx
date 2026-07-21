@@ -2,6 +2,7 @@ import { Clock, Settings, MessageCircle, MoreHorizontal, Globe2, Plane, Send, Ca
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
+import { GlassButtonGroup } from '@/components/ui/glass-button-group'
 import { LiquidGlass } from '@/components/ui/liquid-glass'
 import type { View } from '@/lib/types'
 
@@ -62,8 +63,8 @@ export function MobileTabBar() {
                 <button
                   key={item.id}
                   onClick={() => go(item.id)}
-                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors
-                    ${activeView === item.id ? 'bg-white/20 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
+                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
+                    ${activeView === item.id ? 'bg-white/20 text-white' : 'text-white/75 hover:bg-white/10 hover:text-white'}`}
                 >
                   <item.Icon className="h-5 w-5" />
                   <span className="text-[10px] font-medium leading-tight text-center">{item.label}</span>
@@ -73,8 +74,8 @@ export function MobileTabBar() {
                 <button
                   key={item.id}
                   onClick={() => go(item.id)}
-                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors relative
-                    ${activeView === item.id ? 'bg-white/20 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
+                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors relative drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
+                    ${activeView === item.id ? 'bg-white/20 text-white' : 'text-white/75 hover:bg-white/10 hover:text-white'}`}
                 >
                   <div className="relative">
                     <item.Icon className="h-5 w-5" />
@@ -89,7 +90,7 @@ export function MobileTabBar() {
               ))}
               <button
                 onClick={() => { setContactOpen(true); setMoreOpen(false) }}
-                className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-white/75 hover:bg-white/10 hover:text-white transition-colors drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
               >
                 <MessageCircle className="h-5 w-5" />
                 <span className="text-[10px] font-medium leading-tight text-center">Contact</span>
@@ -100,40 +101,40 @@ export function MobileTabBar() {
       )}
 
       {/* ── Tab bar ── */}
-      <LiquidGlass
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex rounded-none bg-white/[0.06]"
-        blur={2}
-        refraction={15}
-        bezel={0.5}
-        saturation={1.28}
-      >
-        {PRIMARY.map(item => {
-          const active = activeView === item.id
-          return (
-            <button
-              key={item.id}
-              onClick={() => { go(item.id); setMoreOpen(false) }}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-                ${active ? 'text-white' : 'text-white/75 hover:text-white'}`}
-            >
-              {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-white/70" />}
-              <item.Icon className="h-[1.1rem] w-[1.1rem]" />
-              <span className={`text-[9px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
-            </button>
-          )
-        })}
-
-        {/* More button */}
-        <button
-          onClick={() => setMoreOpen(v => !v)}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-            ${moreActive && !moreOpen ? 'text-white' : moreOpen ? 'text-white' : 'text-white/75 hover:text-white'}`}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40">
+        <GlassButtonGroup
+          className="w-full rounded-none"
+          glassVariant="liquid-refract"
         >
-          {moreActive && !moreOpen && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-white/70" />}
-          <MoreHorizontal className="h-[1.1rem] w-[1.1rem]" />
-          <span className="text-[9px] leading-none font-medium">More</span>
-        </button>
-      </LiquidGlass>
+          {PRIMARY.map(item => {
+            const active = activeView === item.id
+            return (
+              <button
+                key={item.id}
+                data-slot="button"
+                onClick={() => { go(item.id); setMoreOpen(false) }}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
+                  ${active ? 'text-white' : 'text-white/75 hover:text-white'}`}
+              >
+                {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-white/70" />}
+                <item.Icon className="h-[1.1rem] w-[1.1rem]" />
+                <span className={`text-[9px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
+              </button>
+            )
+          })}
+
+          <button
+            data-slot="button"
+            onClick={() => setMoreOpen(v => !v)}
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
+              ${moreActive && !moreOpen ? 'text-white' : moreOpen ? 'text-white' : 'text-white/75 hover:text-white'}`}
+          >
+            {moreActive && !moreOpen && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-white/70" />}
+            <MoreHorizontal className="h-[1.1rem] w-[1.1rem]" />
+            <span className="text-[9px] leading-none font-medium">More</span>
+          </button>
+        </GlassButtonGroup>
+      </nav>
 
       <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />
     </>

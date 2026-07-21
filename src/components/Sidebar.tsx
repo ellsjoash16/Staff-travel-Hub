@@ -156,7 +156,6 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
         {/* ── Admin section ── */}
         {isAdmin && (
           <div className="px-2 pt-1 pb-2 space-y-0.5">
-            <div className="mx-3 my-1.5 border-t border-border" />
             {expanded && (
               <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
                 Admin

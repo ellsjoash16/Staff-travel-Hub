@@ -21,17 +21,15 @@ const SMALL_PANELS: {
 ]
 
 function SmallCard({
-  Icon, label, sub, color, onClick, className,
+  Icon, label, sub, color, onClick,
 }: {
-  Icon: React.ElementType; label: string; sub: string; color: string
-  onClick: () => void; className?: string
+  Icon: React.ElementType; label: string; sub: string; color: string; onClick: () => void
 }) {
   return (
     <button
       onClick={onClick}
-      className={`relative h-full w-full text-left rounded-2xl border border-border bg-card
-        cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md
-        overflow-hidden ${className ?? ''}`}
+      className="relative h-full w-full text-left rounded-2xl border border-border bg-card
+        cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md overflow-hidden"
     >
       <div className="p-4 2xl:p-5 h-full flex flex-col">
         <div className={`w-9 h-9 2xl:w-10 2xl:h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
@@ -46,6 +44,26 @@ function SmallCard({
           <ArrowRight className="h-4 w-4 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all duration-200 flex-shrink-0 mb-0.5" />
         </div>
       </div>
+    </button>
+  )
+}
+
+function MobileCard({
+  Icon, label, color, onClick,
+}: {
+  Icon: React.ElementType; label: string; color: string; onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex-shrink-0 w-[88px] h-[80px] flex flex-col items-center justify-center gap-2
+        rounded-2xl border border-border bg-card cursor-pointer
+        transition-all duration-200 active:scale-95"
+    >
+      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <span className="text-[10px] font-semibold text-foreground leading-tight text-center px-1">{label}</span>
     </button>
   )
 }
@@ -72,12 +90,12 @@ export function HomeView() {
   }
 
   return (
-    <div className="flex flex-col gap-3 2xl:gap-4 h-full min-h-0">
+    <div className="flex flex-col gap-2 sm:gap-3 2xl:gap-4 h-full min-h-0">
 
       {/* ── Hero ── */}
       <div
-        className="relative flex-[2] min-h-0 rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-md transition-shadow duration-200 flex-shrink-0"
-        style={{ minHeight: '180px' }}
+        className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-md transition-shadow duration-200
+          h-52 sm:h-auto sm:flex-[2] flex-shrink-0"
         onClick={() => navigate('feed')}
       >
         <img
@@ -91,7 +109,7 @@ export function HomeView() {
 
         {/* Notice */}
         {notice && !noticeDismissed && (
-          <div className="absolute top-4 left-4 right-4 sm:right-auto sm:max-w-md flex items-start gap-2.5 rounded-xl bg-black/40 backdrop-blur-md border border-white/15 px-3.5 py-2.5">
+          <div className="absolute top-3 left-3 right-3 sm:right-auto sm:max-w-md flex items-start gap-2.5 rounded-xl bg-black/40 backdrop-blur-md border border-white/15 px-3 py-2">
             <Megaphone className="h-3.5 w-3.5 text-white/80 flex-shrink-0 mt-0.5" />
             <p className="flex-1 text-xs text-white/90 leading-relaxed">{notice}</p>
             <button
@@ -104,35 +122,46 @@ export function HomeView() {
         )}
 
         {/* Bottom content */}
-        <div className="relative h-full flex flex-col justify-end p-5 sm:p-6 2xl:p-8">
+        <div className="relative h-full flex flex-col justify-end p-4 sm:p-6 2xl:p-8">
           {firstName && (
-            <p className="text-white/60 text-sm 2xl:text-base font-medium mb-2 tracking-wide">
+            <p className="text-white/60 text-xs sm:text-sm 2xl:text-base font-medium mb-1 sm:mb-2 tracking-wide">
               Welcome back, {firstName}
             </p>
           )}
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h1 className="font-bold text-white text-3xl sm:text-4xl 2xl:text-5xl leading-none tracking-tight drop-shadow-lg">
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="font-bold text-white text-2xl sm:text-4xl 2xl:text-5xl leading-tight sm:leading-none tracking-tight drop-shadow-lg">
                 {settings.heading || 'Staff Adventures'}
               </h1>
-              <p className="text-white/60 text-sm 2xl:text-base mt-2 tracking-wide">
+              <p className="hidden sm:block text-white/60 text-sm 2xl:text-base mt-2 tracking-wide">
                 {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0 mb-1">
-              <div className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 transition-colors duration-200 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-                <Camera className="h-3.5 w-3.5 text-white" />
-                <span className="text-white text-sm font-medium">Browse Feed</span>
-                <ArrowRight className="h-3.5 w-3.5 text-white" />
+            <div className="flex-shrink-0 mb-0.5">
+              <div className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 transition-colors duration-200 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 sm:px-4 sm:py-2">
+                <Camera className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
+                <span className="text-white text-xs sm:text-sm font-medium whitespace-nowrap">Browse Feed</span>
+                <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Small cards grid ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 2xl:gap-4 flex-1 min-h-0"
-        style={{ minHeight: '120px' }}>
+      {/* ── Cards: horizontal scroll on mobile, grid on sm+ ── */}
+      <div className="sm:hidden flex gap-2 overflow-x-auto flex-shrink-0 pb-1 -mx-3 px-3">
+        {SMALL_PANELS.map(p => (
+          <MobileCard
+            key={p.key}
+            Icon={p.Icon}
+            label={p.label}
+            color={p.color}
+            onClick={() => navigate(p.key)}
+          />
+        ))}
+      </div>
+
+      <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-5 gap-3 2xl:gap-4 flex-1 min-h-0">
         {SMALL_PANELS.map(p => (
           <SmallCard
             key={p.key}

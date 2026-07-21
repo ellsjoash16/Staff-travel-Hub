@@ -49,16 +49,16 @@ function SmallCard({
 }
 
 function MobileCard({
-  Icon, label, color, onClick,
+  Icon, label, color, onClick, className,
 }: {
-  Icon: React.ElementType; label: string; color: string; onClick: () => void
+  Icon: React.ElementType; label: string; color: string; onClick: () => void; className?: string
 }) {
   return (
     <button
       onClick={onClick}
-      className="w-full h-20 flex flex-col items-center justify-center gap-2
+      className={`w-full h-20 flex flex-col items-center justify-center gap-2
         rounded-2xl border border-border bg-card cursor-pointer
-        transition-all duration-200 active:scale-95"
+        transition-all duration-200 active:scale-95 ${className ?? ''}`}
     >
       <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
         <Icon className="h-4 w-4" />
@@ -148,16 +148,15 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* ── Cards: 3-col grid on mobile, full grid on sm+ ── */}
-      <div className="sm:hidden grid grid-cols-3 gap-2 flex-shrink-0">
-        {SMALL_PANELS.map(p => (
-          <MobileCard
-            key={p.key}
-            Icon={p.Icon}
-            label={p.label}
-            color={p.color}
-            onClick={() => navigate(p.key)}
-          />
+      {/* ── Cards: 2 then 3 on mobile, full grid on sm+ ── */}
+      <div className="sm:hidden grid grid-cols-6 gap-2 flex-shrink-0">
+        {SMALL_PANELS.slice(0, 2).map(p => (
+          <MobileCard key={p.key} Icon={p.Icon} label={p.label} color={p.color}
+            onClick={() => navigate(p.key)} className="col-span-3" />
+        ))}
+        {SMALL_PANELS.slice(2, 5).map(p => (
+          <MobileCard key={p.key} Icon={p.Icon} label={p.label} color={p.color}
+            onClick={() => navigate(p.key)} className="col-span-2" />
         ))}
       </div>
 

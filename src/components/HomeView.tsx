@@ -84,7 +84,7 @@ export function HomeView() {
           src={HERO_IMAGE}
           alt=""
           fetchPriority="high"
-          className="absolute inset-0 w-full h-full object-cover object-[center_35%] group-hover:scale-[1.02] transition-transform duration-500"
+          className="absolute inset-0 w-full h-full object-cover object-[center_65%] group-hover:scale-[1.02] transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent" />

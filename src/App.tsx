@@ -11,7 +11,7 @@ import { MobileTabBar } from '@/components/MobileTabBar'
 import { LoginScreen } from '@/components/LoginScreen'
 import type { Post } from '@/lib/types'
 
-const LOADING_BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80'
+const LOADING_BG = '/hero-airport.jpg'
 
 const QUOTES = [
   'The world is a book, and those who do not travel read only one page.',

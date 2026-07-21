@@ -41,36 +41,58 @@ const STEPS = [
 
 function StepProgress({ current }: { current: number }) {
   return (
-    <div className="flex items-center justify-center gap-0 mb-6 select-none">
-      {STEPS.map((step, i) => {
-        const done   = current > step.id
-        const active = current === step.id
-        const Icon   = step.icon
-        return (
-          <div key={step.id} className="flex items-center">
-            <div className="flex flex-col items-center gap-1">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-                done
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/40 ring-2 ring-emerald-500/30 ring-offset-1 ring-offset-background'
-                  : active
-                    ? 'bg-primary/15 border-2 border-primary text-primary'
-                    : 'bg-muted border-2 border-border text-muted-foreground'
-              }`}
-              style={done ? { transform: 'rotate(-4deg)' } : undefined}
-              >
-                {done ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-3.5 w-3.5" />}
+    <>
+      {/* Mobile: compact dots + label */}
+      <div className="sm:hidden mb-3">
+        <div className="flex items-center justify-center gap-1 mb-1.5">
+          {STEPS.map((step, i) => {
+            const done   = current > step.id
+            const active = current === step.id
+            return (
+              <div key={step.id} className="flex items-center gap-1">
+                <div className={`w-2 h-2 rounded-full transition-all ${done ? 'bg-emerald-500' : active ? 'bg-primary' : 'bg-border'}`} />
+                {i < STEPS.length - 1 && <div className={`h-px w-4 ${done ? 'bg-emerald-500' : 'bg-border'}`} />}
               </div>
-              <span className={`text-[10px] font-medium transition-colors ${active ? 'text-primary' : done ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
-                {done ? '✓ ' : ''}{step.label}
-              </span>
+            )
+          })}
+        </div>
+        <p className="text-center text-[11px] text-muted-foreground">
+          Step {current} of {STEPS.length} — <span className="text-foreground font-medium">{STEPS[current - 1].label}</span>
+        </p>
+      </div>
+
+      {/* Desktop: full icon + label row */}
+      <div className="hidden sm:flex items-center justify-center gap-0 mb-6 select-none">
+        {STEPS.map((step, i) => {
+          const done   = current > step.id
+          const active = current === step.id
+          const Icon   = step.icon
+          return (
+            <div key={step.id} className="flex items-center">
+              <div className="flex flex-col items-center gap-1">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  done
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/40 ring-2 ring-emerald-500/30 ring-offset-1 ring-offset-background'
+                    : active
+                      ? 'bg-primary/15 border-2 border-primary text-primary'
+                      : 'bg-muted border-2 border-border text-muted-foreground'
+                }`}
+                style={done ? { transform: 'rotate(-4deg)' } : undefined}
+                >
+                  {done ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-3.5 w-3.5" />}
+                </div>
+                <span className={`text-[10px] font-medium transition-colors ${active ? 'text-primary' : done ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                  {done ? '✓ ' : ''}{step.label}
+                </span>
+              </div>
+              {i < STEPS.length - 1 && (
+                <div className={`h-0.5 w-8 sm:w-10 mb-4 transition-colors ${done ? 'bg-primary' : 'bg-border'}`} />
+              )}
             </div>
-            {i < STEPS.length - 1 && (
-              <div className={`h-0.5 w-8 sm:w-10 mb-4 transition-colors ${done ? 'bg-primary' : 'bg-border'}`} />
-            )}
-          </div>
-        )
-      })}
-    </div>
+          )
+        })}
+      </div>
+    </>
   )
 }
 
@@ -200,11 +222,11 @@ export function SubmitView() {
           }}
         />
       </div>
-      <div className="relative flex justify-center gap-8 xl:gap-12 py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
-      <div className="w-full max-w-[620px] rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-6 py-6">
+      <div className="relative flex justify-center gap-8 xl:gap-12 py-3 sm:py-5 lg:py-6 xl:py-8 px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <div className="w-full max-w-[620px] rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-4 py-4 sm:px-6 sm:py-6">
 
-        {/* Header card */}
-        <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 mb-6 text-center">
+        {/* Header card — desktop only */}
+        <div className="hidden sm:block rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 mb-6 text-center">
           <div className="flex justify-center mb-2">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Plane className="h-6 w-6 text-primary" />
@@ -216,12 +238,20 @@ export function SubmitView() {
           </p>
         </div>
 
+        {/* Mobile mini header */}
+        <div className="sm:hidden flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Plane className="h-3.5 w-3.5 text-primary" />
+          </div>
+          <h2 className="font-gilbert text-base">Share Your Trip</h2>
+        </div>
+
         <StepProgress current={step} />
 
         {/* Step heading */}
-        <div className="mb-5">
-          <h3 className="font-gilbert text-lg">{stepInfo.title}</h3>
-          <p className="text-sm text-muted-foreground">{stepInfo.subtitle}</p>
+        <div className="mb-3 sm:mb-5">
+          <h3 className="font-gilbert text-base sm:text-lg">{stepInfo.title}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">{stepInfo.subtitle}</p>
         </div>
 
         {/* ── Step content ── */}
@@ -328,7 +358,7 @@ export function SubmitView() {
         )}
 
         {/* Navigation */}
-        <div className={`flex mt-6 ${step > 1 ? 'justify-between' : 'justify-end'}`}>
+        <div className={`flex mt-4 sm:mt-6 ${step > 1 ? 'justify-between' : 'justify-end'}`}>
           {step > 1 && (
             <Button variant="ghost" onClick={back} className="gap-1.5">
               <ChevronLeft className="h-4 w-4" /> Back

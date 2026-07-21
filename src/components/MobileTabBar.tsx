@@ -53,8 +53,8 @@ export function MobileTabBar() {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-4 pt-3 pb-2">
-              <span className="text-teal-300/60 text-xs font-semibold uppercase tracking-widest">More</span>
-              <button onClick={() => setMoreOpen(false)} className="text-teal-300/50 hover:text-teal-200 transition-colors">
+              <span className="text-primary/60 text-xs font-semibold uppercase tracking-widest">More</span>
+              <button onClick={() => setMoreOpen(false)} className="text-primary/50 hover:text-primary transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -64,7 +64,7 @@ export function MobileTabBar() {
                   key={item.id}
                   onClick={() => go(item.id)}
                   className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-                    ${activeView === item.id ? 'bg-teal-400/20 text-teal-200' : 'text-teal-300/70 hover:bg-teal-400/10 hover:text-teal-200'}`}
+                    ${activeView === item.id ? 'bg-primary/20 text-primary' : 'text-primary/70 hover:bg-primary/10 hover:text-primary'}`}
                 >
                   <item.Icon className="h-5 w-5" />
                   <span className="text-[10px] font-medium leading-tight text-center">{item.label}</span>
@@ -75,7 +75,7 @@ export function MobileTabBar() {
                   key={item.id}
                   onClick={() => go(item.id)}
                   className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors relative drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-                    ${activeView === item.id ? 'bg-teal-400/20 text-teal-200' : 'text-teal-300/70 hover:bg-teal-400/10 hover:text-teal-200'}`}
+                    ${activeView === item.id ? 'bg-primary/20 text-primary' : 'text-primary/70 hover:bg-primary/10 hover:text-primary'}`}
                 >
                   <div className="relative">
                     <item.Icon className="h-5 w-5" />
@@ -90,7 +90,7 @@ export function MobileTabBar() {
               ))}
               <button
                 onClick={() => { setContactOpen(true); setMoreOpen(false) }}
-                className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-teal-300/70 hover:bg-teal-400/10 hover:text-teal-200 transition-colors drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
+                className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-primary/70 hover:bg-primary/10 hover:text-primary transition-colors drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
               >
                 <MessageCircle className="h-5 w-5" />
                 <span className="text-[10px] font-medium leading-tight text-center">Contact</span>
@@ -114,9 +114,9 @@ export function MobileTabBar() {
                 data-slot="button"
                 onClick={() => { go(item.id); setMoreOpen(false) }}
                 className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-                  ${active ? 'text-teal-200' : 'text-teal-300/60 hover:text-teal-200'}`}
+                  ${active ? 'text-primary' : 'text-primary/60 hover:text-primary'}`}
               >
-                {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-teal-300/80" />}
+                {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-primary" />}
                 <item.Icon className="h-[1.1rem] w-[1.1rem]" />
                 <span className={`text-[9px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
               </button>
@@ -127,9 +127,9 @@ export function MobileTabBar() {
             data-slot="button"
             onClick={() => setMoreOpen(v => !v)}
             className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
-              ${moreActive && !moreOpen ? 'text-teal-200' : moreOpen ? 'text-teal-200' : 'text-teal-300/60 hover:text-teal-200'}`}
+              ${moreActive && !moreOpen ? 'text-primary' : moreOpen ? 'text-primary' : 'text-primary/60 hover:text-primary'}`}
           >
-            {moreActive && !moreOpen && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-teal-300/80" />}
+            {moreActive && !moreOpen && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-primary" />}
             <MoreHorizontal className="h-[1.1rem] w-[1.1rem]" />
             <span className="text-[9px] leading-none font-medium">More</span>
           </button>

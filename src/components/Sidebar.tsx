@@ -1,5 +1,5 @@
-import { Camera, Globe2, Plane, CalendarDays, Send, ChevronLeft, ChevronRight, Settings, Clock, ClipboardCheck, MessageCircle, KeyRound, Sun, Moon, Monitor, LogOut } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Camera, Globe2, Plane, CalendarDays, Send, Settings, Clock, ClipboardCheck, MessageCircle, KeyRound, Sun, Moon, Monitor, LogOut, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { signOut } from 'firebase/auth'
 import { useApp } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
@@ -9,7 +9,7 @@ import type { View } from '@/lib/types'
 
 const SIDEBAR_BG = '#064e5a'
 
-const NAV: { id: View; label: string; Icon: React.ElementType }[] = [
+export const NAV: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'feed',     label: 'Feed',               Icon: Camera },
   { id: 'map',      label: 'World Map',           Icon: Globe2 },
   { id: 'upcoming', label: 'Upcoming Trips',      Icon: Plane },
@@ -18,47 +18,40 @@ const NAV: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'submit',   label: 'Submit Trip',         Icon: Send },
 ]
 
-interface Props {
-  collapsed: boolean
-  onCollapsedChange: (v: boolean) => void
-  mobileOpen: boolean
-  onMobileClose: () => void
-}
-
 function NavItem({
-  label, Icon, active, collapsed, badge, onClick,
+  label, Icon, active, expanded, badge, onClick,
 }: {
-  label: string; Icon: React.ElementType; active: boolean; collapsed: boolean
+  label: string; Icon: React.ElementType; active: boolean; expanded: boolean
   badge?: number; onClick: () => void
 }) {
   return (
     <button
       onClick={onClick}
-      title={collapsed ? label : undefined}
+      title={!expanded ? label : undefined}
       className={`
         w-full flex items-center rounded-xl transition-all duration-150 group relative
-        ${collapsed ? 'justify-center p-2.5 xl:p-3' : 'gap-3 px-3 py-2.5'}
+        ${expanded ? 'gap-3 px-3 py-2.5' : 'justify-center p-2.5 xl:p-3'}
         ${active
           ? 'bg-white/15 text-white'
           : 'text-white/55 hover:bg-white/10 hover:text-white'
         }
       `}
     >
-      {active && !collapsed && (
+      {active && expanded && (
         <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-white/70" />
       )}
       <div className="relative flex-shrink-0">
         <Icon className={`h-[1.1rem] w-[1.1rem] xl:h-[1.2rem] xl:w-[1.2rem] transition-transform duration-150 ${active ? '' : 'group-hover:scale-110'}`} />
-        {badge != null && badge > 0 && collapsed && (
+        {badge != null && badge > 0 && !expanded && (
           <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-amber-400 text-[#064e5a] text-[8px] flex items-center justify-center font-bold">
             {badge > 9 ? '9+' : badge}
           </span>
         )}
       </div>
-      {!collapsed && (
-        <span className={`text-sm flex-1 text-left ${active ? 'font-semibold' : 'font-medium'}`}>{label}</span>
+      {expanded && (
+        <span className={`text-sm flex-1 text-left whitespace-nowrap ${active ? 'font-semibold' : 'font-medium'}`}>{label}</span>
       )}
-      {!collapsed && badge != null && badge > 0 && (
+      {expanded && badge != null && badge > 0 && (
         <span className="text-[11px] px-1.5 py-0.5 rounded-full font-bold bg-amber-400/20 text-amber-300">
           {badge}
         </span>
@@ -67,12 +60,15 @@ function NavItem({
   )
 }
 
-export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClose }: Props) {
+export function Sidebar() {
   const { state, dispatch } = useApp()
   const { activeView, isAdmin, pendingPosts } = state
   const [contactOpen, setContactOpen] = useState(false)
   const [changePwdOpen, setChangePwdOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
     const stored = localStorage.getItem('theme')
     return (stored === 'light' || stored === 'dark' || stored === 'system') ? stored : 'system'
@@ -101,9 +97,23 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
   const initials = (user?.displayName?.[0] ?? user?.email?.[0] ?? '?').toUpperCase()
   const displayName = user?.displayName || user?.email || ''
 
+  const expanded = hovered
+
   function go(view: View) {
     dispatch({ type: 'SET_VIEW', view })
-    onMobileClose()
+    setHovered(false)
+  }
+
+  function handleMouseEnter() {
+    if (leaveTimer.current) clearTimeout(leaveTimer.current)
+    setHovered(true)
+  }
+
+  function handleMouseLeave() {
+    leaveTimer.current = setTimeout(() => {
+      setHovered(false)
+      setAccountOpen(false)
+    }, 120)
   }
 
   const themeBtn = (t: 'light' | 'system' | 'dark', Icon: React.ElementType, label: string) => (
@@ -114,25 +124,20 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
         ${theme === t ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/80'}`}
     >
       <Icon className="h-3.5 w-3.5" />
-      {!collapsed && <span className="capitalize">{label}</span>}
+      {expanded && <span className="capitalize">{label}</span>}
     </button>
   )
 
   return (
     <>
-      {mobileOpen && (
-        <div
-          className="fixed top-14 sm:top-16 2xl:top-20 inset-x-0 bottom-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
-          onClick={onMobileClose}
-        />
-      )}
-
       <aside
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={`
-          fixed top-14 sm:top-16 2xl:top-20 bottom-0 left-0 z-40 flex flex-col
-          transition-all duration-300 ease-in-out
-          ${collapsed ? 'w-16 xl:w-20' : 'w-60 xl:w-72'}
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          hidden lg:flex flex-col
+          fixed top-14 sm:top-16 2xl:top-20 bottom-0 left-0 z-50
+          transition-all duration-200 ease-out overflow-hidden
+          ${expanded ? 'w-60 xl:w-72' : 'w-16 xl:w-20'}
         `}
         style={{ background: SIDEBAR_BG }}
       >
@@ -142,7 +147,7 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
             <NavItem
               key={id} label={label} Icon={Icon}
               active={activeView === id}
-              collapsed={collapsed}
+              expanded={expanded}
               onClick={() => go(id)}
             />
           ))}
@@ -152,7 +157,7 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
         {isAdmin && (
           <div className="px-2 pt-1 pb-2 space-y-0.5">
             <div className="mx-3 my-1.5 border-t border-white/10" />
-            {!collapsed && (
+            {expanded && (
               <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-white/25 select-none">
                 Admin
               </p>
@@ -160,14 +165,14 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
             <NavItem
               label="Pending" Icon={Clock}
               active={activeView === 'pending'}
-              collapsed={collapsed}
+              expanded={expanded}
               badge={pendingPosts.length}
               onClick={() => go('pending')}
             />
             <NavItem
               label="Settings" Icon={Settings}
               active={activeView === 'settings'}
-              collapsed={collapsed}
+              expanded={expanded}
               onClick={() => go('settings')}
             />
           </div>
@@ -179,8 +184,8 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
         <div className="px-2 pb-1">
           <NavItem
             label="Contact Admin" Icon={MessageCircle}
-            active={false} collapsed={collapsed}
-            onClick={() => { setContactOpen(true); onMobileClose() }}
+            active={false} expanded={expanded}
+            onClick={() => { setContactOpen(true); setHovered(false) }}
           />
         </div>
 
@@ -188,80 +193,67 @@ export function Sidebar({ collapsed, onCollapsedChange, mobileOpen, onMobileClos
         <div className="px-2 pt-1 pb-1 border-t border-white/10 space-y-0.5">
           <button
             onClick={() => setAccountOpen(v => !v)}
-            title={collapsed ? displayName : undefined}
+            title={!expanded ? displayName : undefined}
             className={`w-full flex items-center rounded-xl transition-all duration-150 text-white/60 hover:bg-white/10 hover:text-white
-              ${collapsed ? 'justify-center p-2.5 xl:p-3' : 'gap-2.5 px-3 py-2.5'}`}
+              ${expanded ? 'gap-2.5 px-3 py-2.5' : 'justify-center p-2.5 xl:p-3'}`}
           >
             <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 ring-1 ring-white/20">
               <span className="text-xs font-bold text-white">{initials}</span>
             </div>
-            {!collapsed && (
-              <p className="text-xs truncate flex-1 text-left font-medium leading-tight">{displayName}</p>
+            {expanded && (
+              <>
+                <p className="text-xs truncate flex-1 text-left font-medium leading-tight">{displayName}</p>
+                <ChevronRight className={`h-3.5 w-3.5 flex-shrink-0 transition-transform duration-200 ${accountOpen ? 'rotate-90' : ''}`} />
+              </>
             )}
           </button>
 
           {accountOpen && (
             <>
               <button
-                onClick={() => { setChangePwdOpen(true); setAccountOpen(false); onMobileClose() }}
-                title={collapsed ? 'Change Password' : undefined}
+                onClick={() => { setChangePwdOpen(true); setAccountOpen(false) }}
+                title={!expanded ? 'Change Password' : undefined}
                 className={`w-full flex items-center rounded-xl transition-all duration-150 text-white/55 hover:bg-white/10 hover:text-white group
-                  ${collapsed ? 'justify-center p-2.5 xl:p-3' : 'gap-3 px-3 py-2'}`}
+                  ${expanded ? 'gap-3 px-3 py-2' : 'justify-center p-2.5 xl:p-3'}`}
               >
                 <KeyRound className="h-[1.1rem] w-[1.1rem] flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
-                {!collapsed && <span className="text-sm font-medium">Change Password</span>}
+                {expanded && <span className="text-sm font-medium">Change Password</span>}
               </button>
               <button
                 onClick={() => signOut(auth)}
-                title={collapsed ? 'Log out' : undefined}
+                title={!expanded ? 'Log out' : undefined}
                 className={`w-full flex items-center rounded-xl transition-all duration-150 text-white/55 hover:bg-red-500/20 hover:text-red-300 group
-                  ${collapsed ? 'justify-center p-2.5 xl:p-3' : 'gap-3 px-3 py-2'}`}
+                  ${expanded ? 'gap-3 px-3 py-2' : 'justify-center p-2.5 xl:p-3'}`}
               >
                 <LogOut className="h-[1.1rem] w-[1.1rem] flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
-                {!collapsed && <span className="text-sm font-medium">Log out</span>}
+                {expanded && <span className="text-sm font-medium">Log out</span>}
               </button>
             </>
           )}
         </div>
 
-        {/* ── Theme + Collapse (desktop) ── */}
-        <div className={`px-2 py-2 border-t border-white/10 hidden lg:flex items-center gap-1 ${collapsed ? 'flex-col' : ''}`}>
-          {collapsed ? (
-            <button
-              onClick={cycleTheme}
-              title={nextThemeLabel}
-              className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <ThemeIcon className="h-4 w-4" />
-            </button>
-          ) : (
-            <div className="flex items-center rounded-lg bg-white/8 p-0.5 flex-1" style={{ background: 'rgba(255,255,255,0.08)' }}>
+        {/* ── Theme ── */}
+        <div className="px-2 py-2 border-t border-white/10 flex items-center gap-1">
+          {expanded ? (
+            <div className="flex items-center rounded-lg flex-1 p-0.5" style={{ background: 'rgba(255,255,255,0.08)' }}>
               {themeBtn('light', Sun, 'Light')}
               {themeBtn('system', Monitor, 'System')}
               {themeBtn('dark', Moon, 'Dark')}
             </div>
+          ) : (
+            <button
+              onClick={cycleTheme}
+              title={nextThemeLabel}
+              className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors mx-auto"
+            >
+              <ThemeIcon className="h-4 w-4" />
+            </button>
           )}
-          <button
-            onClick={() => onCollapsedChange(!collapsed)}
-            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors ml-auto"
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </button>
         </div>
-
-        {/* ── Theme (mobile) ── */}
-        <div className="lg:hidden px-2 pb-2 border-t border-white/10 pt-2">
-          <div className="flex items-center rounded-lg p-0.5" style={{ background: 'rgba(255,255,255,0.08)' }}>
-            {themeBtn('light', Sun, 'Light')}
-            {themeBtn('system', Monitor, 'System')}
-            {themeBtn('dark', Moon, 'Dark')}
-          </div>
-        </div>
-
-        <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />
-        <ChangePasswordDialog open={changePwdOpen} onOpenChange={setChangePwdOpen} />
       </aside>
+
+      <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />
+      <ChangePasswordDialog open={changePwdOpen} onOpenChange={setChangePwdOpen} />
     </>
   )
 }

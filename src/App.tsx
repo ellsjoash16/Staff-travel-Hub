@@ -7,6 +7,7 @@ import { saveAccountRecord } from '@/lib/db'
 import { AppProvider, useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
+import { MobileTabBar } from '@/components/MobileTabBar'
 import { LoginScreen } from '@/components/LoginScreen'
 import type { Post } from '@/lib/types'
 
@@ -57,35 +58,21 @@ const PostDetailDialog = lazy(() => import('@/components/PostDetailDialog').then
 function AppShell() {
   const { state } = useApp()
   const [mapPost, setMapPost] = useState<Post | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(false)       // mobile drawer
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false) // desktop collapsed
 
   if (state.loading) return <SplashScreen />
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden bg-background">
-      <Header
-        showMenuButton
-        onMenuClick={() => setSidebarOpen(o => !o)}
-        showSidebar
-        sidebarCollapsed={sidebarCollapsed}
-      />
-
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onCollapsedChange={setSidebarCollapsed}
-        mobileOpen={sidebarOpen}
-        onMobileClose={() => setSidebarOpen(false)}
-      />
+      <Header />
+      <Sidebar />
+      <MobileTabBar />
 
       <main
-        className={`flex-1 min-h-0 overflow-auto transition-all duration-300 ${
-          sidebarCollapsed ? 'lg:ml-16 xl:ml-20' : 'lg:ml-60 xl:ml-72'
-        } ${
-          state.activeView === 'home'   ? 'px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 lg:py-4 2xl:py-5'
+        className={`flex-1 min-h-0 overflow-auto lg:ml-16 xl:ml-20 ${
+          state.activeView === 'home'   ? 'px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 lg:py-4 2xl:py-5 pb-20 lg:pb-5'
           : state.activeView === 'map'  ? 'p-0 overflow-hidden'
-          : state.activeView === 'submit' || state.activeView === 'years' || state.activeView === 'upcoming' || state.activeView === 'interest' ? 'p-0'
-          : 'py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12'
+          : state.activeView === 'submit' || state.activeView === 'years' || state.activeView === 'upcoming' || state.activeView === 'interest' ? 'pb-16 lg:pb-0'
+          : 'py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pb-20 lg:pb-8'
         }`}
       >
         <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>

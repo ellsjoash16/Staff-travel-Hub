@@ -39,7 +39,7 @@ export function MobileTabBar() {
   return (
     <>
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t border-white/10 overflow-x-auto"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex overflow-x-auto"
         style={{ background: '#064e5a' }}
       >
         {items.map(item => {
@@ -52,22 +52,22 @@ export function MobileTabBar() {
               key={item.id}
               onClick={handleClick}
               className={`
-                flex-1 min-w-[56px] flex flex-col items-center justify-center gap-0.5 py-2 px-1 relative transition-colors duration-150
+                flex-1 min-w-[44px] flex flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 relative transition-colors duration-150
                 ${active ? 'text-white' : 'text-white/45 hover:text-white/80'}
               `}
             >
               {active && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full bg-white/70" />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-white/70" />
               )}
               <div className="relative">
-                <item.Icon className="h-5 w-5" />
+                <item.Icon className="h-[1.1rem] w-[1.1rem]" />
                 {item.kind === 'view' && item.id === 'pending' && pendingPosts.length > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-amber-400 text-[#064e5a] text-[8px] flex items-center justify-center font-bold">
+                  <span className="absolute -top-1 -right-1.5 w-3 h-3 rounded-full bg-amber-400 text-[#064e5a] text-[7px] flex items-center justify-center font-bold">
                     {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
+              <span className={`text-[9px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
                 {shortLabel}
               </span>
             </button>

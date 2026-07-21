@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Shield, Search } from 'lucide-react'
+import { Shield, Search, X } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { DestinationSearch } from './DestinationSearch'
 
@@ -11,15 +11,11 @@ export function Header() {
   const logoOffset = (() => { try { const s = localStorage.getItem('logo-offset'); return s ? JSON.parse(s) : { x: 0, y: 0 } } catch { return { x: 0, y: 0 } } })()
 
   return (
-    <>
-      <header
-        className="sticky top-0 z-40"
-        style={{ background: '#0a0a0a' }}
-      >
-        {/* ── Main row ── */}
-        <div className="flex h-14 sm:h-16 2xl:h-20 items-center pr-4 sm:pr-6 2xl:pr-10 gap-3 2xl:gap-4">
+    <header className="sticky top-0 z-40" style={{ background: '#0a0a0a' }}>
+      <div className="flex h-14 sm:h-16 2xl:h-20 items-center pr-4 sm:pr-6 2xl:pr-10 gap-3 2xl:gap-4">
 
-          {/* Left: Logo + Title — width matches collapsed sidebar on desktop */}
+        {/* Left: Logo + Title */}
+        {!searchOpen && (
           <div className="flex items-center gap-2 flex-shrink-0 px-4 sm:px-3 lg:w-16 xl:w-20 lg:justify-center lg:px-0">
             <img
               src="/daf-logo.png"
@@ -36,7 +32,6 @@ export function Header() {
                 DAFAGRAM
               </span>
             </button>
-            {/* Desktop: just the logo centred in the icon-bar width */}
             <img
               src="/daf-logo.png"
               alt="DAF"
@@ -44,45 +39,48 @@ export function Header() {
               style={{ transform: `translate(${logoOffset.x}px, ${logoOffset.y}px)` }}
             />
           </div>
+        )}
 
-          {/* Centre: Search — desktop */}
+        {/* Centre: Search expanded (desktop) */}
+        {searchOpen ? (
+          <div className="flex flex-1 min-w-0 max-w-md mx-auto sm:mx-auto px-4 sm:px-0">
+            <DestinationSearch autoFocus onClose={() => setSearchOpen(false)} />
+          </div>
+        ) : (
+          <div className="hidden sm:flex flex-1" />
+        )}
+
+        {/* Right: Search + Admin */}
+        <div className="ml-auto sm:ml-0 flex items-center gap-1 flex-shrink-0">
           {searchOpen ? (
-            <div className="hidden sm:flex flex-1 min-w-0 max-w-md mx-auto">
-              <DestinationSearch autoFocus onClose={() => setSearchOpen(false)} />
-            </div>
+            <button
+              onClick={() => setSearchOpen(false)}
+              className="sm:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Close search"
+            >
+              <X className="h-5 w-5" />
+            </button>
           ) : (
-            <div className="hidden sm:flex flex-1" />
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Search"
+            >
+              <Search className="h-5 w-5" />
+            </button>
           )}
 
-          {/* Right: Search + Admin */}
-          <div className="ml-auto sm:ml-0 flex items-center gap-1 flex-shrink-0">
-            {!searchOpen && (
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="hidden sm:flex p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-            )}
-
-            {isAdmin && (
-              <button
-                onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}
-                className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-                aria-label="Admin"
-              >
-                <Shield className="h-5 w-5" />
-              </button>
-            )}
-          </div>
+          {!searchOpen && isAdmin && (
+            <button
+              onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}
+              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Admin"
+            >
+              <Shield className="h-5 w-5" />
+            </button>
+          )}
         </div>
-
-        {/* ── Mobile search row ── */}
-        <div className="sm:hidden px-4 pb-3">
-          <DestinationSearch />
-        </div>
-      </header>
-    </>
+      </div>
+    </header>
   )
 }

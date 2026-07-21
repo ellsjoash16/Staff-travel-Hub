@@ -14,7 +14,7 @@ export function Header() {
     <>
       <header
         className="sticky top-0 z-40 border-b border-white/10"
-        style={{ background: '#111111' }}
+        style={{ background: '#0a0a0a' }}
       >
         {/* ── Main row ── */}
         <div className="flex h-14 sm:h-16 2xl:h-20 items-center pr-4 sm:pr-6 2xl:pr-10 gap-3 2xl:gap-4">

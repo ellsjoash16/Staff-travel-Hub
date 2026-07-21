@@ -101,7 +101,7 @@ export function MobileTabBar() {
       )}
 
       {/* ── Tab bar ── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex flex-col overflow-hidden">
         <GlassButtonGroup
           className="w-full rounded-none"
           glassVariant="liquid-refract"

@@ -11,39 +11,6 @@ import { MobileTabBar } from '@/components/MobileTabBar'
 import { LoginScreen } from '@/components/LoginScreen'
 import type { Post } from '@/lib/types'
 
-const LOADING_BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80'
-
-const QUOTES = [
-  'The world is a book, and those who do not travel read only one page.',
-  'Not all those who wander are lost.',
-  'Travel is the only thing you buy that makes you richer.',
-  'Life is short and the world is wide.',
-  'Adventure is worthwhile in itself.',
-]
-
-function SplashScreen() {
-  const quote = QUOTES[Math.floor(Date.now() / 5000) % QUOTES.length]
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
-      <div className="absolute inset-0" style={{
-        backgroundImage: `url(${LOADING_BG})`,
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        filter: 'blur(12px) brightness(0.35) saturate(1.1)',
-        transform: 'scale(1.1)',
-      }} />
-      <div className="relative z-10 flex flex-col items-center gap-6 text-center px-6">
-        <img src="/daf-logo.png" alt="DAF logo" className="h-20 w-20 object-contain" style={{ transform: 'translateX(8px)' }} />
-        <div>
-          <h1 className="font-gilbert text-4xl text-white drop-shadow mb-1">DAFAGRAM</h1>
-          <p className="text-white/50 text-sm tracking-widest uppercase">Staff Travel Hub</p>
-        </div>
-        <Loader2 className="h-5 w-5 animate-spin text-primary/70 mt-2" />
-        <p className="text-white/40 text-sm italic max-w-xs leading-relaxed mt-2">"{quote}"</p>
-      </div>
-    </div>
-  )
-}
-
 const HomeView      = lazy(() => import('@/components/HomeView').then(m => ({ default: m.HomeView })))
 const FeedView      = lazy(() => import('@/components/FeedView').then(m => ({ default: m.FeedView })))
 const UpcomingTripsView = lazy(() => import('@/components/UpcomingTripsView').then(m => ({ default: m.UpcomingTripsView })))
@@ -55,12 +22,21 @@ const MyRegistrationsView = lazy(() => import('@/components/MyRegistrationsView'
 const MapView       = lazy(() => import('@/components/MapView').then(m => ({ default: m.MapView })))
 const PostDetailDialog = lazy(() => import('@/components/PostDetailDialog').then(m => ({ default: m.PostDetailDialog })))
 
+function removeSplash() {
+  const el = document.getElementById('pre-splash')
+  if (el) el.remove()
+}
+
 function AppShell() {
   const { state } = useApp()
   const [mapPost, setMapPost] = useState<Post | null>(null)
   const [sidebarExpanded, setSidebarExpanded] = useState(false)
 
-  if (state.loading) return <SplashScreen />
+  useEffect(() => {
+    if (!state.loading) removeSplash()
+  }, [state.loading])
+
+  if (state.loading) return null
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden bg-background">
@@ -112,10 +88,6 @@ export default function App() {
   const [authUid, setAuthUid]     = useState<string | null>(null)
 
   useEffect(() => {
-    document.getElementById('pre-splash')?.remove()
-  }, [])
-
-  useEffect(() => {
     return onAuthStateChanged(auth, user => {
       setSignedIn(!!user)
       setAuthReady(true)
@@ -124,9 +96,10 @@ export default function App() {
     })
   }, [])
 
-  if (!authReady) return <SplashScreen />
+  if (!authReady) return null
 
   if (!signedIn) {
+    removeSplash()
     return (
       <>
         <LoginScreen />

@@ -136,7 +136,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
         className={`
           hidden lg:flex flex-col
           fixed top-14 sm:top-16 2xl:top-20 bottom-0 left-0 z-50
-          bg-background/70 dark:bg-[#0a0a0a]/75 backdrop-blur-xl
+          bg-background dark:bg-[#0a0a0a]
           transition-all duration-200 ease-out overflow-hidden
           ${expanded ? 'w-60 xl:w-72' : 'w-16 xl:w-20'}
         `}

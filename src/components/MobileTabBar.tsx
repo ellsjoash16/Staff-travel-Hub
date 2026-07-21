@@ -43,8 +43,8 @@ export function MobileTabBar() {
           onClick={() => setMoreOpen(false)}
         >
           <div
-            className="absolute bottom-[52px] left-0 right-0 rounded-t-2xl border-t border-white/10 shadow-xl backdrop-blur-xl"
-            style={{ background: 'rgba(6,78,90,0.75)' }}
+            className="absolute bottom-[52px] left-0 right-0 rounded-t-2xl border-t border-white/10 shadow-2xl backdrop-blur-2xl"
+            style={{ background: 'rgba(6,78,90,0.45)' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-4 pt-3 pb-2">
@@ -97,8 +97,8 @@ export function MobileTabBar() {
 
       {/* ── Tab bar ── */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex backdrop-blur-xl"
-        style={{ background: 'rgba(6,78,90,0.75)' }}
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex backdrop-blur-2xl border-t border-white/10"
+        style={{ background: 'rgba(6,78,90,0.45)' }}
       >
         {PRIMARY.map(item => {
           const active = activeView === item.id

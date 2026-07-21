@@ -58,7 +58,7 @@ function NavItem({
   )
 }
 
-export function Sidebar() {
+export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) => void }) {
   const { state, dispatch } = useApp()
   const { activeView, isAdmin, pendingPosts } = state
   const [contactOpen, setContactOpen] = useState(false)
@@ -97,6 +97,8 @@ export function Sidebar() {
 
   const expanded = hovered
 
+  useEffect(() => { onExpandedChange?.(hovered) }, [hovered, onExpandedChange])
+
   function go(view: View) {
     dispatch({ type: 'SET_VIEW', view })
     setHovered(false)
@@ -134,7 +136,7 @@ export function Sidebar() {
         className={`
           hidden lg:flex flex-col
           fixed top-14 sm:top-16 2xl:top-20 bottom-0 left-0 z-50
-          bg-background border-r border-border
+          bg-background dark:bg-[#111111] border-r border-border dark:border-white/10
           transition-all duration-200 ease-out overflow-hidden
           ${expanded ? 'w-60 xl:w-72' : 'w-16 xl:w-20'}
         `}

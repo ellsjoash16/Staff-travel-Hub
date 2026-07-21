@@ -58,17 +58,20 @@ const PostDetailDialog = lazy(() => import('@/components/PostDetailDialog').then
 function AppShell() {
   const { state } = useApp()
   const [mapPost, setMapPost] = useState<Post | null>(null)
+  const [sidebarExpanded, setSidebarExpanded] = useState(false)
 
   if (state.loading) return <SplashScreen />
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden bg-background">
       <Header />
-      <Sidebar />
+      <Sidebar onExpandedChange={setSidebarExpanded} />
       <MobileTabBar />
 
       <main
-        className={`flex-1 min-h-0 overflow-auto lg:ml-16 xl:ml-20 ${
+        className={`flex-1 min-h-0 overflow-auto transition-all duration-200 ${
+          sidebarExpanded ? 'lg:ml-60 xl:ml-72' : 'lg:ml-16 xl:ml-20'
+        } ${
           state.activeView === 'home'   ? 'px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 lg:py-4 2xl:py-5 pb-20 lg:pb-5'
           : state.activeView === 'map'  ? 'p-0 overflow-hidden'
           : state.activeView === 'submit' || state.activeView === 'years' || state.activeView === 'upcoming' || state.activeView === 'interest' ? 'pb-16 lg:pb-0'

@@ -4,7 +4,7 @@ import { useApp } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
 import type { View } from '@/lib/types'
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1746125047145-d6698eef563a?auto=format&fit=crop&crop=center&w=1920&h=800&q=80'
+const HERO_IMAGE = '/hero-airport.jpg'
 
 const SMALL_PANELS: {
   key: Exclude<View, 'home'>

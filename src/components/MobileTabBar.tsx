@@ -2,6 +2,7 @@ import { Clock, Settings, MessageCircle, MoreHorizontal, Globe2, Plane, Send, Ca
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
+import { LiquidGlass } from '@/components/ui/liquid-glass'
 import type { View } from '@/lib/types'
 
 const PRIMARY: { id: View; label: string; Icon: React.ElementType }[] = [
@@ -42,16 +43,12 @@ export function MobileTabBar() {
           className="lg:hidden fixed inset-0 z-50"
           onClick={() => setMoreOpen(false)}
         >
-          <div
-            className="absolute bottom-[52px] left-0 right-0 rounded-t-2xl"
-            style={{
-              background: 'rgba(6,78,90,0.18)',
-              backdropFilter: 'blur(48px) saturate(200%)',
-              WebkitBackdropFilter: 'blur(48px) saturate(200%)',
-              border: '1px solid rgba(255,255,255,0.18)',
-              borderBottom: 'none',
-              boxShadow: '0 -8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
-            }}
+          <LiquidGlass
+            className="absolute bottom-[52px] left-0 right-0 rounded-t-2xl rounded-b-none"
+            blur={12}
+            refraction={12}
+            bezel={0.15}
+            saturation={1.5}
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-4 pt-3 pb-2">
@@ -98,20 +95,17 @@ export function MobileTabBar() {
                 <span className="text-[10px] font-medium leading-tight text-center">Contact</span>
               </button>
             </div>
-          </div>
+          </LiquidGlass>
         </div>
       )}
 
       {/* ── Tab bar ── */}
-      <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex"
-        style={{
-          background: 'rgba(6,78,90,0.18)',
-          backdropFilter: 'blur(48px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(48px) saturate(200%)',
-          borderTop: '1px solid rgba(255,255,255,0.22)',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
-        }}
+      <LiquidGlass
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex rounded-none"
+        blur={2}
+        refraction={15}
+        bezel={0.5}
+        saturation={1.28}
       >
         {PRIMARY.map(item => {
           const active = activeView === item.id
@@ -139,7 +133,7 @@ export function MobileTabBar() {
           <MoreHorizontal className="h-[1.1rem] w-[1.1rem]" />
           <span className="text-[9px] leading-none font-medium">More</span>
         </button>
-      </nav>
+      </LiquidGlass>
 
       <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />
     </>

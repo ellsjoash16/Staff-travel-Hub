@@ -190,7 +190,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
         </div>
 
         {/* ── Account ── */}
-        <div className="px-2 pt-1 pb-1 border-t border-border space-y-0.5">
+        <div className="px-2 pt-1 pb-1 space-y-0.5">
           <button
             onClick={() => setAccountOpen(v => !v)}
             title={!expanded ? displayName : undefined}
@@ -233,7 +233,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
         </div>
 
         {/* ── Theme ── */}
-        <div className="px-2 py-2 border-t border-border flex items-center gap-1">
+        <div className="px-2 py-2 flex items-center gap-1">
           {expanded ? (
             <div className="flex items-center rounded-lg bg-muted p-0.5 flex-1">
               {themeBtn('light', Sun, 'Light')}

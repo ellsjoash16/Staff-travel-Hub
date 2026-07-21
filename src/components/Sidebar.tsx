@@ -7,8 +7,6 @@ import { ContactAdminDialog } from '@/components/ContactAdminDialog'
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog'
 import type { View } from '@/lib/types'
 
-const SIDEBAR_BG = '#064e5a'
-
 export const NAV: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'feed',     label: 'Feed',               Icon: Camera },
   { id: 'map',      label: 'World Map',           Icon: Globe2 },
@@ -32,18 +30,18 @@ function NavItem({
         w-full flex items-center rounded-xl transition-all duration-150 group relative
         ${expanded ? 'gap-3 px-3 py-2.5' : 'justify-center p-2.5 xl:p-3'}
         ${active
-          ? 'bg-white/15 text-white'
-          : 'text-white/55 hover:bg-white/10 hover:text-white'
+          ? 'bg-primary/10 text-primary'
+          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
         }
       `}
     >
       {active && expanded && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-white/70" />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-primary/60" />
       )}
       <div className="relative flex-shrink-0">
         <Icon className={`h-[1.1rem] w-[1.1rem] xl:h-[1.2rem] xl:w-[1.2rem] transition-transform duration-150 ${active ? '' : 'group-hover:scale-110'}`} />
         {badge != null && badge > 0 && !expanded && (
-          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-amber-400 text-[#064e5a] text-[8px] flex items-center justify-center font-bold">
+          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-amber-500 text-white text-[8px] flex items-center justify-center font-bold">
             {badge > 9 ? '9+' : badge}
           </span>
         )}
@@ -52,7 +50,7 @@ function NavItem({
         <span className={`text-sm flex-1 text-left whitespace-nowrap ${active ? 'font-semibold' : 'font-medium'}`}>{label}</span>
       )}
       {expanded && badge != null && badge > 0 && (
-        <span className="text-[11px] px-1.5 py-0.5 rounded-full font-bold bg-amber-400/20 text-amber-300">
+        <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400">
           {badge}
         </span>
       )}
@@ -120,8 +118,8 @@ export function Sidebar() {
     <button
       key={t}
       onClick={() => setTheme(t)}
-      className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 rounded-lg text-xs font-medium transition-colors
-        ${theme === t ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/80'}`}
+      className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium transition-colors
+        ${theme === t ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
     >
       <Icon className="h-3.5 w-3.5" />
       {expanded && <span className="capitalize">{label}</span>}
@@ -136,10 +134,10 @@ export function Sidebar() {
         className={`
           hidden lg:flex flex-col
           fixed top-14 sm:top-16 2xl:top-20 bottom-0 left-0 z-50
+          bg-background border-r border-border
           transition-all duration-200 ease-out overflow-hidden
           ${expanded ? 'w-60 xl:w-72' : 'w-16 xl:w-20'}
         `}
-        style={{ background: SIDEBAR_BG }}
       >
         {/* ── Main navigation ── */}
         <nav className="px-2 pt-3 pb-2 space-y-0.5">
@@ -156,9 +154,9 @@ export function Sidebar() {
         {/* ── Admin section ── */}
         {isAdmin && (
           <div className="px-2 pt-1 pb-2 space-y-0.5">
-            <div className="mx-3 my-1.5 border-t border-white/10" />
+            <div className="mx-3 my-1.5 border-t border-border" />
             {expanded && (
-              <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-white/25 select-none">
+              <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 select-none">
                 Admin
               </p>
             )}
@@ -190,15 +188,15 @@ export function Sidebar() {
         </div>
 
         {/* ── Account ── */}
-        <div className="px-2 pt-1 pb-1 border-t border-white/10 space-y-0.5">
+        <div className="px-2 pt-1 pb-1 border-t border-border space-y-0.5">
           <button
             onClick={() => setAccountOpen(v => !v)}
             title={!expanded ? displayName : undefined}
-            className={`w-full flex items-center rounded-xl transition-all duration-150 text-white/60 hover:bg-white/10 hover:text-white
+            className={`w-full flex items-center rounded-xl transition-all duration-150 text-muted-foreground hover:bg-accent hover:text-accent-foreground
               ${expanded ? 'gap-2.5 px-3 py-2.5' : 'justify-center p-2.5 xl:p-3'}`}
           >
-            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 ring-1 ring-white/20">
-              <span className="text-xs font-bold text-white">{initials}</span>
+            <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-bold text-primary">{initials}</span>
             </div>
             {expanded && (
               <>
@@ -213,7 +211,7 @@ export function Sidebar() {
               <button
                 onClick={() => { setChangePwdOpen(true); setAccountOpen(false) }}
                 title={!expanded ? 'Change Password' : undefined}
-                className={`w-full flex items-center rounded-xl transition-all duration-150 text-white/55 hover:bg-white/10 hover:text-white group
+                className={`w-full flex items-center rounded-xl transition-all duration-150 text-muted-foreground hover:bg-accent hover:text-accent-foreground group
                   ${expanded ? 'gap-3 px-3 py-2' : 'justify-center p-2.5 xl:p-3'}`}
               >
                 <KeyRound className="h-[1.1rem] w-[1.1rem] flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
@@ -222,7 +220,7 @@ export function Sidebar() {
               <button
                 onClick={() => signOut(auth)}
                 title={!expanded ? 'Log out' : undefined}
-                className={`w-full flex items-center rounded-xl transition-all duration-150 text-white/55 hover:bg-red-500/20 hover:text-red-300 group
+                className={`w-full flex items-center rounded-xl transition-all duration-150 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group
                   ${expanded ? 'gap-3 px-3 py-2' : 'justify-center p-2.5 xl:p-3'}`}
               >
                 <LogOut className="h-[1.1rem] w-[1.1rem] flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
@@ -233,9 +231,9 @@ export function Sidebar() {
         </div>
 
         {/* ── Theme ── */}
-        <div className="px-2 py-2 border-t border-white/10 flex items-center gap-1">
+        <div className="px-2 py-2 border-t border-border flex items-center gap-1">
           {expanded ? (
-            <div className="flex items-center rounded-lg flex-1 p-0.5" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <div className="flex items-center rounded-lg bg-muted p-0.5 flex-1">
               {themeBtn('light', Sun, 'Light')}
               {themeBtn('system', Monitor, 'System')}
               {themeBtn('dark', Moon, 'Dark')}
@@ -244,7 +242,7 @@ export function Sidebar() {
             <button
               onClick={cycleTheme}
               title={nextThemeLabel}
-              className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors mx-auto"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors mx-auto"
             >
               <ThemeIcon className="h-4 w-4" />
             </button>

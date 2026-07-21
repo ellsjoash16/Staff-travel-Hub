@@ -13,7 +13,7 @@ export function Header() {
   return (
     <>
       <header
-        className="sticky top-0 z-40 border-b border-white/10"
+        className="sticky top-0 z-40"
         style={{ background: '#0a0a0a' }}
       >
         {/* ── Main row ── */}

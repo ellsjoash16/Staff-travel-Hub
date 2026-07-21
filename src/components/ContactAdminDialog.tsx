@@ -54,36 +54,37 @@ export function ContactAdminDialog({ open, onOpenChange, prefillMessage = '' }: 
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent mobileSheet className="max-w-md">
+        <DialogHeader className="p-4 pb-0 sm:p-6 sm:pb-0">
           <DialogTitle>Contact Admin</DialogTitle>
         </DialogHeader>
-        <DialogBody>
+        <DialogBody className="p-4 sm:p-6">
           {sent ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
-                <CheckCircle className="h-8 w-8 text-emerald-500" />
+            <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3 sm:mb-4">
+                <CheckCircle className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-500" />
               </div>
               <h3 className="font-gilbert text-xl mb-1">Message sent</h3>
-              <p className="text-sm text-muted-foreground mb-5">An admin will get back to you via email.</p>
+              <p className="text-sm text-muted-foreground mb-4 sm:mb-5">An admin will get back to you via email.</p>
               <Button variant="secondary" onClick={() => handleOpenChange(false)}>Close</Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div className="space-y-1.5">
                 <Label>Your message</Label>
                 <Textarea
                   placeholder="Describe your query or issue…"
                   value={message}
                   onChange={e => setMessage(e.target.value)}
-                  rows={5}
+                  rows={4}
                   autoFocus
+                  className="resize-none"
                 />
               </div>
               <p className="text-xs text-muted-foreground">An admin will reply to your email address.</p>
               <div className="flex justify-end gap-2">
-                <Button variant="secondary" onClick={() => handleOpenChange(false)}>Cancel</Button>
-                <Button onClick={handleSend} disabled={sending} className="gap-2">
+                <Button variant="secondary" size="sm" onClick={() => handleOpenChange(false)}>Cancel</Button>
+                <Button size="sm" onClick={handleSend} disabled={sending} className="gap-2">
                   {sending
                     ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</>
                     : <><Send className="h-4 w-4" /> Send</>

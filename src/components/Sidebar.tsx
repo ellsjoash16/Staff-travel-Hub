@@ -193,7 +193,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
           <button
             onClick={() => setAccountOpen(v => !v)}
             title={!expanded ? displayName : undefined}
-            className={`w-full flex items-center rounded-xl transition-all duration-150 text-muted-foreground hover:bg-accent hover:text-accent-foreground
+            className={`w-full flex items-center rounded-xl transition-all duration-150 text-muted-foreground hover:bg-primary/15 hover:text-foreground
               ${expanded ? 'gap-2.5 px-3 py-2.5' : 'justify-center p-2.5 xl:p-3'}`}
           >
             <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
@@ -212,7 +212,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
               <button
                 onClick={() => { setChangePwdOpen(true); setAccountOpen(false) }}
                 title={!expanded ? 'Change Password' : undefined}
-                className={`w-full flex items-center rounded-xl transition-all duration-150 text-muted-foreground hover:bg-accent hover:text-accent-foreground group
+                className={`w-full flex items-center rounded-xl transition-all duration-150 text-muted-foreground hover:bg-primary/15 hover:text-foreground group
                   ${expanded ? 'gap-3 px-3 py-2' : 'justify-center p-2.5 xl:p-3'}`}
               >
                 <KeyRound className="h-[1.1rem] w-[1.1rem] flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />

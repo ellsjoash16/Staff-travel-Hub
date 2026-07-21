@@ -13,11 +13,11 @@ const SMALL_PANELS: {
   sub: string
   color: string
 }[] = [
-  { key: 'map',      Icon: Globe2,        label: 'World Map',        sub: 'Explore destinations',         color: 'bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300' },
-  { key: 'upcoming', Icon: Plane,         label: 'Upcoming Trips',   sub: 'See what\'s coming next',      color: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' },
-  { key: 'years',    Icon: CalendarDays,  label: 'Trips By Year',    sub: 'Browse the archive',           color: 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' },
-  { key: 'interest', Icon: ClipboardCheck,label: 'My Registrations', sub: 'Track your registered interest', color: 'bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' },
-  { key: 'submit',   Icon: Send,          label: 'Share Your Trip',  sub: 'Submit your own adventure',    color: 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' },
+  { key: 'map',      Icon: Globe2,        label: 'World Map',        sub: 'Explore destinations',           color: 'bg-primary/10 text-primary' },
+  { key: 'upcoming', Icon: Plane,         label: 'Upcoming Trips',   sub: 'See what\'s coming next',        color: 'bg-primary/10 text-primary' },
+  { key: 'years',    Icon: CalendarDays,  label: 'Trips By Year',    sub: 'Browse the archive',             color: 'bg-primary/10 text-primary' },
+  { key: 'interest', Icon: ClipboardCheck,label: 'My Registrations', sub: 'Track your registered interest', color: 'bg-primary/10 text-primary' },
+  { key: 'submit',   Icon: Send,          label: 'Share Your Trip',  sub: 'Submit your own adventure',      color: 'bg-primary/10 text-primary' },
 ]
 
 function SmallCard({

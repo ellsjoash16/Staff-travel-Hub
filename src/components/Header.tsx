@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Shield, Menu, Settings, Search } from 'lucide-react'
+import { Shield, Menu, Search } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { DestinationSearch } from './DestinationSearch'
 
@@ -83,13 +83,15 @@ export function Header({ showMenuButton, onMenuClick, showSidebar, sidebarCollap
               </button>
             )}
 
-            <button
-              onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}
-              className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              aria-label={isAdmin ? 'Admin' : 'Settings'}
-            >
-              {isAdmin ? <Shield className="h-5 w-5" /> : <Settings className="h-5 w-5" />}
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => dispatch({ type: 'SET_VIEW', view: 'settings' })}
+                className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Admin"
+              >
+                <Shield className="h-5 w-5" />
+              </button>
+            )}
 
           </div>
         </div>

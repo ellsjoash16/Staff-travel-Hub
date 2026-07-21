@@ -44,7 +44,7 @@ export function MobileTabBar() {
           onClick={() => setMoreOpen(false)}
         >
           <LiquidGlass
-            className="absolute bottom-[52px] left-0 right-0 rounded-t-2xl rounded-b-none bg-black/55"
+            className="absolute bottom-[52px] left-0 right-0 rounded-t-2xl rounded-b-none bg-white/[0.06]"
             blur={12}
             refraction={12}
             bezel={0.15}
@@ -101,7 +101,7 @@ export function MobileTabBar() {
 
       {/* ── Tab bar ── */}
       <LiquidGlass
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex rounded-none bg-black/50"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex rounded-none bg-white/[0.06]"
         blur={2}
         refraction={15}
         bezel={0.5}
@@ -113,8 +113,8 @@ export function MobileTabBar() {
             <button
               key={item.id}
               onClick={() => { go(item.id); setMoreOpen(false) }}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150
-                ${active ? 'text-white' : 'text-white/65 hover:text-white/90'}`}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
+                ${active ? 'text-white' : 'text-white/75 hover:text-white'}`}
             >
               {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-white/70" />}
               <item.Icon className="h-[1.1rem] w-[1.1rem]" />
@@ -126,8 +126,8 @@ export function MobileTabBar() {
         {/* More button */}
         <button
           onClick={() => setMoreOpen(v => !v)}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150
-            ${moreActive && !moreOpen ? 'text-white' : moreOpen ? 'text-white' : 'text-white/65 hover:text-white/90'}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 relative transition-colors duration-150 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]
+            ${moreActive && !moreOpen ? 'text-white' : moreOpen ? 'text-white' : 'text-white/75 hover:text-white'}`}
         >
           {moreActive && !moreOpen && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-b-full bg-white/70" />}
           <MoreHorizontal className="h-[1.1rem] w-[1.1rem]" />

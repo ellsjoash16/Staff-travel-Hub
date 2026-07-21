@@ -1,205 +1,131 @@
-import { useState, useRef } from 'react'
-import { Camera, Plane, CalendarDays, Send, ArrowRight, ClipboardCheck, X, Megaphone } from 'lucide-react'
+import { useState } from 'react'
+import { Camera, Globe2, Plane, CalendarDays, Send, ArrowRight, ClipboardCheck, X, Megaphone } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
 import type { View } from '@/lib/types'
 
 interface PanelConfig {
   key: Exclude<View, 'home'>
-  icon: React.ReactNode
+  Icon: React.ElementType
   title: (heading: string) => string
   subtitle: string
-  color: string
-}
-
-const PANEL_IMAGES: Partial<Record<string, string>> = {
-  feed:     'https://images.unsplash.com/photo-1746125047145-d6698eef563a?auto=format&fit=crop&crop=center&w=1200&h=500&q=75',
-  upcoming: 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=800&q=75',
-  interest: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=75',
-  years:    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=75',
-  submit:   'https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?auto=format&fit=crop&w=800&q=75',
+  bg: string
+  shine: string
 }
 
 const PANELS: PanelConfig[] = [
   {
     key: 'feed',
-    icon: <Camera className="h-6 w-6 text-white" />,
-    title: (heading) => heading || 'Staff Adventures',
+    Icon: Camera,
+    title: (h) => h || 'Staff Adventures',
     subtitle: 'See where the team has been',
-    color: 'from-cyan-500/30 to-teal-600/20',
+    bg: '#0a4453',
+    shine: '#0d6278',
+  },
+  {
+    key: 'map',
+    Icon: Globe2,
+    title: () => 'World Map',
+    subtitle: 'Explore destinations',
+    bg: '#111827',
+    shine: '#1f2f46',
   },
   {
     key: 'upcoming',
-    icon: <Plane className="h-5 w-5 text-white" />,
+    Icon: Plane,
     title: () => 'Upcoming Trips',
     subtitle: 'See what\'s coming next',
-    color: 'from-emerald-500/30 to-green-600/20',
+    bg: '#0a3728',
+    shine: '#0f5238',
   },
   {
     key: 'years',
-    icon: <CalendarDays className="h-5 w-5 text-white" />,
-    title: () => 'By Year',
-    subtitle: 'Browse by year',
-    color: 'from-violet-500/30 to-purple-600/20',
+    Icon: CalendarDays,
+    title: () => 'Trips By Year',
+    subtitle: 'Browse the archive',
+    bg: '#2a1254',
+    shine: '#3d1a7a',
   },
   {
     key: 'interest',
-    icon: <ClipboardCheck className="h-5 w-5 text-white" />,
+    Icon: ClipboardCheck,
     title: () => 'My Registrations',
-    subtitle: 'Track your registered interest status',
-    color: 'from-sky-500/30 to-blue-600/20',
+    subtitle: 'Track your registered interest',
+    bg: '#0d2e50',
+    shine: '#1a4a7a',
   },
   {
     key: 'submit',
-    icon: <Send className="h-5 w-5 text-white" />,
+    Icon: Send,
     title: () => 'Share Your Trip',
     subtitle: 'Submit your own adventure',
-    color: 'from-orange-500/30 to-amber-600/20',
+    bg: '#4a1c10',
+    shine: '#6b2a18',
   },
 ]
-
-// ── Tilt hook ────────────────────────────────────────────────────────────────
-
-function useTilt(deg = 7) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [style, setStyle] = useState<React.CSSProperties>({
-    transform: 'perspective(900px)',
-    transition: 'transform 0.5s ease-out',
-    willChange: 'transform',
-  })
-
-  function onMouseMove(e: React.MouseEvent) {
-    const el = ref.current
-    if (!el) return
-    const { left, top, width, height } = el.getBoundingClientRect()
-    const nx = ((e.clientX - left) / width - 0.5) * 2
-    const ny = ((e.clientY - top) / height - 0.5) * 2
-    setStyle({
-      transform: `perspective(900px) rotateY(${nx * deg}deg) rotateX(${-ny * deg}deg) translateY(-5px) scale(1.015)`,
-      transition: 'transform 0.08s ease-out',
-      willChange: 'transform',
-    })
-  }
-
-  function onMouseLeave() {
-    setStyle({
-      transform: 'perspective(900px) rotateY(0deg) rotateX(0deg) translateY(0px) scale(1)',
-      transition: 'transform 0.5s ease-out',
-      willChange: 'transform',
-    })
-  }
-
-  return { ref, style, onMouseMove, onMouseLeave }
-}
-
-// ── Mini globe panel ─────────────────────────────────────────────────────────
-
-const EARTH_IMG = 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=800&q=75'
-
-function MapPanel({ onClick }: { onClick: () => void }) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const tilt = useTilt(5)
-
-  return (
-    <div ref={tilt.ref} style={tilt.style} onMouseMove={tilt.onMouseMove} onMouseLeave={tilt.onMouseLeave}
-      className="h-full rounded-2xl overflow-hidden"
-    >
-      <div
-        ref={containerRef}
-        className="relative h-full overflow-hidden rounded-2xl cursor-pointer group shadow-md"
-        style={{ background: '#060c1a' }}
-        onClick={onClick}
-      >
-        <img
-          src={EARTH_IMG}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-[1.04] transition-transform duration-600"
-        />
-
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-          style={{ boxShadow: 'inset 0 0 60px rgba(5,151,154,0.2)' }} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
-
-        <div className="relative h-full flex flex-col justify-end p-4 sm:p-5 2xl:p-7 pointer-events-none">
-          <div className="flex items-end justify-between">
-            <div className="space-y-1.5 2xl:space-y-2">
-              <h2 className="font-semibold tracking-tight text-white text-2xl sm:text-3xl 2xl:text-4xl drop-shadow-lg leading-none">
-                World Map
-              </h2>
-              <p className="text-white/70 text-sm 2xl:text-base tracking-wide">Explore destinations</p>
-            </div>
-            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-white/0 group-hover:bg-white/20 transition-all duration-200 mb-1 border border-white/0 group-hover:border-white/30">
-              <ArrowRight className="h-4 w-4 text-white/0 group-hover:text-white transition-all duration-200" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Panel card ───────────────────────────────────────────────────────────────
 
 function PanelCard({
   panel,
   className,
   onClick,
-  bgImage,
   headingText,
   large,
 }: {
   panel: PanelConfig
   className?: string
   onClick: () => void
-  bgImage: string | null
   headingText: string
   large?: boolean
 }) {
-  const tilt = useTilt(large ? 5 : 7)
+  const { Icon } = panel
 
   return (
-    <div ref={tilt.ref} style={tilt.style} onMouseMove={tilt.onMouseMove} onMouseLeave={tilt.onMouseLeave}
-      className={`h-full rounded-2xl overflow-hidden ${className ?? ''}`}
+    <div
+      className={`relative h-full rounded-2xl overflow-hidden cursor-pointer group
+        transition-all duration-200 ease-out hover:-translate-y-0.5
+        shadow-sm hover:shadow-lg ${className ?? ''}`}
+      style={{ background: panel.bg }}
+      onClick={onClick}
     >
+      {/* Top-corner shine */}
       <div
-        className="relative h-full overflow-hidden rounded-2xl cursor-pointer group shadow-md"
-        onClick={onClick}
-      >
-        {bgImage ? (
-          <img
-            src={bgImage}
-            alt=""
-            fetchPriority="high"
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-600"
-          />
-        ) : (
-          <div className={`absolute inset-0 bg-gradient-to-br ${panel.color} border border-primary/10`} />
-        )}
+        className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-30 blur-2xl pointer-events-none transition-opacity duration-300 group-hover:opacity-50"
+        style={{ background: panel.shine }}
+      />
 
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-primary/8" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+      {/* Subtle inner border */}
+      <div className="absolute inset-0 rounded-2xl ring-1 ring-white/8 pointer-events-none" />
 
-        <div className="relative h-full flex flex-col justify-end p-4 sm:p-5 2xl:p-7">
-          <div className="flex items-end justify-between gap-3">
-            <div className="space-y-1.5 2xl:space-y-2 min-w-0">
-              <h2 className={`font-semibold tracking-tight text-white drop-shadow-lg leading-none ${
-                large ? 'text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl' : 'text-lg sm:text-xl 2xl:text-2xl'
-              }`}>
-                {panel.title(headingText)}
-              </h2>
-              <p className="text-white/70 text-sm 2xl:text-base tracking-wide">{panel.subtitle}</p>
-            </div>
-            <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-white/0 group-hover:bg-white/20 transition-all duration-200 mb-1 border border-white/0 group-hover:border-white/30">
-              <ArrowRight className="h-4 w-4 text-white/0 group-hover:text-white transition-all duration-200" />
-            </div>
+      {/* Content */}
+      <div className="relative h-full flex flex-col p-5 2xl:p-7">
+        {/* Top row: icon + arrow */}
+        <div className="flex items-start justify-between">
+          <div className={`flex items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm
+            ${large ? 'w-12 h-12 2xl:w-14 2xl:h-14' : 'w-10 h-10'}`}>
+            <Icon className={`text-white ${large ? 'h-6 w-6 2xl:h-7 2xl:w-7' : 'h-5 w-5'}`} />
           </div>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center border border-white/0
+            group-hover:border-white/20 group-hover:bg-white/10 transition-all duration-200">
+            <ArrowRight className="h-4 w-4 text-white/0 group-hover:text-white/80 transition-all duration-200" />
+          </div>
+        </div>
+
+        <div className="flex-1" />
+
+        {/* Bottom: text */}
+        <div className="space-y-1 2xl:space-y-1.5">
+          <h2 className={`font-bold text-white leading-tight tracking-tight
+            ${large ? 'text-2xl sm:text-3xl 2xl:text-4xl' : 'text-lg sm:text-xl 2xl:text-2xl'}`}>
+            {panel.title(headingText)}
+          </h2>
+          <p className={`text-white/50 font-medium ${large ? 'text-sm 2xl:text-base' : 'text-xs 2xl:text-sm'}`}>
+            {panel.subtitle}
+          </p>
         </div>
       </div>
     </div>
   )
 }
-
-// ── Home view ────────────────────────────────────────────────────────────────
 
 export function HomeView() {
   const { state, dispatch } = useApp()
@@ -222,6 +148,8 @@ export function HomeView() {
     dispatch({ type: 'SET_VIEW', view })
   }
 
+  const [feed, map, upcoming, years, interest, submit] = PANELS
+
   return (
     <div className="flex flex-col gap-3 2xl:gap-4 h-full min-h-0">
       {firstName && (
@@ -235,7 +163,6 @@ export function HomeView() {
         </div>
       )}
 
-      {/* Notice board */}
       {notice && !noticeDismissed && (
         <div className="flex-shrink-0 flex items-start gap-3 rounded-2xl border border-primary/25 bg-primary/8 px-4 py-3">
           <Megaphone className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
@@ -245,26 +172,25 @@ export function HomeView() {
           </button>
         </div>
       )}
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 2xl:gap-4
-      flex-1 min-h-0
-      [grid-auto-rows:180px]
-      sm:[grid-auto-rows:unset] sm:[grid-template-rows:repeat(4,minmax(0,1fr))]
-      md:[grid-template-rows:repeat(3,minmax(0,1fr))]">
 
-      {/* Row 1: Feed (2/3) + Map (1/3) */}
-      <PanelCard panel={PANELS[0]} className="sm:col-span-2 md:col-span-4" onClick={() => navigate('feed')} bgImage={PANEL_IMAGES.feed ?? null} headingText={settings.heading} large />
-      <div className="md:col-span-2 h-full">
-        <MapPanel onClick={() => navigate('map')} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 2xl:gap-4
+        flex-1 min-h-0
+        [grid-auto-rows:180px]
+        sm:[grid-auto-rows:unset] sm:[grid-template-rows:repeat(4,minmax(0,1fr))]
+        md:[grid-template-rows:repeat(3,minmax(0,1fr))]">
+
+        {/* Row 1: Feed (2/3) + Map (1/3) */}
+        <PanelCard panel={feed} className="sm:col-span-2 md:col-span-4" onClick={() => navigate('feed')} headingText={settings.heading} large />
+        <PanelCard panel={map}  className="md:col-span-2"               onClick={() => navigate('map')}  headingText="" />
+
+        {/* Row 2: Upcoming + Years */}
+        <PanelCard panel={upcoming} className="md:col-span-3" onClick={() => navigate('upcoming')} headingText="" />
+        <PanelCard panel={years}    className="md:col-span-3" onClick={() => navigate('years')}    headingText="" />
+
+        {/* Row 3: Registrations + Submit */}
+        <PanelCard panel={interest} className="md:col-span-3" onClick={() => navigate('interest')} headingText="" />
+        <PanelCard panel={submit}   className="md:col-span-3" onClick={() => navigate('submit')}   headingText="" />
       </div>
-
-      {/* Row 2: Upcoming + By Year */}
-      <PanelCard panel={PANELS[1]} className="md:col-span-3" onClick={() => navigate('upcoming')} bgImage={PANEL_IMAGES.upcoming ?? null} headingText={settings.heading} />
-      <PanelCard panel={PANELS[2]} className="md:col-span-3" onClick={() => navigate('years')} bgImage={PANEL_IMAGES.interest ?? null} headingText={settings.heading} />
-
-      {/* Row 3: My Registrations + Submit */}
-      <PanelCard panel={PANELS[3]} className="md:col-span-3" onClick={() => navigate('interest')} bgImage={PANEL_IMAGES.years ?? null} headingText={settings.heading} />
-      <PanelCard panel={PANELS[4]} className="md:col-span-3" onClick={() => navigate('submit')} bgImage={PANEL_IMAGES.submit ?? null} headingText={settings.heading} />
-    </div>
     </div>
   )
 }

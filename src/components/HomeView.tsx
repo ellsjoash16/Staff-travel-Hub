@@ -56,7 +56,7 @@ function MobileCard({
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-[88px] h-[80px] flex flex-col items-center justify-center gap-2
+      className="w-full h-20 flex flex-col items-center justify-center gap-2
         rounded-2xl border border-border bg-card cursor-pointer
         transition-all duration-200 active:scale-95"
     >
@@ -148,8 +148,8 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* ── Cards: horizontal scroll on mobile, grid on sm+ ── */}
-      <div className="sm:hidden flex gap-2 overflow-x-auto flex-shrink-0 pb-1 -mx-3 px-3">
+      {/* ── Cards: 3-col grid on mobile, full grid on sm+ ── */}
+      <div className="sm:hidden grid grid-cols-3 gap-2 flex-shrink-0">
         {SMALL_PANELS.map(p => (
           <MobileCard
             key={p.key}

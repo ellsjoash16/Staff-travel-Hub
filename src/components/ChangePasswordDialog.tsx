@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, CheckCircle } from 'lucide-react'
+import { CircleNotch, CheckCircle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
@@ -80,7 +80,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
               <div className="flex justify-end gap-2 pt-1">
                 <Button variant="secondary" onClick={() => handleOpenChange(false)}>Cancel</Button>
                 <Button onClick={handleSubmit} disabled={busy} className="gap-2">
-                  {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Updating…</> : 'Update Password'}
+                  {busy ? <><CircleNotch className="h-4 w-4 animate-spin" /> Updating…</> : 'Update Password'}
                 </Button>
               </div>
             </div>

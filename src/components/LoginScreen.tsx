@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, LogIn, UserPlus } from 'lucide-react'
+import { CircleNotch, SignIn, UserPlus } from '@phosphor-icons/react'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth'
 import { auth, microsoftProvider } from '@/lib/firebase'
 import { saveJobRole } from '@/lib/db'
@@ -208,9 +208,9 @@ export function LoginScreen() {
               disabled={busy}
             >
               {busy
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> {mode === 'signin' ? 'Signing in…' : 'Creating account…'}</>
+                ? <><CircleNotch className="h-4 w-4 animate-spin" /> {mode === 'signin' ? 'Signing in…' : 'Creating account…'}</>
                 : mode === 'signin'
-                  ? <><LogIn className="h-4 w-4" /> Sign In</>
+                  ? <><SignIn className="h-4 w-4" /> Sign In</>
                   : <><UserPlus className="h-4 w-4" /> Create Account</>
               }
             </Button>

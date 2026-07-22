@@ -1,4 +1,4 @@
-import { X, ImagePlus } from 'lucide-react'
+import { X, ImageSquare } from '@phosphor-icons/react'
 import { Textarea } from '@/components/ui/textarea'
 
 interface Props {
@@ -85,7 +85,7 @@ export function BlogEditor({ review, images, onReviewChange }: Props) {
                 className="h-10 w-16 object-cover rounded-lg flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
               />
               <span className="flex items-center gap-1.5 text-sm text-muted-foreground group-hover:text-primary transition-colors">
-                <ImagePlus className="h-4 w-4" />
+                <ImageSquare className="h-4 w-4" />
                 Insert photo {placedCount + 2} here
               </span>
             </button>

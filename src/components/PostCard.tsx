@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MapPin, Images, Pin, Globe, PlayCircle } from 'lucide-react'
+import { MapPin, Images, PushPin, Globe, PlayCircle } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { fmtDate, initials } from '@/lib/utils'
@@ -56,7 +56,7 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
 
         {post.pinned && (
           <span className="absolute top-3 left-3 flex items-center gap-1 bg-primary backdrop-blur-sm text-primary-foreground text-xs font-semibold rounded-full px-2.5 py-1">
-            <Pin className="h-3 w-3" /> Featured
+            <PushPin className="h-3 w-3" /> Featured
           </span>
         )}
 

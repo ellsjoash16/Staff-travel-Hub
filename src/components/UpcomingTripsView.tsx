@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MapPin, Calendar, Plane, Star, Building2, Users, Award, Clock } from 'lucide-react'
+import { MapPin, Calendar, Airplane, Star, Buildings, Users, Medal, Clock } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
@@ -71,7 +71,7 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
             <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-              <Plane className="h-12 w-12 sm:h-16 sm:w-16 text-primary/30" />
+              <Airplane className="h-12 w-12 sm:h-16 sm:w-16 text-primary/30" />
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card/60 hidden md:block" />
@@ -104,7 +104,7 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
             {registrationOpen && (
               <div className="mt-3 sm:mt-4">
                 <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-2">
-                  <Plane className="h-4 w-4" /> Register Interest
+                  <Airplane className="h-4 w-4" /> Register Interest
                 </Button>
               </div>
             )}
@@ -134,7 +134,7 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
           <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
-            <Plane className="h-8 w-8 sm:h-10 sm:w-10 text-primary/25" />
+            <Airplane className="h-8 w-8 sm:h-10 sm:w-10 text-primary/25" />
           </div>
         )}
       </div>
@@ -159,7 +159,7 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
         {registrationOpen && (
           <div className="flex justify-end">
             <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1 text-xs h-7 sm:h-9 sm:text-sm px-2.5 sm:px-3">
-              <Plane className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Register
+              <Airplane className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Register
             </Button>
           </div>
         )}
@@ -252,14 +252,14 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
             <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mb-1.5">
               {location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{location.name}</span>}
               {trip.eventBuilding && trip.eventBuilding.length > 0 && (
-                <span className="flex items-center gap-1"><Building2 className="h-3 w-3 flex-shrink-0" />{trip.eventBuilding.join(', ')}</span>
+                <span className="flex items-center gap-1"><Buildings className="h-3 w-3 flex-shrink-0" />{trip.eventBuilding.join(', ')}</span>
               )}
               {trip.eventVenue && <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{trip.eventVenue}</span>}
               <span className="flex items-center gap-1"><Calendar className="h-3 w-3 flex-shrink-0" />{dateStr}</span>
               {trip.eventSpaces != null && (
                 <span className="flex items-center gap-1"><Users className="h-3 w-3 flex-shrink-0" />{Math.max(0, trip.eventSpaces - trip.participants.length)}/{trip.eventSpaces} spaces</span>
               )}
-              {trip.eventSponsor && <span className="flex items-center gap-1"><Award className="h-3 w-3 flex-shrink-0" />{trip.eventSponsor}</span>}
+              {trip.eventSponsor && <span className="flex items-center gap-1"><Medal className="h-3 w-3 flex-shrink-0" />{trip.eventSponsor}</span>}
               {trip.registrationDeadline && <span className="flex items-center gap-1"><Clock className="h-3 w-3 flex-shrink-0" />By {fmtDate(trip.registrationDeadline)}</span>}
             </div>
             {trip.description && (
@@ -330,7 +330,7 @@ export function UpcomingTripsView() {
                   : 'text-white/70 hover:text-white'
               }`}
             >
-              <Plane className="h-3.5 w-3.5" /> Trips
+              <Airplane className="h-3.5 w-3.5" /> Trips
             </button>
             <button
               onClick={() => setTab('events')}
@@ -350,7 +350,7 @@ export function UpcomingTripsView() {
           isEmpty ? (
             <div className="flex flex-col items-center justify-center py-24 text-white/70">
               <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-5">
-                <Plane className="h-10 w-10 text-white/50" />
+                <Airplane className="h-10 w-10 text-white/50" />
               </div>
               <h3 className="font-gilbert text-xl mb-1 text-white">No upcoming trips</h3>
               <p className="text-sm text-center max-w-xs">Check back soon — new trips will be added by the admin team</p>

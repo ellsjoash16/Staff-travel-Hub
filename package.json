@@ -12,6 +12,7 @@
     "test:setup": "playwright test tests/auth.setup.ts"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.8",
@@ -27,7 +28,6 @@
     "firebase": "^11.0.0",
     "leaflet": "^1.9.4",
     "leaflet-ant-path": "^1.3.0",
-    "lucide-react": "^0.441.0",
     "mapbox-gl": "^3.23.1",
     "pdfjs-dist": "^5.7.284",
     "react": "^18.3.1",

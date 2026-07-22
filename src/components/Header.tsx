@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Shield, Search, X } from 'lucide-react'
+import { Shield, MagnifyingGlass, X } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { DestinationSearch } from './DestinationSearch'
 
@@ -35,7 +35,7 @@ export function Header() {
           </div>
         )}
 
-        {/* Centre: Search expanded (desktop) */}
+        {/* Centre: MagnifyingGlass expanded (desktop) */}
         {searchOpen ? (
           <div className="flex flex-1 min-w-0 max-w-md mx-auto sm:mx-auto px-4 sm:px-0">
             <DestinationSearch autoFocus onClose={() => setSearchOpen(false)} />
@@ -44,7 +44,7 @@ export function Header() {
           <div className="hidden sm:flex flex-1" />
         )}
 
-        {/* Right: Search + Admin */}
+        {/* Right: MagnifyingGlass + Admin */}
         <div className="ml-auto sm:ml-0 flex items-center gap-1 flex-shrink-0">
           {searchOpen ? (
             <button
@@ -60,7 +60,7 @@ export function Header() {
               className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Search"
             >
-              <Search className="h-5 w-5" />
+              <MagnifyingGlass className="h-5 w-5" />
             </button>
           )}
 

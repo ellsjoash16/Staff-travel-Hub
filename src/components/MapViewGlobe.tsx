@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import Map, { Source, Layer, MapMouseEvent } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { X, BookOpen, ChevronLeft, List, Map as MapIcon, Globe, MapPin } from 'lucide-react'
+import { X, BookOpen, CaretLeft as ChevronLeft, List, MapTrifold as MapIcon, Globe, MapPin } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
 import type { Post, Course, Location } from '@/lib/types'

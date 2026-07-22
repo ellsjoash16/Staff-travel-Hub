@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from 'react'
-import { RefreshCw, AlertTriangle } from 'lucide-react'
+import { ArrowsClockwise, Warning } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 
 interface Props { children: ReactNode }
@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[50vh] px-6 text-center gap-4">
         <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center">
-          <AlertTriangle className="h-7 w-7 text-destructive" />
+          <Warning className="h-7 w-7 text-destructive" />
         </div>
         <div className="space-y-1">
           <h2 className="font-semibold text-lg text-foreground">Something went wrong</h2>
@@ -47,10 +47,10 @@ export class ErrorBoundary extends Component<Props, State> {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => this.reset()} className="gap-2">
-            <RefreshCw className="h-4 w-4" /> Try again
+            <ArrowsClockwise className="h-4 w-4" /> Try again
           </Button>
           <Button size="sm" onClick={() => window.location.reload()} className="gap-2">
-            <RefreshCw className="h-4 w-4" /> Reload page
+            <ArrowsClockwise className="h-4 w-4" /> Reload page
           </Button>
         </div>
         {import.meta.env.DEV && (

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Camera, X, Plus } from 'lucide-react'
+import { Camera, X, Plus } from '@phosphor-icons/react'
 import { compressImage } from '@/lib/utils'
 
 const MIN = 4

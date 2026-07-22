@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MapPin, Calendar, Star, Building2, Users, Award } from 'lucide-react'
+import { MapPin, Calendar, Star, Buildings, Users, Medal } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
@@ -42,7 +42,7 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
                 <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{location.name}</span>
               )}
               {trip.eventBuilding && trip.eventBuilding.length > 0 && (
-                <span className="flex items-center gap-1"><Building2 className="h-3 w-3 flex-shrink-0" />{trip.eventBuilding.join(', ')}</span>
+                <span className="flex items-center gap-1"><Buildings className="h-3 w-3 flex-shrink-0" />{trip.eventBuilding.join(', ')}</span>
               )}
               {trip.eventVenue && (
                 <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{trip.eventVenue}</span>
@@ -55,7 +55,7 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
                 </span>
               )}
               {trip.eventSponsor && (
-                <span className="flex items-center gap-1"><Award className="h-3 w-3 flex-shrink-0" />Sponsored by {trip.eventSponsor}</span>
+                <span className="flex items-center gap-1"><Medal className="h-3 w-3 flex-shrink-0" />Sponsored by {trip.eventSponsor}</span>
               )}
             </div>
             {trip.description && (

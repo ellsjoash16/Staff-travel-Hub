@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Check, Search } from 'lucide-react'
+import { CaretDown, Check, MagnifyingGlass } from '@phosphor-icons/react'
 
 export interface SelectOption {
   value: string
@@ -52,7 +52,7 @@ export function AppSelect({ value, onChange, options, placeholder = '— Select 
         <span className={selected ? '' : 'text-muted-foreground'}>
           {selected ? selected.label : placeholder}
         </span>
-        <ChevronDown className={`h-4 w-4 opacity-50 flex-shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
+        <CaretDown className={`h-4 w-4 opacity-50 flex-shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
@@ -60,13 +60,13 @@ export function AppSelect({ value, onChange, options, placeholder = '— Select 
           {searchable && (
             <div className="p-1.5 border-b border-border">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <MagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 <input
                   autoFocus
                   type="text"
                   value={query}
                   onChange={e => setQuery(e.target.value)}
-                  placeholder="Search…"
+                  placeholder="MagnifyingGlass…"
                   className="w-full pl-8 pr-3 py-1.5 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
                 />
               </div>

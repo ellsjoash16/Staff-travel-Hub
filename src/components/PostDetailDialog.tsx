@@ -1,4 +1,4 @@
-import { MapPin, Calendar, Hotel, Plane, Ship, Zap, Building2, X, PlayCircle } from 'lucide-react'
+import { MapPin, Calendar, Airplane, Boat, Lightning, Buildings, X, PlayCircle } from '@phosphor-icons/react'
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -12,11 +12,11 @@ const EXTRA_SECTIONS: {
   color: string
   pill: string
 }[] = [
-  { key: 'airlines',   label: 'Airlines',   Icon: Plane,     color: 'text-sky-500',     pill: 'bg-sky-500/10 text-sky-600 dark:text-sky-400' },
-  { key: 'hotels',     label: 'Hotels',     Icon: Hotel,     color: 'text-violet-500',  pill: 'bg-violet-500/10 text-violet-600 dark:text-violet-400' },
-  { key: 'cruises',    label: 'Cruises',    Icon: Ship,      color: 'text-blue-500',    pill: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-  { key: 'activities', label: 'Activities', Icon: Zap,       color: 'text-orange-500',  pill: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
-  { key: 'dmcs',       label: 'DMCs',       Icon: Building2, color: 'text-emerald-500', pill: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+  { key: 'airlines',   label: 'Airlines',   Icon: Airplane,     color: 'text-sky-500',     pill: 'bg-sky-500/10 text-sky-600 dark:text-sky-400' },
+  { key: 'hotels',     label: 'Hotels',     Icon: Buildings, color: 'text-violet-500',  pill: 'bg-violet-500/10 text-violet-600 dark:text-violet-400' },
+  { key: 'cruises',    label: 'Cruises',    Icon: Boat,      color: 'text-blue-500',    pill: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  { key: 'activities', label: 'Activities', Icon: Lightning,       color: 'text-orange-500',  pill: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
+  { key: 'dmcs',       label: 'DMCs',       Icon: Buildings, color: 'text-emerald-500', pill: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
 ]
 
 interface Props {

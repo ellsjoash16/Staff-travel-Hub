@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash2, Pencil, Loader2, CheckCircle2, X, Pin, PinOff, MapPin, Plane, Globe, Search, FolderOpen, FileUp, ChevronRight, ChevronDown, CalendarDays, Plus, Users, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Trash, PencilSimple, CircleNotch, CheckCircle, X, PushPin, PushPinSlash, MapPin, Airplane, Globe, MagnifyingGlass, FolderOpen, FileArrowUp, CaretRight, CaretDown, CalendarDots, Plus, Users, ArrowsClockwise, ShieldCheck } from '@phosphor-icons/react'
 import { AppSelect } from '@/components/ui/app-select'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
@@ -356,7 +356,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     catch { toast.error('Failed to delete location') }
   }
 
-  // ── Settings ──────────────────────────────────────────────────────────────
+  // ── GearSix ──────────────────────────────────────────────────────────────
 
 
   // ── Folders ───────────────────────────────────────────────────────────────
@@ -397,7 +397,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{userProfiles.length}</span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="settings" className="px-3 text-xs">Settings</TabsTrigger>
+              <TabsTrigger value="settings" className="px-3 text-xs">GearSix</TabsTrigger>
             </TabsList>
 
             {/* ── UPLOAD POST ── */}
@@ -414,7 +414,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     disabled={pdfParsing}
                     onClick={() => pdfInputRef.current?.click()}
                   >
-                    {pdfParsing ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileUp className="h-3 w-3" />}
+                    {pdfParsing ? <CircleNotch className="h-3 w-3 animate-spin" /> : <FileArrowUp className="h-3 w-3" />}
                     {pdfParsing ? 'Reading…' : 'Upload PDF'}
                   </Button>
                   <input
@@ -438,7 +438,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           <p className="text-sm font-semibold truncate">{r.title || '(no title)'}</p>
                           <p className="text-xs text-muted-foreground">{r.staff} · {r.location}</p>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                        <CaretRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                       </button>
                     ))}
                   </div>
@@ -570,7 +570,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="secondary" onClick={() => { setPostForm(emptyPostForm()); setEditingPostId(null) }} disabled={postSaving}>Clear</Button>
                 <Button onClick={submitPost} disabled={postSaving}>
-                  {postSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingPostId ? 'Update Post' : 'Publish Post'}
+                  {postSaving ? <><CircleNotch className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingPostId ? 'Update Post' : 'Publish Post'}
                 </Button>
               </div>
               {editingPostId && <p className="text-right text-xs text-amber-500">Editing existing post</p>}
@@ -604,7 +604,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="secondary" onClick={() => { setLocationForm(emptyLocationForm()); setEditingLocationId(null) }} disabled={locationSaving}>Clear</Button>
                 <Button onClick={submitLocation} disabled={locationSaving}>
-                  {locationSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingLocationId ? 'Update Location' : 'Add Location'}
+                  {locationSaving ? <><CircleNotch className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingLocationId ? 'Update Location' : 'Add Location'}
                 </Button>
               </div>
               {editingLocationId && <p className="text-right text-xs text-amber-500">Editing existing location</p>}
@@ -624,8 +624,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                             <p className="text-xs text-muted-foreground">{loc.country} · {pCount} post{pCount !== 1 ? 's' : ''} · {cCount} course{cCount !== 1 ? 's' : ''}</p>
                           </div>
                           <div className="flex gap-1.5 flex-shrink-0">
-                            <Button size="sm" variant="secondary" onClick={() => startEditLocation(loc)}><Pencil className="h-3 w-3" /></Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteLocation(loc.id)}><Trash2 className="h-3 w-3" /></Button>
+                            <Button size="sm" variant="secondary" onClick={() => startEditLocation(loc)}><PencilSimple className="h-3 w-3" /></Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteLocation(loc.id)}><Trash className="h-3 w-3" /></Button>
                           </div>
                         </div>
                       )
@@ -756,7 +756,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   <span className={tripForm.allowedRoles.length === 0 ? 'text-muted-foreground' : ''}>
                     {tripForm.allowedRoles.length === 0 ? '— All staff —' : tripForm.allowedRoles.join(', ')}
                   </span>
-                  <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                  <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
                 </button>
                 {rolesOpen && (
                   <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-background shadow-md">
@@ -811,7 +811,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       <span className={tripForm.eventBuilding.length === 0 ? 'text-muted-foreground' : ''}>
                         {tripForm.eventBuilding.length === 0 ? '— Select buildings —' : tripForm.eventBuilding.join(', ')}
                       </span>
-                      <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                      <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
                     </button>
                     {buildingOpen && (
                       <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-background shadow-md">
@@ -869,7 +869,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="secondary" onClick={() => { setTripForm(emptyTripForm()); setEditingTripId(null) }} disabled={tripSaving}>Clear</Button>
                 <Button onClick={submitTrip} disabled={tripSaving}>
-                  {tripSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingTripId ? 'Update Trip' : 'Add Trip'}
+                  {tripSaving ? <><CircleNotch className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingTripId ? 'Update Trip' : 'Add Trip'}
                 </Button>
               </div>
               {editingTripId && <p className="text-right text-xs text-amber-500">Editing existing trip</p>}
@@ -883,7 +883,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/30">
                         {t.image
                           ? <img src={t.image} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                          : <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Plane className="h-5 w-5 text-primary/50" /></div>
+                          : <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Airplane className="h-5 w-5 text-primary/50" /></div>
                         }
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
@@ -900,11 +900,11 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                         </div>
                         <div className="flex flex-col gap-1.5 flex-shrink-0">
                           <div className="flex gap-1.5">
-                            <Button size="sm" variant="secondary" onClick={() => startEditTrip(t)}><Pencil className="h-3 w-3" /></Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteTrip(t.id)}><Trash2 className="h-3 w-3" /></Button>
+                            <Button size="sm" variant="secondary" onClick={() => startEditTrip(t)}><PencilSimple className="h-3 w-3" /></Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteTrip(t.id)}><Trash className="h-3 w-3" /></Button>
                           </div>
                           <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-600/40 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-[11px] gap-1" onClick={() => handleTripComplete(t)}>
-                            <CheckCircle2 className="h-3 w-3" /> Trip Complete
+                            <CheckCircle className="h-3 w-3" /> Trip Complete
                           </Button>
                         </div>
                       </div>
@@ -931,7 +931,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 if (completedTrips.length === 0) {
                   return (
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                      <CalendarDays className="h-10 w-10 text-primary/30 mb-3" />
+                      <CalendarDots className="h-10 w-10 text-primary/30 mb-3" />
                       <p className="text-sm font-medium text-foreground">No completed trips yet</p>
                       <p className="text-xs text-center mt-1">Add a past trip using the button above, or mark upcoming trips as complete</p>
                     </div>
@@ -953,7 +953,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                 <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/30">
                                   {t.image
                                     ? <img src={t.image} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                                    : <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Plane className="h-5 w-5 text-primary/50" /></div>
+                                    : <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Airplane className="h-5 w-5 text-primary/50" /></div>
                                   }
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-1.5">
@@ -965,8 +965,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     {t.date && <p className="text-xs text-muted-foreground">{fmtDate(t.date)}</p>}
                                   </div>
                                   <div className="flex gap-1.5 flex-shrink-0">
-                                    <Button size="sm" variant="secondary" onClick={() => { startEditTrip(t); setTab('trips') }}><Pencil className="h-3 w-3" /></Button>
-                                    <Button size="sm" variant="destructive" onClick={() => handleDeleteTrip(t.id)}><Trash2 className="h-3 w-3" /></Button>
+                                    <Button size="sm" variant="secondary" onClick={() => { startEditTrip(t); setTab('trips') }}><PencilSimple className="h-3 w-3" /></Button>
+                                    <Button size="sm" variant="destructive" onClick={() => handleDeleteTrip(t.id)}><Trash className="h-3 w-3" /></Button>
                                   </div>
                                 </div>
                               )
@@ -984,7 +984,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
             <TabsContent value="registrations" className="p-0 mt-0">
               {registrationsLoading && (
                 <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <CircleNotch className="h-5 w-5 animate-spin" />
                   <span className="text-sm">Loading registrations…</span>
                 </div>
               )}
@@ -1029,7 +1029,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       <div className="flex items-center gap-3">
                         <button onClick={() => setExpandedRegTrip(null)}
                           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                          <ChevronRight className="h-4 w-4 rotate-180" /> Back
+                          <CaretRight className="h-4 w-4 rotate-180" /> Back
                         </button>
                       </div>
 
@@ -1038,13 +1038,13 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           <div className="flex gap-3 p-3 items-center">
                             {trip.image
                               ? <img src={trip.image} alt={trip.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
-                              : <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Plane className="h-6 w-6 text-primary/40" /></div>
+                              : <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Airplane className="h-6 w-6 text-primary/40" /></div>
                             }
                             <div className="min-w-0">
                               <h3 className="font-gilbert text-lg leading-tight">{trip.name}</h3>
                               <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mt-0.5">
                                 {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
-                                <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}</span>
+                                <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}</span>
                               </div>
                             </div>
                           </div>
@@ -1117,12 +1117,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                 {(['requested', 'pending_confirmation', 'confirmed', 'refused'] as const).map(s => (
                                   <button key={s} onClick={async () => { setUpdatingRegId(r.id); try { await setRegistrationStatus(r.id, s) } catch { toast.error('Failed to update status') } finally { setUpdatingRegId(null) } }} disabled={r.status === s || updatingRegId === r.id}
                                     className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-colors disabled:opacity-40 disabled:cursor-default ${r.status === s ? STATUS_STYLES[s] : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'}`}>
-                                    {updatingRegId === r.id && r.status !== s ? <Loader2 className="h-3 w-3 animate-spin inline" /> : STATUS_LABELS[s]}
+                                    {updatingRegId === r.id && r.status !== s ? <CircleNotch className="h-3 w-3 animate-spin inline" /> : STATUS_LABELS[s]}
                                   </button>
                                 ))}
                                 <button onClick={() => { if (confirm('Delete this registration?')) void removeRegistration(r.id) }}
                                   className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Delete">
-                                  <Trash2 className="h-3.5 w-3.5" />
+                                  <Trash className="h-3.5 w-3.5" />
                                 </button>
                               </div>
                             </div>
@@ -1147,7 +1147,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
                       {upcomingTrips.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-16 text-white/60">
-                          <Plane className="h-10 w-10 mb-3 opacity-40" />
+                          <Airplane className="h-10 w-10 mb-3 opacity-40" />
                           <p className="text-sm font-medium text-white">No upcoming trips</p>
                         </div>
                       )}
@@ -1161,7 +1161,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               <div className="relative sm:w-2/5 flex-shrink-0 min-h-[140px] sm:min-h-0">
                                 {featured.image
                                   ? <img src={featured.image} alt={featured.name} className="absolute inset-0 w-full h-full object-cover" />
-                                  : <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><Plane className="h-10 w-10 text-primary/30" /></div>
+                                  : <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><Airplane className="h-10 w-10 text-primary/30" /></div>
                                 }
                                 <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-full">Next Trip</div>
                               </div>
@@ -1170,14 +1170,14 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   <h3 className="font-gilbert text-lg leading-tight mb-1">{featured.name}</h3>
                                   <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                                     {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
-                                    <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{new Date(featured.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
+                                    <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3" />{new Date(featured.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
                                   </div>
                                 </div>
                                 <button onClick={() => setExpandedRegTrip(featured.id)}
                                   className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors self-start">
                                   <Users className="h-4 w-4" />
                                   Registrations ({regs.length})
-                                  <ChevronRight className="h-4 w-4" />
+                                  <CaretRight className="h-4 w-4" />
                                 </button>
                               </div>
                             </div>
@@ -1195,7 +1195,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                 <div className="relative w-full h-32 flex-shrink-0">
                                   {trip.image
                                     ? <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
-                                    : <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center"><Plane className="h-8 w-8 text-primary/25" /></div>
+                                    : <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center"><Airplane className="h-8 w-8 text-primary/25" /></div>
                                   }
                                 </div>
                                 <div className="flex-1 p-3 flex flex-col gap-2">
@@ -1203,14 +1203,14 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     <h3 className="font-gilbert text-base leading-tight mb-0.5">{trip.name}</h3>
                                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                                       {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
-                                      <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
+                                      <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
                                     </div>
                                   </div>
                                   <button onClick={() => setExpandedRegTrip(trip.id)}
                                     className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors self-start">
                                     <Users className="h-3.5 w-3.5" />
                                     Registrations ({regs.length})
-                                    <ChevronRight className="h-3.5 w-3.5" />
+                                    <CaretRight className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
                               </div>
@@ -1226,7 +1226,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
             {/* ── MANAGE ── */}
             <TabsContent value="manage" className="space-y-5">
-              {/* Search + Folder filter */}
+              {/* MagnifyingGlass + Folder filter */}
               {(() => {
                 const adminFolders = settings.adminFolders ?? []
                 const q = manageSearch.toLowerCase()
@@ -1272,12 +1272,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       </div>
                     </div>
 
-                    {/* Search bar */}
+                    {/* MagnifyingGlass bar */}
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <input
                         type="search"
-                        placeholder="Search posts, staff, destinations…"
+                        placeholder="MagnifyingGlass posts, staff, destinations…"
                         value={manageSearch}
                         onChange={e => setManageSearch(e.target.value)}
                         className="w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -1358,11 +1358,11 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   <td className="py-2 px-3 hidden md:table-cell text-muted-foreground">{p.date || '—'}</td>
                                   <td className="py-2 px-3">
                                     <div className="flex gap-1.5">
-                                      <Button size="sm" variant={p.pinned ? 'default' : 'secondary'} onClick={() => togglePin(p.id, !p.pinned)} title={p.pinned ? 'Unpin' : 'Pin to top'}>
-                                        {p.pinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+                                      <Button size="sm" variant={p.pinned ? 'default' : 'secondary'} onClick={() => togglePin(p.id, !p.pinned)} title={p.pinned ? 'Unpin' : 'PushPin to top'}>
+                                        {p.pinned ? <PushPinSlash className="h-3 w-3" /> : <PushPin className="h-3 w-3" />}
                                       </Button>
-                                      <Button size="sm" variant="secondary" onClick={() => startEditPost(p)}><Pencil className="h-3 w-3" /></Button>
-                                      <Button size="sm" variant="destructive" onClick={() => handleDeletePost(p.id)}><Trash2 className="h-3 w-3" /></Button>
+                                      <Button size="sm" variant="secondary" onClick={() => startEditPost(p)}><PencilSimple className="h-3 w-3" /></Button>
+                                      <Button size="sm" variant="destructive" onClick={() => handleDeletePost(p.id)}><Trash className="h-3 w-3" /></Button>
                                     </div>
                                   </td>
                                 </tr>
@@ -1382,24 +1382,24 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
             <TabsContent value="users" className="space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <input
                     type="search"
-                    placeholder="Search by email address…"
+                    placeholder="MagnifyingGlass by email address…"
                     value={userSearch}
                     onChange={e => setUserSearch(e.target.value)}
                     className="w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
                 <Button size="sm" variant="secondary" className="gap-1.5 flex-shrink-0" onClick={handleLoadUsers} disabled={usersLoading}>
-                  {usersLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  {usersLoading ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <ArrowsClockwise className="h-3.5 w-3.5" />}
                   Refresh
                 </Button>
               </div>
 
               {usersLoading && !usersLoaded ? (
                 <div className="flex items-center justify-center py-16 text-muted-foreground">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary/50" />
+                  <CircleNotch className="h-6 w-6 animate-spin text-primary/50" />
                 </div>
               ) : (() => {
                 const q = userSearch.toLowerCase()
@@ -1454,7 +1454,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               {userRegistrations.length > 0 && (
                                 <span className="text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">{userRegistrations.length} trip{userRegistrations.length !== 1 ? 's' : ''}</span>
                               )}
-                              <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                              <CaretRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                             </div>
                           </button>
 
@@ -1518,7 +1518,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                         toast.error((err as Error)?.message ?? 'Failed to save')
                                       } finally { setProfileEditSaving(false) }
                                     }}>
-                                      {profileEditSaving ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving…</> : 'Save Changes'}
+                                      {profileEditSaving ? <><CircleNotch className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving…</> : 'Save Changes'}
                                     </Button>
                                   </div>
                                 </div>
@@ -1610,7 +1610,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                         }}
                                         className="gap-1.5"
                                       >
-                                        {togglingAdminUid === u.uid ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                                        {togglingAdminUid === u.uid ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
                                         {isUserAdmin ? 'Revoke Admin' : 'Grant Admin'}
                                       </Button>
                                       <Button
@@ -1634,7 +1634,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                         }}
                                         className={`gap-1.5 ${!isBanned ? 'text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10' : ''}`}
                                       >
-                                        {isBanned ? 'Unban User' : 'Ban from Registering'}
+                                        {isBanned ? 'Unban User' : 'Prohibit from Registering'}
                                       </Button>
                                       <Button
                                         size="sm" variant="destructive"
@@ -1653,7 +1653,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                         }}
                                         className="gap-1.5 ml-auto"
                                       >
-                                        {deletingProfileUid === u.uid ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Delete Profile
+                                        {deletingProfileUid === u.uid ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <Trash className="h-3.5 w-3.5" />} Delete Profile
                                       </Button>
                                     </>
                                   )
@@ -1762,7 +1762,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     <Dialog open={!!banningUser} onOpenChange={(o) => { if (!o && !banSaving) setBanningUser(null) }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ban {banningUser?.name}</DialogTitle>
+          <DialogTitle>Prohibit {banningUser?.name}</DialogTitle>
         </DialogHeader>
         <DialogBody className="space-y-3 pt-2">
           <p className="text-sm text-muted-foreground">How long should this ban last?</p>
@@ -1790,7 +1790,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 }}
                 className={`justify-center ${days == null ? 'col-span-2 border-destructive/40 text-destructive hover:bg-destructive/10' : ''}`}
               >
-                {banSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : label}
+                {banSaving ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : label}
               </Button>
             ))}
           </div>

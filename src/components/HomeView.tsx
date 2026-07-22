@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Camera, Globe2, Plane, CalendarDays, Send, ArrowRight, ClipboardCheck, X, Megaphone } from 'lucide-react'
+import { Camera, Globe, Airplane, CalendarDots, PaperPlaneTilt, ArrowRight, ClipboardText, X, Megaphone } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
 import type { View } from '@/lib/types'
@@ -12,11 +12,11 @@ const SMALL_PANELS: {
   label: string
   sub: string
 }[] = [
-  { key: 'map',      Icon: Globe2,         label: 'World Map',        sub: 'Explore destinations'            },
-  { key: 'upcoming', Icon: Plane,          label: 'Upcoming Trips',   sub: 'See what\'s coming next'         },
-  { key: 'years',    Icon: CalendarDays,   label: 'Trips By Year',    sub: 'Browse the archive'              },
-  { key: 'interest', Icon: ClipboardCheck, label: 'My Registrations', sub: 'Track your registered interest'  },
-  { key: 'submit',   Icon: Send,           label: 'Share Your Trip',  sub: 'Submit your own adventure'       },
+  { key: 'map',      Icon: Globe,         label: 'World Map',        sub: 'Explore destinations'            },
+  { key: 'upcoming', Icon: Airplane,          label: 'Upcoming Trips',   sub: 'See what\'s coming next'         },
+  { key: 'years',    Icon: CalendarDots,   label: 'Trips By Year',    sub: 'Browse the archive'              },
+  { key: 'interest', Icon: ClipboardText, label: 'My Registrations', sub: 'Track your registered interest'  },
+  { key: 'submit',   Icon: PaperPlaneTilt,           label: 'Share Your Trip',  sub: 'Submit your own adventure'       },
 ]
 
 function SmallCard({

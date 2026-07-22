@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { CheckCircle, Trash2, Clock, MapPin, ImageIcon, Loader2, Pencil } from 'lucide-react'
+import { CheckCircle, Trash, Clock, MapPin, ImageIcon, CircleNotch, PencilSimple } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { AdminPanel } from './AdminPanel'
@@ -75,7 +75,7 @@ export function PendingView() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-16 text-muted-foreground">
-          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <CircleNotch className="h-6 w-6 animate-spin mr-2" />
           <span>Loading pending posts…</span>
         </div>
       )}
@@ -141,8 +141,8 @@ export function PendingView() {
                   className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
                 >
                   {actionId === post.id
-                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    : <Trash2 className="h-3.5 w-3.5" />
+                    ? <CircleNotch className="h-3.5 w-3.5 animate-spin" />
+                    : <Trash className="h-3.5 w-3.5" />
                   }
                 </Button>
                 <Button
@@ -152,7 +152,7 @@ export function PendingView() {
                   disabled={actionId === post.id}
                   className="gap-1.5"
                 >
-                  <Pencil className="h-3.5 w-3.5" />
+                  <PencilSimple className="h-3.5 w-3.5" />
                   Edit
                 </Button>
                 <Button
@@ -162,7 +162,7 @@ export function PendingView() {
                   className="gap-1.5"
                 >
                   {actionId === post.id
-                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ? <CircleNotch className="h-3.5 w-3.5 animate-spin" />
                     : <CheckCircle className="h-3.5 w-3.5" />
                   }
                   Approve

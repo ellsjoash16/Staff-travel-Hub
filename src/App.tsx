@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { CircleNotch } from '@phosphor-icons/react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { saveAccountRecord } from '@/lib/db'
@@ -38,7 +38,7 @@ function SplashScreen() {
           <h1 className="font-gilbert text-4xl text-white drop-shadow mb-1">DAFAGRAM</h1>
           <p className="text-white/50 text-sm tracking-widest uppercase">Staff Travel Hub</p>
         </div>
-        <Loader2 className="h-5 w-5 animate-spin text-primary/70 mt-2" />
+        <CircleNotch className="h-5 w-5 animate-spin text-primary/70 mt-2" />
         <p className="text-white/40 text-sm italic max-w-xs leading-relaxed mt-2">"{quote}"</p>
       </div>
     </div>
@@ -80,7 +80,7 @@ function AppShell() {
         }`}
       >
         <ErrorBoundary key={state.activeView}>
-        <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
+        <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><CircleNotch className="h-6 w-6 animate-spin" /></div>}>
           <div className={`view-enter ${['home', 'map', 'submit', 'years', 'upcoming', 'interest'].includes(state.activeView) ? 'h-full min-h-0' : ''}`}>
             {state.activeView === 'home' && <HomeView />}
             {state.activeView === 'feed' && <FeedView />}

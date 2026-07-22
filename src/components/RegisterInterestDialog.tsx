@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
-import { CheckCircle, ChevronLeft, ChevronRight, Send, Loader2, Plane, Ban, Plus, Trash2, User, Users } from 'lucide-react'
+import { CheckCircle, CaretLeft, CaretRight, PaperPlaneTilt, CircleNotch, Airplane, Prohibit, Plus, Trash, User, Users } from '@phosphor-icons/react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -281,7 +281,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     <div className="flex items-center gap-3 rounded-xl bg-primary/5 border border-primary/15 p-3">
       {trip.image
         ? <img src={trip.image} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-        : <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Plane className="h-4 w-4 text-primary/50" /></div>
+        : <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><Airplane className="h-4 w-4 text-primary/50" /></div>
       }
       <div className="min-w-0">
         <p className="font-semibold text-sm truncate">{trip.name}</p>
@@ -363,7 +363,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
             onClick={() => removeNominee(i)}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors flex-shrink-0"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash className="h-4 w-4" />
           </button>
         </div>
       ))}
@@ -413,7 +413,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
               {/* Loading */}
               {phase === 'loading' && (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <CircleNotch className="h-6 w-6 animate-spin text-primary" />
                 </div>
               )}
 
@@ -421,7 +421,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
               {phase === ('banned' as Phase) && (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-                    <Ban className="h-8 w-8 text-destructive" />
+                    <Prohibit className="h-8 w-8 text-destructive" />
                   </div>
                   <h3 className="font-gilbert text-xl mb-1">Registration Unavailable</h3>
                   <p className="text-sm text-muted-foreground mb-5">You are not permitted to register interest in trips at this time.</p>
@@ -436,7 +436,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
               {phase === 'roleBlocked' && (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
-                    <Ban className="h-8 w-8 text-amber-500" />
+                    <Prohibit className="h-8 w-8 text-amber-500" />
                   </div>
                   <h3 className="font-gilbert text-xl mb-1">Not eligible</h3>
                   <p className="text-sm text-muted-foreground mb-2">
@@ -513,14 +513,14 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   </div>
                   <div className="flex justify-between pt-1">
                     <Button variant="ghost" onClick={() => setPhase('forWhom')} className="gap-1.5">
-                      <ChevronLeft className="h-4 w-4" /> Back
+                      <CaretLeft className="h-4 w-4" /> Back
                     </Button>
                     <Button onClick={() => {
                       if (!onBehalfFirst.trim() || !onBehalfLast.trim()) { toast.error('Please enter their name'); return }
                       if (!onBehalfEmail.trim()) { toast.error('Please enter their email'); return }
                       setPhase('questions')
                     }} className="gap-1.5">
-                      Next <ChevronRight className="h-4 w-4" />
+                      Next <CaretRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -539,7 +539,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   </div>
                   <p className="text-xs text-muted-foreground">Your saved details will be used for this registration.</p>
                   <Button onClick={() => setPhase(savedProfile.jobRole && NOMINATING_ROLES.includes(savedProfile.jobRole) ? 'nominate' : 'questions')} className="w-full gap-2">
-                    Next <ChevronRight className="h-4 w-4" />
+                    Next <CaretRight className="h-4 w-4" />
                   </Button>
                 </div>
               )}
@@ -558,7 +558,7 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                       if (!jobRole) { toast.error('Please select your job role'); return }
                       setPhase(NOMINATING_ROLES.includes(jobRole) ? 'nominate' : 'questions')
                     }} className="gap-1.5">
-                      Next <ChevronRight className="h-4 w-4" />
+                      Next <CaretRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -570,10 +570,10 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                   {nominateFields(savedProfile?.jobRole ?? jobRole)}
                   <div className="flex justify-between pt-1">
                     <Button variant="ghost" onClick={() => setPhase(savedProfile ? 'confirm' : 'passport')} className="gap-1.5">
-                      <ChevronLeft className="h-4 w-4" /> Back
+                      <CaretLeft className="h-4 w-4" /> Back
                     </Button>
                     <Button onClick={() => setPhase('questions')} className="gap-1.5">
-                      Next <ChevronRight className="h-4 w-4" />
+                      Next <CaretRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -641,10 +641,10 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
                       if (!forSelf) { setPhase('onBehalf'); return }
                       setPhase(NOMINATING_ROLES.includes(savedProfile?.jobRole ?? jobRole) ? 'nominate' : savedProfile ? 'confirm' : 'passport')
                     }} className="gap-1.5">
-                      <ChevronLeft className="h-4 w-4" /> Back
+                      <CaretLeft className="h-4 w-4" /> Back
                     </Button>
                     <Button onClick={!forSelf ? (savedProfile ? submitFromConfirm : submitOnBehalf) : (savedProfile ? submitFromConfirm : handleSubmit)} disabled={submitting} className="gap-2">
-                      {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><Send className="h-4 w-4" /> Register Interest</>}
+                      {submitting ? <><CircleNotch className="h-4 w-4 animate-spin" /> Submitting…</> : <><PaperPlaneTilt className="h-4 w-4" /> Register Interest</>}
                     </Button>
                   </div>
                 </div>

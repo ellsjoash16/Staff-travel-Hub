@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
 import {
-  Send, Loader2, CheckCircle, Plane, ChevronRight, ChevronLeft,
-  User, MapPin, Camera, PenLine, Star, NotebookPen,
-} from 'lucide-react'
+  PaperPlaneTilt, CircleNotch, CheckCircle, Airplane, CaretRight, CaretLeft,
+  User, MapPin, Camera, PencilLine as PenLine, Star, Notebook as NotebookPen,
+} from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -229,7 +229,7 @@ export function SubmitView() {
         <div className="hidden sm:block rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 mb-6 text-center">
           <div className="flex justify-center mb-2">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Plane className="h-6 w-6 text-primary" />
+              <Airplane className="h-6 w-6 text-primary" />
             </div>
           </div>
           <h2 className="font-gilbert text-2xl mb-0.5">Share Your Trip</h2>
@@ -241,7 +241,7 @@ export function SubmitView() {
         {/* Mobile mini header */}
         <div className="sm:hidden flex items-center gap-2 mb-3">
           <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Plane className="h-3.5 w-3.5 text-primary" />
+            <Airplane className="h-3.5 w-3.5 text-primary" />
           </div>
           <h2 className="font-gilbert text-base">Share Your Trip</h2>
         </div>
@@ -361,21 +361,21 @@ export function SubmitView() {
         <div className={`flex mt-4 sm:mt-6 ${step > 1 ? 'justify-between' : 'justify-end'}`}>
           {step > 1 && (
             <Button variant="ghost" onClick={back} className="gap-1.5">
-              <ChevronLeft className="h-4 w-4" /> Back
+              <CaretLeft className="h-4 w-4" /> Back
             </Button>
           )}
 
           {step < 6 && (
             <Button onClick={next} className="gap-1.5">
-              Next <ChevronRight className="h-4 w-4" />
+              Next <CaretRight className="h-4 w-4" />
             </Button>
           )}
 
           {step === 6 && (
             <Button onClick={handleSubmit} disabled={submitting} className="gap-2">
               {submitting
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> {uploadProgress && uploadProgress.done < uploadProgress.total ? `Uploading ${uploadProgress.done}/${uploadProgress.total} photos…` : 'Submitting…'}</>
-                : <><Send className="h-4 w-4" /> Submit Trip</>
+                ? <><CircleNotch className="h-4 w-4 animate-spin" /> {uploadProgress && uploadProgress.done < uploadProgress.total ? `Uploading ${uploadProgress.done}/${uploadProgress.total} photos…` : 'Submitting…'}</>
+                : <><PaperPlaneTilt className="h-4 w-4" /> Submit Trip</>
               }
             </Button>
           )}

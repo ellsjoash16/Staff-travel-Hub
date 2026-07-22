@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CalendarDays, MapPin, Plane } from 'lucide-react'
+import { CalendarDots, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 
 const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=40'
@@ -47,7 +47,7 @@ export function YearsView() {
         </div>
         <div className="relative flex flex-col items-center justify-center h-full text-white/70">
           <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-5">
-            <CalendarDays className="h-10 w-10 text-white/50" />
+            <CalendarDots className="h-10 w-10 text-white/50" />
           </div>
           <h3 className="font-gilbert text-xl mb-1 text-white">No completed trips yet</h3>
           <p className="text-sm">Trips will appear here once marked as complete</p>
@@ -144,7 +144,7 @@ export function YearsView() {
                                   <img src={trip.image} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                                    <Plane className="h-4 w-4 sm:h-5 sm:w-5 text-primary/50" />
+                                    <Airplane className="h-4 w-4 sm:h-5 sm:w-5 text-primary/50" />
                                   </div>
                                 )}
                               </div>

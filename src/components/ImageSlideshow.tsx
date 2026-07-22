@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 
 interface Props {
   images: string[]
@@ -34,13 +34,13 @@ export function ImageSlideshow({ images, alt = '', className = '' }: Props) {
         onClick={prev}
         className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
       >
-        <ChevronLeft className="h-4 w-4" />
+        <CaretLeft className="h-4 w-4" />
       </button>
       <button
         onClick={next}
         className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
       >
-        <ChevronRight className="h-4 w-4" />
+        <CaretRight className="h-4 w-4" />
       </button>
 
       {/* Dot indicators */}

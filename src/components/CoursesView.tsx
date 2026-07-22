@@ -1,4 +1,4 @@
-import { BookOpen, MapPin } from 'lucide-react'
+import { BookOpen, MapPin } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 
 export function CoursesView() {

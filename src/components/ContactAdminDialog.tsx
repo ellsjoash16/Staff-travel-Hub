@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, Send, CheckCircle } from 'lucide-react'
+import { CircleNotch, PaperPlaneTilt, CheckCircle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -86,8 +86,8 @@ export function ContactAdminDialog({ open, onOpenChange, prefillMessage = '' }: 
                 <Button variant="secondary" size="sm" onClick={() => handleOpenChange(false)}>Cancel</Button>
                 <Button size="sm" onClick={handleSend} disabled={sending} className="gap-2">
                   {sending
-                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending…</>
-                    : <><Send className="h-4 w-4" /> Send</>
+                    ? <><CircleNotch className="h-4 w-4 animate-spin" /> Sending…</>
+                    : <><PaperPlaneTilt className="h-4 w-4" /> PaperPlaneTilt</>
                   }
                 </Button>
               </div>

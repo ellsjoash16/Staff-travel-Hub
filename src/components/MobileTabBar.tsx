@@ -1,4 +1,4 @@
-import { Clock, Settings, MessageCircle, MoreHorizontal, Globe2, Plane, Send, Camera, CalendarDays, ClipboardCheck, X } from 'lucide-react'
+import { Clock, GearSix as Settings, ChatCircle as MessageCircle, DotsThree as MoreHorizontal, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, ClipboardText as ClipboardCheck, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'

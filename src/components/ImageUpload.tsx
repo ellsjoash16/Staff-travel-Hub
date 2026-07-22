@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Camera } from 'lucide-react'
+import { Camera } from '@phosphor-icons/react'
 import { compressImage } from '@/lib/utils'
 
 interface Props {

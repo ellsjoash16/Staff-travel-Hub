@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Globe, RefreshCw } from 'lucide-react'
+import { Globe, ArrowsClockwise } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { PostDetailDialog } from './PostDetailDialog'
@@ -152,7 +152,7 @@ export function FeedView() {
             disabled={refreshing}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium transition-colors disabled:opacity-50"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <ArrowsClockwise className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             {refreshing ? 'Loading…' : 'Retry'}
           </button>
         </div>

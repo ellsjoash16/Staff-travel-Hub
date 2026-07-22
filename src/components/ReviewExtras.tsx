@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X, Pencil } from 'lucide-react'
+import { Plus, X, PencilSimple } from '@phosphor-icons/react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -128,7 +128,7 @@ export function ReviewExtras({ value, onChange }: Props) {
                         onClick={() => openEdit(key, i)}
                         className="text-muted-foreground hover:text-primary transition-colors"
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <PencilSimple className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"

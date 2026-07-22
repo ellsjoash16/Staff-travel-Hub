@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react'
-import { Search, MapPin, Camera, BookOpen, X } from 'lucide-react'
+import { MagnifyingGlass, MapPin, Camera, BookOpen, X } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 
 type ResultType = 'location' | 'post' | 'course'
@@ -103,7 +103,7 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
   return (
     <div ref={containerRef} className="relative w-full" onBlur={handleBlur}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" />
+        <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" />
         <input
           ref={inputRef}
           autoFocus={autoFocus}
@@ -111,7 +111,7 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
           onChange={e => { setQuery(e.target.value); setOpen(true); setActiveIdx(-1) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search posts, locations…"
+          placeholder="MagnifyingGlass posts, locations…"
           autoComplete="off"
           className="w-full h-9 pl-9 pr-8 rounded-full bg-white/10 border border-white/15 text-white placeholder:text-white/40 text-sm focus:outline-none focus:bg-white/18 focus:border-white/35 transition-all"
         />
@@ -130,7 +130,7 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
         <div className="absolute top-full mt-2 left-0 right-0 bg-popover rounded-2xl border border-border shadow-[0_8px_40px_rgba(0,0,0,0.18)] overflow-hidden z-50">
           {results.length === 0 ? (
             <div className="flex items-center gap-3 px-4 py-4">
-              <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <MagnifyingGlass className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <p className="text-sm text-muted-foreground">No results for <span className="font-medium text-foreground">"{query}"</span></p>
             </div>
           ) : (

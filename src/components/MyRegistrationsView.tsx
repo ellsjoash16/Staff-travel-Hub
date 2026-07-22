@@ -1,4 +1,4 @@
-import { Plane, MapPin, Calendar, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
+import { Airplane, MapPin, Calendar, CheckCircle, Clock, XCircle, WarningCircle } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
 import type { Registration } from '@/lib/types'
@@ -7,7 +7,7 @@ const BG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=fo
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; className: string }> = {
   requested:            { label: 'Requested',   icon: Clock,        className: 'bg-blue-500/15 text-blue-600 border-blue-500/25 dark:text-blue-400' },
-  pending_confirmation: { label: 'Pending',      icon: AlertCircle,  className: 'bg-amber-500/15 text-amber-600 border-amber-500/25 dark:text-amber-400' },
+  pending_confirmation: { label: 'Pending',      icon: WarningCircle,  className: 'bg-amber-500/15 text-amber-600 border-amber-500/25 dark:text-amber-400' },
   confirmed:            { label: 'Confirmed',    icon: CheckCircle,  className: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/25 dark:text-emerald-400' },
   refused:              { label: 'Refused',      icon: XCircle,      className: 'bg-destructive/15 text-destructive border-destructive/25' },
 }
@@ -28,7 +28,7 @@ function RegistrationCard({ reg, trip }: { reg: Registration; trip: { name: stri
           <img src={image} alt={name} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
-            <Plane className="h-8 w-8 sm:h-10 sm:w-10 text-primary/25" />
+            <Airplane className="h-8 w-8 sm:h-10 sm:w-10 text-primary/25" />
           </div>
         )}
         <div className={`absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border text-[10px] sm:text-xs font-semibold backdrop-blur-sm bg-background/80 ${cfg.className}`}>
@@ -79,7 +79,7 @@ export function MyRegistrationsView() {
       {myRegistrations.length === 0 ? (
         <div className="relative flex flex-col items-center justify-center h-full text-white/70" style={{ zIndex: 1 }}>
           <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-5">
-            <Plane className="h-10 w-10 text-white/50" />
+            <Airplane className="h-10 w-10 text-white/50" />
           </div>
           <h3 className="font-gilbert text-xl mb-1 text-white">No registrations yet</h3>
           <p className="text-sm text-center max-w-xs">Head to Upcoming Trips and register your interest to see your status here</p>

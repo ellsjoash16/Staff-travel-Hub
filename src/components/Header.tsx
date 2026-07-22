@@ -32,12 +32,6 @@ export function Header() {
                 DAFAGRAM
               </span>
             </button>
-            <img
-              src="/daf-logo.png"
-              alt="DAF"
-              className="hidden lg:block h-6 2xl:h-[1.875rem] w-auto drop-shadow-sm select-none"
-              style={{ transform: `translate(${logoOffset.x}px, ${logoOffset.y}px)` }}
-            />
           </div>
         )}
 

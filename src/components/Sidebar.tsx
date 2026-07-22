@@ -1,4 +1,4 @@
-import { Camera, Globe2, Plane, CalendarDays, Send, Settings, Clock, ClipboardCheck, MessageCircle, KeyRound, Sun, Moon, Monitor, LogOut, ChevronRight } from 'lucide-react'
+import { Camera, Globe2, Home, Plane, CalendarDays, Send, Settings, Clock, ClipboardCheck, MessageCircle, KeyRound, Sun, Moon, Monitor, LogOut, ChevronRight } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { signOut } from 'firebase/auth'
 import { useApp } from '@/context/AppContext'
@@ -8,6 +8,7 @@ import { ChangePasswordDialog } from '@/components/ChangePasswordDialog'
 import type { View } from '@/lib/types'
 
 export const NAV: { id: View; label: string; Icon: React.ElementType }[] = [
+  { id: 'home',     label: 'Home',               Icon: Home },
   { id: 'feed',     label: 'Feed',               Icon: Camera },
   { id: 'map',      label: 'World Map',           Icon: Globe2 },
   { id: 'upcoming', label: 'Upcoming Trips',      Icon: Plane },
@@ -66,6 +67,8 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
   const [accountOpen, setAccountOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const logoOffset = (() => { try { const s = localStorage.getItem('logo-offset'); return s ? JSON.parse(s) : { x: 0, y: 0 } } catch { return { x: 0, y: 0 } } })()
 
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
     const stored = localStorage.getItem('theme')
@@ -135,12 +138,36 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
         onMouseLeave={handleMouseLeave}
         className={`
           hidden lg:flex flex-col
-          fixed top-14 sm:top-16 2xl:top-20 bottom-0 left-0 z-50
+          fixed top-0 bottom-0 left-0 z-50
           bg-background dark:bg-[#0a0a0a]
           transition-all duration-200 ease-out overflow-hidden
           ${expanded ? 'w-60 xl:w-72' : 'w-16 xl:w-20'}
         `}
       >
+        {/* ── Logo ── */}
+        <div
+          className={`flex-shrink-0 flex items-center h-14 sm:h-16 2xl:h-20 overflow-hidden ${expanded ? 'px-4' : 'justify-center'}`}
+          style={{ background: '#0a0a0a' }}
+        >
+          <button
+            type="button"
+            onClick={() => go('home')}
+            className={`flex items-center hover:opacity-80 transition-opacity ${expanded ? 'gap-2.5' : ''}`}
+          >
+            <img
+              src="/daf-logo.png"
+              alt="DAF"
+              className="h-6 2xl:h-[1.875rem] w-auto drop-shadow-sm select-none flex-shrink-0"
+              style={{ transform: `translate(${logoOffset.x}px, ${logoOffset.y}px)` }}
+            />
+            {expanded && (
+              <span className="font-gilbert text-white text-xl 2xl:text-2xl leading-none drop-shadow-sm whitespace-nowrap">
+                DAFAGRAM
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* ── Main navigation ── */}
         <nav className="px-2 pt-3 pb-2 space-y-0.5">
           {NAV.map(({ id, label, Icon }) => (

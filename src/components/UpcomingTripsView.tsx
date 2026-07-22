@@ -175,75 +175,108 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
   const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
+  const full = trip.eventSpaces != null && trip.participants.length >= trip.eventSpaces
 
   const dateStr = trip.endDate
     ? `${fmtDate(trip.date)} – ${fmtDate(trip.endDate)}`
     : fmtDate(trip.date)
 
+  const venueLabel = trip.eventVenue || location?.name || null
+
   return (
     <>
       <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
-      <div className="flex flex-col rounded-2xl overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
-        <div className="relative w-full h-32 sm:h-40 lg:h-44 2xl:h-52 flex-shrink-0">
+
+      {/* Mobile: horizontal list row */}
+      <div className="sm:hidden flex rounded-2xl overflow-hidden bg-card shadow-sm h-[104px]">
+        <div className="relative w-28 flex-shrink-0">
           {trip.image ? (
             <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/15 to-violet-600/5 flex items-center justify-center">
-              <Star className="h-8 w-8 sm:h-10 sm:w-10 text-violet-500/25" />
+              <Star className="h-7 w-7 text-violet-500/25" />
             </div>
           )}
-          <div className="absolute top-2.5 left-2.5 flex gap-1.5">
-            <span className="bg-violet-600 text-white text-[10px] sm:text-xs font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full shadow">
+          <span className="absolute top-2 left-2 bg-violet-600 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full leading-none shadow">
+            {trip.eventType || 'Event'}
+          </span>
+        </div>
+
+        <div className="flex-1 min-w-0 p-2.5 flex flex-col justify-between">
+          <div>
+            <h3 className="font-gilbert text-sm leading-tight line-clamp-2 mb-1">{trip.name}</h3>
+            <div className="flex flex-col gap-0.5 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1 truncate"><Calendar className="h-2.5 w-2.5 flex-shrink-0" />{dateStr}</span>
+              {venueLabel && (
+                <span className="flex items-center gap-1 truncate"><MapPin className="h-2.5 w-2.5 flex-shrink-0" />{venueLabel}</span>
+              )}
+              {trip.eventSpaces != null && (
+                <span className="flex items-center gap-1"><Users className="h-2.5 w-2.5 flex-shrink-0" />{Math.max(0, trip.eventSpaces - trip.participants.length)}/{trip.eventSpaces} spaces</span>
+              )}
+            </div>
+          </div>
+          {registrationOpen && (
+            <div className="flex justify-end">
+              {full ? (
+                <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Full</span>
+              ) : (
+                <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1 text-[10px] h-6 px-2 bg-violet-600 hover:bg-violet-700 text-white">
+                  <Star className="h-2.5 w-2.5" /> Register
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Tablet+: vertical card */}
+      <div className="hidden sm:flex flex-col rounded-2xl overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
+        <div className="relative w-full h-40 lg:h-44 2xl:h-52 flex-shrink-0">
+          {trip.image ? (
+            <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/15 to-violet-600/5 flex items-center justify-center">
+              <Star className="h-10 w-10 text-violet-500/25" />
+            </div>
+          )}
+          <div className="absolute top-2.5 left-2.5">
+            <span className="bg-violet-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow">
               {trip.eventType || 'Event'}
             </span>
           </div>
         </div>
 
-        <div className="flex-1 p-3 sm:p-5 2xl:p-6 flex flex-col justify-between gap-2 sm:gap-3">
+        <div className="flex-1 p-5 2xl:p-6 flex flex-col justify-between gap-3">
           <div>
-            <h3 className="font-gilbert text-base sm:text-lg lg:text-xl 2xl:text-2xl mb-1 leading-tight">{trip.name}</h3>
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] sm:text-xs text-muted-foreground mb-1.5">
-              {location && (
-                <span className="flex items-center gap-1"><MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{location.name}</span>
-              )}
+            <h3 className="font-gilbert text-lg lg:text-xl 2xl:text-2xl mb-1 leading-tight">{trip.name}</h3>
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mb-1.5">
+              {location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{location.name}</span>}
               {trip.eventBuilding && trip.eventBuilding.length > 0 && (
-                <span className="flex items-center gap-1"><Building2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{trip.eventBuilding.join(', ')}</span>
+                <span className="flex items-center gap-1"><Building2 className="h-3 w-3 flex-shrink-0" />{trip.eventBuilding.join(', ')}</span>
               )}
-              {trip.eventVenue && (
-                <span className="flex items-center gap-1"><MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{trip.eventVenue}</span>
-              )}
-              <span className="flex items-center gap-1"><Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{dateStr}</span>
+              {trip.eventVenue && <span className="flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{trip.eventVenue}</span>}
+              <span className="flex items-center gap-1"><Calendar className="h-3 w-3 flex-shrink-0" />{dateStr}</span>
               {trip.eventSpaces != null && (
-                <span className="flex items-center gap-1">
-                  <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
-                  {Math.max(0, trip.eventSpaces - trip.participants.length)}/{trip.eventSpaces} spaces
-                </span>
+                <span className="flex items-center gap-1"><Users className="h-3 w-3 flex-shrink-0" />{Math.max(0, trip.eventSpaces - trip.participants.length)}/{trip.eventSpaces} spaces</span>
               )}
-              {trip.eventSponsor && (
-                <span className="flex items-center gap-1"><Award className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{trip.eventSponsor}</span>
-              )}
-              {trip.registrationDeadline && (
-                <span className="flex items-center gap-1"><Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />By {fmtDate(trip.registrationDeadline)}</span>
-              )}
+              {trip.eventSponsor && <span className="flex items-center gap-1"><Award className="h-3 w-3 flex-shrink-0" />{trip.eventSponsor}</span>}
+              {trip.registrationDeadline && <span className="flex items-center gap-1"><Clock className="h-3 w-3 flex-shrink-0" />By {fmtDate(trip.registrationDeadline)}</span>}
             </div>
             {trip.description && (
-              <p className="text-[11px] sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">{trip.description}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{trip.description}</p>
             )}
           </div>
-          {registrationOpen && (() => {
-            const full = trip.eventSpaces != null && trip.participants.length >= trip.eventSpaces
-            return (
-              <div className="flex justify-end">
-                {full ? (
-                  <span className="text-[10px] sm:text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground">Fully Booked</span>
-                ) : (
-                  <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1 text-xs h-7 sm:h-9 sm:text-sm px-2.5 sm:px-3 bg-violet-600 hover:bg-violet-700 text-white">
-                    <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Register
-                  </Button>
-                )}
-              </div>
-            )
-          })()}
+          {registrationOpen && (
+            <div className="flex justify-end">
+              {full ? (
+                <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground">Fully Booked</span>
+              ) : (
+                <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1 text-xs h-9 px-3 bg-violet-600 hover:bg-violet-700 text-white">
+                  <Star className="h-3.5 w-3.5" /> Register
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -347,7 +380,7 @@ export function UpcomingTripsView() {
               <p className="text-sm text-center max-w-xs">Check back soon — events will be added by the admin team</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
               {events.map(trip => (
                 <EventCard key={trip.id} trip={trip} location={getLocation(trip.locationId)} />
               ))}

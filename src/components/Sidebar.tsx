@@ -146,8 +146,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
       >
         {/* ── Logo ── */}
         <div
-          className={`flex-shrink-0 flex items-center h-14 sm:h-16 2xl:h-20 overflow-hidden ${expanded ? 'px-4' : 'justify-center'}`}
-          style={{ background: '#0a0a0a' }}
+          className={`flex-shrink-0 flex items-center h-14 sm:h-16 2xl:h-20 overflow-hidden border-b border-border bg-muted dark:bg-background ${expanded ? 'px-4' : 'justify-center'}`}
         >
           <button
             type="button"
@@ -157,11 +156,11 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
             <img
               src="/daf-logo.png"
               alt="DAF"
-              className="h-6 2xl:h-[1.875rem] w-auto drop-shadow-sm select-none flex-shrink-0"
+              className="h-6 2xl:h-[1.875rem] w-auto drop-shadow-sm select-none flex-shrink-0 invert dark:invert-0"
               style={{ transform: `translate(${logoOffset.x}px, ${logoOffset.y}px)` }}
             />
             {expanded && (
-              <span className="font-gilbert text-white text-xl 2xl:text-2xl leading-none drop-shadow-sm whitespace-nowrap">
+              <span className="font-gilbert text-foreground text-xl 2xl:text-2xl leading-none whitespace-nowrap">
                 DAFAGRAM
               </span>
             )}

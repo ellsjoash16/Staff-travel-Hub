@@ -146,8 +146,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
       >
         {/* ── Logo ── */}
         <div
-          className={`flex-shrink-0 flex items-center h-14 sm:h-16 2xl:h-20 overflow-hidden ${expanded ? 'px-4' : 'justify-center'}`}
-          style={{ background: '#0a0a0a' }}
+          className={`flex-shrink-0 flex items-center h-14 sm:h-16 2xl:h-20 overflow-hidden border-b border-white/10 bg-zinc-950 ${expanded ? 'px-4' : 'justify-center'}`}
         >
           <button
             type="button"

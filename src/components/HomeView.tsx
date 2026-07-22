@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Camera, Globe, Airplane, CalendarDots, PaperPlaneTilt, ArrowRight, ClipboardText, X, Megaphone } from '@phosphor-icons/react'
+import { Camera, Globe, Airplane, CalendarDots, PaperPlaneTilt, ArrowRight, CheckSquare as ClipboardText, X, Megaphone } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
 import type { View } from '@/lib/types'

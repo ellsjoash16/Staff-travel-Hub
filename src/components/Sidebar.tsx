@@ -1,4 +1,4 @@
-import { Camera, Globe as Globe2, House as Home, Airplane as Plane, CalendarDots as CalendarDays, PaperPlaneTilt as Send, GearSix as Settings, Clock, ClipboardText as ClipboardCheck, ChatCircle as MessageCircle, Key as KeyRound, Sun, Moon, Monitor, SignOut as LogOut, CaretRight as ChevronRight } from '@phosphor-icons/react'
+import { Camera, Globe as Globe2, House as Home, Airplane as Plane, CalendarDots as CalendarDays, PaperPlaneTilt as Send, GearSix as Settings, Clock, CheckSquare as ClipboardCheck, ChatCircle as MessageCircle, Key as KeyRound, Sun, Moon, Monitor, SignOut as LogOut, CaretRight as ChevronRight } from '@phosphor-icons/react'
 import { useState, useEffect, useRef } from 'react'
 import { signOut } from 'firebase/auth'
 import { useApp } from '@/context/AppContext'

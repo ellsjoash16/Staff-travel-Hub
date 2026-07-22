@@ -8,6 +8,7 @@ import { AppProvider, useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
 import { MobileTabBar } from '@/components/MobileTabBar'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LoginScreen } from '@/components/LoginScreen'
 import type { Post } from '@/lib/types'
 
@@ -78,8 +79,9 @@ function AppShell() {
           : 'py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pb-16 lg:pb-8'
         }`}
       >
+        <ErrorBoundary key={state.activeView}>
         <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
-          <div key={state.activeView} className={`view-enter ${['home', 'map', 'submit', 'years', 'upcoming', 'interest'].includes(state.activeView) ? 'h-full min-h-0' : ''}`}>
+          <div className={`view-enter ${['home', 'map', 'submit', 'years', 'upcoming', 'interest'].includes(state.activeView) ? 'h-full min-h-0' : ''}`}>
             {state.activeView === 'home' && <HomeView />}
             {state.activeView === 'feed' && <FeedView />}
             {state.activeView === 'map' && (
@@ -99,6 +101,7 @@ function AppShell() {
             {state.activeView === 'pending' && (state.isAdmin || SUPERADMIN_UIDS.includes(auth.currentUser?.uid ?? '')) && <PendingView />}
           </div>
         </Suspense>
+        </ErrorBoundary>
       </main>
 
       <Toaster position="bottom-right" richColors />

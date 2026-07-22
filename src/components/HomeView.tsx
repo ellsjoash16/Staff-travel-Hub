@@ -11,19 +11,18 @@ const SMALL_PANELS: {
   Icon: React.ElementType
   label: string
   sub: string
-  color: string
 }[] = [
-  { key: 'map',      Icon: Globe2,        label: 'World Map',        sub: 'Explore destinations',           color: 'bg-primary/10 text-primary' },
-  { key: 'upcoming', Icon: Plane,         label: 'Upcoming Trips',   sub: 'See what\'s coming next',        color: 'bg-primary/10 text-primary' },
-  { key: 'years',    Icon: CalendarDays,  label: 'Trips By Year',    sub: 'Browse the archive',             color: 'bg-primary/10 text-primary' },
-  { key: 'interest', Icon: ClipboardCheck,label: 'My Registrations', sub: 'Track your registered interest', color: 'bg-primary/10 text-primary' },
-  { key: 'submit',   Icon: Send,          label: 'Share Your Trip',  sub: 'Submit your own adventure',      color: 'bg-primary/10 text-primary' },
+  { key: 'map',      Icon: Globe2,         label: 'World Map',        sub: 'Explore destinations'            },
+  { key: 'upcoming', Icon: Plane,          label: 'Upcoming Trips',   sub: 'See what\'s coming next'         },
+  { key: 'years',    Icon: CalendarDays,   label: 'Trips By Year',    sub: 'Browse the archive'              },
+  { key: 'interest', Icon: ClipboardCheck, label: 'My Registrations', sub: 'Track your registered interest'  },
+  { key: 'submit',   Icon: Send,           label: 'Share Your Trip',  sub: 'Submit your own adventure'       },
 ]
 
 function SmallCard({
-  Icon, label, sub, color, onClick,
+  Icon, label, sub, onClick,
 }: {
-  Icon: React.ElementType; label: string; sub: string; color: string; onClick: () => void
+  Icon: React.ElementType; label: string; sub: string; onClick: () => void
 }) {
   return (
     <button
@@ -32,9 +31,7 @@ function SmallCard({
         cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md overflow-hidden"
     >
       <div className="p-4 2xl:p-5 h-full flex flex-col">
-        <div className={`w-9 h-9 2xl:w-10 2xl:h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
-          <Icon className="h-4.5 w-4.5 2xl:h-5 2xl:w-5" />
-        </div>
+        <Icon className="h-5 w-5 2xl:h-6 2xl:w-6 text-muted-foreground flex-shrink-0" />
         <div className="flex-1" />
         <div className="flex items-end justify-between gap-2">
           <div>
@@ -49,9 +46,9 @@ function SmallCard({
 }
 
 function MobileCard({
-  Icon, label, color, onClick, className,
+  Icon, label, onClick, className,
 }: {
-  Icon: React.ElementType; label: string; color: string; onClick: () => void; className?: string
+  Icon: React.ElementType; label: string; onClick: () => void; className?: string
 }) {
   return (
     <button
@@ -60,9 +57,7 @@ function MobileCard({
         rounded-2xl border border-border bg-card cursor-pointer
         transition-all duration-200 active:scale-95 ${className ?? ''}`}
     >
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
-        <Icon className="h-4 w-4" />
-      </div>
+      <Icon className="h-5 w-5 text-muted-foreground" />
       <span className="text-[10px] font-semibold text-foreground leading-tight text-center px-1">{label}</span>
     </button>
   )
@@ -151,11 +146,11 @@ export function HomeView() {
       {/* ── Cards: 2 then 3 on mobile, full grid on sm+ ── */}
       <div className="sm:hidden grid grid-cols-6 gap-2 flex-shrink-0">
         {SMALL_PANELS.slice(0, 2).map(p => (
-          <MobileCard key={p.key} Icon={p.Icon} label={p.label} color={p.color}
+          <MobileCard key={p.key} Icon={p.Icon} label={p.label}
             onClick={() => navigate(p.key)} className="col-span-3" />
         ))}
         {SMALL_PANELS.slice(2, 5).map(p => (
-          <MobileCard key={p.key} Icon={p.Icon} label={p.label} color={p.color}
+          <MobileCard key={p.key} Icon={p.Icon} label={p.label}
             onClick={() => navigate(p.key)} className="col-span-2" />
         ))}
       </div>
@@ -167,7 +162,6 @@ export function HomeView() {
             Icon={p.Icon}
             label={p.label}
             sub={p.sub}
-            color={p.color}
             onClick={() => navigate(p.key)}
           />
         ))}

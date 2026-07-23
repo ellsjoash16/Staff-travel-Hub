@@ -1,5 +1,5 @@
 import { Clock, GearSix as Settings, ChatCircle as MessageCircle, DotsThree as MoreHorizontal, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, X } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
 import { LiquidGlass } from '@/components/ui/liquid-glass'
@@ -39,13 +39,47 @@ export function MobileTabBar() {
   const { activeView, isAdmin, pendingPosts } = state
   const [moreOpen, setMoreOpen] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const barRef = useRef<HTMLDivElement>(null)
+  const dragging = useRef(false)
 
   function go(view: View) {
     dispatch({ type: 'SET_VIEW', view })
     setMoreOpen(false)
   }
 
-  const moreActive = ![...PRIMARY].some(p => p.id === activeView)
+  function idxFromX(clientX: number) {
+    const rect = barRef.current?.getBoundingClientRect()
+    if (!rect) return 0
+    return Math.max(0, Math.min(TAB_COUNT - 1, Math.floor(((clientX - rect.left) / rect.width) * TAB_COUNT)))
+  }
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    dragging.current = true
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setDragIdx(idxFromX(e.clientX))
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragging.current) return
+    setDragIdx(idxFromX(e.clientX))
+  }
+
+  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragging.current) return
+    dragging.current = false
+    const idx = idxFromX(e.clientX)
+    setDragIdx(null)
+    if (idx < PRIMARY.length) {
+      go(PRIMARY[idx].id)
+    } else {
+      setMoreOpen(v => !v)
+    }
+  }
+
+  const activeIdx = PRIMARY.findIndex(p => p.id === activeView)
+  const indicatorIdx = dragIdx ?? (activeIdx >= 0 ? activeIdx : PRIMARY.length)
+  const moreActive = activeIdx < 0
 
   return (
     <>
@@ -126,43 +160,45 @@ export function MobileTabBar() {
           saturation={1.4}
           style={TAB_GLASS_STYLE}
         >
-          <div className="relative flex items-stretch w-full">
+          <div
+            ref={barRef}
+            className="relative flex items-stretch w-full select-none touch-none"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          >
             {/* Sliding active indicator */}
             <span
               className="absolute inset-y-1 rounded-2xl bg-black/[0.08] dark:bg-white/[0.14] pointer-events-none"
               style={{
                 width: `calc(${100 / TAB_COUNT}% - 8px)`,
-                left: `calc(${(() => {
-                  const i = PRIMARY.findIndex(p => p.id === activeView)
-                  return i >= 0 ? i : PRIMARY.length
-                })()} * ${100 / TAB_COUNT}% + 4px)`,
-                transition: 'left 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+                left: `calc(${indicatorIdx} * ${100 / TAB_COUNT}% + 4px)`,
+                transition: dragIdx !== null ? 'none' : 'left 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             />
 
-            {PRIMARY.map(item => {
-              const active = activeView === item.id
+            {PRIMARY.map((item, idx) => {
+              const active = dragIdx !== null ? dragIdx === idx : activeView === item.id
               return (
-                <button
+                <div
                   key={item.id}
-                  onClick={() => { go(item.id); setMoreOpen(false) }}
-                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 relative z-10 transition-colors duration-200
+                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 relative z-10 transition-colors duration-150
                     ${active ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}
                 >
                   <item.Icon className="h-[1.1rem] w-[1.1rem]" />
                   <span className={`text-[9px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
-                </button>
+                </div>
               )
             })}
 
-            <button
-              onClick={() => setMoreOpen(v => !v)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 relative z-10 transition-colors duration-200
-                ${moreActive || moreOpen ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}
+            <div
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 relative z-10 transition-colors duration-150
+                ${(dragIdx !== null ? dragIdx === PRIMARY.length : moreActive) || moreOpen ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}
             >
               <MoreHorizontal className="h-[1.1rem] w-[1.1rem]" />
               <span className="text-[9px] leading-none font-medium">More</span>
-            </button>
+            </div>
           </div>
         </LiquidGlass>
       </nav>

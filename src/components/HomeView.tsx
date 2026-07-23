@@ -20,9 +20,9 @@ const SMALL_PANELS: {
 ]
 
 function SmallCard({
-  Icon, label, sub, stat, onClick,
+  Icon, label, sub, stat, statLabel, onClick,
 }: {
-  Icon: React.ElementType; label: string; sub: string; stat?: string; onClick: () => void
+  Icon: React.ElementType; label: string; sub: string; stat?: string; statLabel?: string; onClick: () => void
 }) {
   return (
     <button
@@ -32,9 +32,12 @@ function SmallCard({
     >
       <div className="p-4 2xl:p-5 h-full flex flex-col">
         <Icon className="h-5 w-5 2xl:h-6 2xl:w-6 text-muted-foreground flex-shrink-0" />
-        <div className="flex-1 flex items-end py-2">
+        <div className="flex-1 flex flex-col justify-end py-2 gap-0.5">
           {stat && (
-            <p className="text-2xl 2xl:text-3xl font-bold text-foreground leading-none tracking-tight">{stat}</p>
+            <>
+              <p className="text-2xl 2xl:text-3xl font-bold text-foreground leading-none tracking-tight">{stat}</p>
+              {statLabel && <p className="text-xs text-muted-foreground">{statLabel}</p>}
+            </>
           )}
         </div>
         <div className="flex items-end justify-between gap-2">
@@ -76,11 +79,15 @@ export function HomeView() {
   const futureTrips = trips.filter(t => t.date >= today)
   const nextTrip = futureTrips.sort((a, b) => a.date.localeCompare(b.date))[0]
 
-  const cardStats: Partial<Record<Exclude<View, 'home'>, string>> = {
-    map:      locations.length > 0 ? String(locations.length) : undefined,
-    upcoming: futureTrips.length > 0 ? (nextTrip?.name ?? String(futureTrips.length)) : 'None yet',
-    years:    posts.length > 0 ? String(posts.length) : undefined,
-    interest: myRegistrations.length > 0 ? String(myRegistrations.length) : 'None yet',
+  const cardStats: Partial<Record<Exclude<View, 'home'>, { stat: string; statLabel?: string }>> = {
+    map:      { stat: String(locations.length), statLabel: locations.length === 1 ? 'destination' : 'destinations' },
+    upcoming: futureTrips.length > 0
+      ? { stat: nextTrip?.name ?? String(futureTrips.length), statLabel: 'next trip' }
+      : { stat: 'None yet' },
+    years:    { stat: String(posts.length), statLabel: posts.length === 1 ? 'trip shared' : 'trips shared' },
+    interest: myRegistrations.length > 0
+      ? { stat: String(myRegistrations.length), statLabel: myRegistrations.length === 1 ? 'trip registered' : 'trips registered' }
+      : { stat: 'None yet' },
   }
   const firstName = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1) : null
 
@@ -177,7 +184,8 @@ export function HomeView() {
             Icon={p.Icon}
             label={p.label}
             sub={p.sub}
-            stat={cardStats[p.key]}
+            stat={cardStats[p.key]?.stat}
+            statLabel={cardStats[p.key]?.statLabel}
             onClick={() => navigate(p.key)}
           />
         ))}

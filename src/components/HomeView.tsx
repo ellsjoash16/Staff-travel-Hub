@@ -13,16 +13,16 @@ const SMALL_PANELS: {
   sub: string
 }[] = [
   { key: 'map',      Icon: Globe,         label: 'World Map',        sub: 'Explore destinations'            },
-  { key: 'upcoming', Icon: Airplane,          label: 'Upcoming Trips',   sub: 'See what\'s coming next'         },
+  { key: 'upcoming', Icon: Airplane,       label: 'Upcoming Trips',   sub: 'See what\'s coming next'         },
   { key: 'years',    Icon: CalendarDots,   label: 'Trips By Year',    sub: 'Browse the archive'              },
-  { key: 'interest', Icon: ClipboardText, label: 'My Registrations', sub: 'Track your registered interest'  },
-  { key: 'submit',   Icon: PaperPlaneTilt,           label: 'Share Your Trip',  sub: 'Submit your own adventure'       },
+  { key: 'interest', Icon: ClipboardText,  label: 'My Registrations', sub: 'Track your registered interest'  },
+  { key: 'submit',   Icon: PaperPlaneTilt, label: 'Share Your Trip',  sub: 'Submit your own adventure'       },
 ]
 
 function SmallCard({
-  Icon, label, sub, onClick,
+  Icon, label, sub, stat, onClick,
 }: {
-  Icon: React.ElementType; label: string; sub: string; onClick: () => void
+  Icon: React.ElementType; label: string; sub: string; stat?: string; onClick: () => void
 }) {
   return (
     <button
@@ -32,7 +32,11 @@ function SmallCard({
     >
       <div className="p-4 2xl:p-5 h-full flex flex-col">
         <Icon className="h-5 w-5 2xl:h-6 2xl:w-6 text-muted-foreground flex-shrink-0" />
-        <div className="flex-1" />
+        <div className="flex-1 flex items-end py-2">
+          {stat && (
+            <p className="text-2xl 2xl:text-3xl font-bold text-foreground leading-none tracking-tight">{stat}</p>
+          )}
+        </div>
         <div className="flex items-end justify-between gap-2">
           <div>
             <p className="font-semibold text-foreground text-sm 2xl:text-base leading-tight">{label}</p>
@@ -65,8 +69,19 @@ function MobileCard({
 
 export function HomeView() {
   const { state, dispatch } = useApp()
-  const { settings } = state
+  const { settings, posts, trips, locations, myRegistrations } = state
   const rawFirst = auth.currentUser?.displayName?.split(' ')[0] ?? null
+
+  const today = new Date().toISOString().slice(0, 10)
+  const futureTrips = trips.filter(t => t.date >= today)
+  const nextTrip = futureTrips.sort((a, b) => a.date.localeCompare(b.date))[0]
+
+  const cardStats: Partial<Record<Exclude<View, 'home'>, string>> = {
+    map:      locations.length > 0 ? String(locations.length) : undefined,
+    upcoming: futureTrips.length > 0 ? (nextTrip?.name ?? String(futureTrips.length)) : 'None yet',
+    years:    posts.length > 0 ? String(posts.length) : undefined,
+    interest: myRegistrations.length > 0 ? String(myRegistrations.length) : 'None yet',
+  }
   const firstName = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1) : null
 
   const notice = settings.notice?.trim() ?? ''
@@ -162,6 +177,7 @@ export function HomeView() {
             Icon={p.Icon}
             label={p.label}
             sub={p.sub}
+            stat={cardStats[p.key]}
             onClick={() => navigate(p.key)}
           />
         ))}

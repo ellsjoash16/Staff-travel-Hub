@@ -135,13 +135,11 @@ export function LoginScreen() {
             <p className="text-white/65 text-lg mt-4 leading-relaxed max-w-sm">
               The internal hub where DAF staff share travel experiences, discover destinations, and connect as a team.
             </p>
-            <div className="mt-10 space-y-4">
+            <div className="mt-10 flex flex-wrap gap-3">
               {FEATURES.map(({ Icon, text }) => (
-                <div key={text} className="flex items-center gap-3.5">
-                  <div className="h-8 w-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center flex-shrink-0">
-                    <Icon className="h-[15px] w-[15px] text-white/75" />
-                  </div>
-                  <span className="text-white/75 text-sm leading-snug">{text}</span>
+                <div key={text} className="flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-3 py-1.5">
+                  <Icon className="h-3.5 w-3.5 text-white/75 flex-shrink-0" />
+                  <span className="text-white/75 text-xs leading-snug whitespace-nowrap">{text}</span>
                 </div>
               ))}
             </div>

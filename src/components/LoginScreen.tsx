@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CircleNotch, SignIn, UserPlus, Camera, Globe, Airplane } from '@phosphor-icons/react'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile, sendPasswordResetEmail } from 'firebase/auth'
 import { auth, microsoftProvider } from '@/lib/firebase'
@@ -22,6 +22,8 @@ const DIVISIONS_BY_BUILDING: Record<string, string[]> = {
 
 const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80'
 
+const HERO_WORDS = ['shared.', 'registered.', 'Archived.']
+
 const FEATURES = [
   { Icon: Camera,   text: 'Share trip photos and stories with the team'  },
   { Icon: Globe,    text: 'Explore destinations visited by colleagues'    },
@@ -41,6 +43,19 @@ export function LoginScreen() {
   const [password, setPassword]   = useState('')
   const [confirmPwd, setConfirmPwd] = useState('')
   const [busy, setBusy]           = useState(false)
+  const [wordIdx, setWordIdx]     = useState(0)
+  const [wordVisible, setWordVisible] = useState(true)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setWordVisible(false)
+      setTimeout(() => {
+        setWordIdx(i => (i + 1) % HERO_WORDS.length)
+        setWordVisible(true)
+      }, 350)
+    }, 3000)
+    return () => clearInterval(id)
+  }, [])
 
   async function handleSignIn() {
     if (!email.trim() || !password) { toast.error('Enter your email and password'); return }
@@ -130,7 +145,13 @@ export function LoginScreen() {
           {/* Headline */}
           <div className="max-w-lg">
             <h1 className="text-5xl xl:text-6xl font-bold text-white leading-tight tracking-tight">
-              Your adventures,<br />shared.
+              Your adventures,<br />
+              <span
+                className="inline-block transition-all duration-300 ease-in-out"
+                style={{ opacity: wordVisible ? 1 : 0, transform: wordVisible ? 'translateY(0)' : 'translateY(8px)' }}
+              >
+                {HERO_WORDS[wordIdx]}
+              </span>
             </h1>
             <p className="text-white/65 text-lg mt-4 leading-relaxed max-w-sm">
               The internal hub where DAF staff share travel experiences, discover destinations, and connect as a team.

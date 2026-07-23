@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { CalendarDots, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 
@@ -12,34 +12,14 @@ const MONTH_NAMES = [
 type Trip = ReturnType<typeof useApp>['state']['trips'][number]
 
 function CardSection({ title, children }: { title: string; children: React.ReactNode }) {
-  const [expanded, setExpanded] = useState(false)
-  const [overflows, setOverflows] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const check = () => setOverflows(el.scrollHeight > el.clientHeight + 2)
-    check()
-    const ro = new ResizeObserver(check)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
   return (
-    <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-4 py-4 sm:px-6 sm:py-5">
-      <p className="text-xs font-semibold uppercase tracking-widest text-foreground/50 mb-3 pb-2 border-b border-border/40">{title}</p>
-      <div ref={ref} className={expanded ? '' : 'max-h-[480px] overflow-hidden'}>
+    <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col overflow-hidden lg:h-full">
+      <p className="text-xs font-semibold uppercase tracking-widest text-foreground/50 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-border/40 flex-shrink-0">
+        {title}
+      </p>
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5">
         {children}
       </div>
-      {(overflows || expanded) && (
-        <button
-          onClick={() => setExpanded(v => !v)}
-          className="mt-3 text-xs font-medium text-primary/70 hover:text-primary transition-colors"
-        >
-          {expanded ? 'Show less ↑' : 'Read more ↓'}
-        </button>
-      )}
     </div>
   )
 }
@@ -151,7 +131,9 @@ export function YearsView() {
   }
 
   return (
-    <div className="relative h-full overflow-auto">
+    /* On lg+: fill the viewport, no page scroll — cards scroll internally.
+       On mobile: page scrolls naturally. */
+    <div className="relative h-full overflow-auto lg:overflow-hidden">
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div style={{
           position: 'absolute', inset: 0,
@@ -163,11 +145,11 @@ export function YearsView() {
         }} />
       </div>
 
-      <div className="relative py-3 sm:py-5 lg:py-6 xl:py-8 px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
-        <div className="lg:flex lg:gap-6 xl:gap-8 items-start">
+      <div className="relative h-auto lg:h-full lg:flex lg:flex-col py-3 sm:py-5 lg:py-6 xl:py-8 px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+        <div className="lg:flex-1 lg:min-h-0 lg:flex lg:gap-6 xl:gap-8">
 
-          {/* ── Left sidebar: header + year nav (sticky on desktop) ── */}
-          <div className="lg:w-52 xl:w-60 lg:flex-shrink-0 lg:sticky lg:top-4">
+          {/* ── Left sidebar: header + year nav ── */}
+          <div className="lg:w-52 xl:w-60 lg:flex-shrink-0 lg:flex lg:flex-col">
             <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-4 py-3 sm:px-6 sm:py-5 mb-3 sm:mb-4">
               <h2 className="font-gilbert text-xl sm:text-2xl text-foreground leading-tight">By Year</h2>
               <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
@@ -176,7 +158,7 @@ export function YearsView() {
             </div>
 
             {yearKeys.length > 0 && (
-              <div className="flex gap-2 mb-3 sm:mb-4 overflow-x-auto pb-1 scrollbar-none lg:flex-col lg:overflow-x-visible lg:pb-0 lg:mb-0">
+              <div className="flex gap-2 mb-3 sm:mb-4 overflow-x-auto pb-1 scrollbar-none lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:pb-0 lg:mb-0 lg:flex-1 lg:min-h-0">
                 {yearKeys.map(year => (
                   <button
                     key={year}
@@ -194,10 +176,10 @@ export function YearsView() {
             )}
           </div>
 
-          {/* ── Right: FAM | External columns ── */}
-          <div className="flex-1 min-w-0">
+          {/* ── Right: FAM | External cards ── */}
+          <div className="flex-1 min-w-0 lg:min-h-0 lg:flex lg:flex-col">
             {activeYear && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:flex-1 lg:min-h-0">
                 <CardSection key={`fam-${activeYear}`} title={`FAM · ${activeYear}`}>
                   {renderColumn(famYearTrips, allMonthKeys, 'No FAM trips this year')}
                 </CardSection>

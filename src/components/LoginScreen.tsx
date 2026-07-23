@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { CircleNotch, SignIn, UserPlus, Camera, Globe, Airplane } from '@phosphor-icons/react'
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile, sendPasswordResetEmail } from 'firebase/auth'
 import { auth, microsoftProvider } from '@/lib/firebase'
 import { saveJobRole } from '@/lib/db'
 import { Button } from '@/components/ui/button'
@@ -56,6 +56,17 @@ export function LoginScreen() {
       } else {
         toast.error('Sign in failed — please try again')
       }
+    } finally { setBusy(false) }
+  }
+
+  async function handleForgotPassword() {
+    if (!email.trim()) { toast.error('Enter your email address first'); return }
+    setBusy(true)
+    try {
+      await sendPasswordResetEmail(auth, email.trim())
+      toast.success('Password reset email sent — check your inbox')
+    } catch {
+      toast.error('Could not send reset email — check the address and try again')
     } finally { setBusy(false) }
   }
 
@@ -258,6 +269,18 @@ export function LoginScreen() {
                   onChange={e => setConfirmPwd(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSignUp()}
                 />
+              </div>
+            )}
+
+            {mode === 'signin' && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Forgot your password?
+                </button>
               </div>
             )}
 

@@ -2,7 +2,6 @@ import { Clock, GearSix as Settings, ChatCircle as MessageCircle, DotsThree as M
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
-import { GlassButtonGroup } from '@/components/ui/glass-button-group'
 import { LiquidGlass } from '@/components/ui/liquid-glass'
 import type { View } from '@/lib/types'
 
@@ -23,7 +22,7 @@ const ADMIN_ITEMS: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'settings', label: 'Settings', Icon: Settings },
 ]
 
-const ISLAND_WIDTH = 'w-[300px]'
+const ISLAND_WIDTH = 'w-[280px]'
 
 const TAB_GLASS_STYLE: React.CSSProperties = {
   '--liquid-glass-rim-width': '1px',
@@ -32,6 +31,8 @@ const TAB_GLASS_STYLE: React.CSSProperties = {
   '--liquid-glass-rim-fade': '15%',
   boxShadow: '0 8px 32px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.14)',
 } as React.CSSProperties
+
+const TAB_COUNT = PRIMARY.length + 1 // 4 primary + More
 
 export function MobileTabBar() {
   const { state, dispatch } = useApp()
@@ -55,7 +56,7 @@ export function MobileTabBar() {
           onClick={() => setMoreOpen(false)}
         >
           <LiquidGlass
-            className={`absolute bottom-[70px] left-1/2 -translate-x-1/2 ${ISLAND_WIDTH} rounded-2xl bg-white/[0.06]`}
+            className={`absolute bottom-[90px] left-1/2 -translate-x-1/2 ${ISLAND_WIDTH} rounded-2xl bg-white/[0.06]`}
             blur={12}
             refraction={12}
             bezel={0.2}
@@ -116,47 +117,54 @@ export function MobileTabBar() {
       )}
 
       {/* ── Island tab bar ── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex justify-center items-end pb-4 pointer-events-none">
-        <GlassButtonGroup
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex justify-center items-end pb-8 pointer-events-none">
+        <LiquidGlass
           className={`pointer-events-auto ${ISLAND_WIDTH} rounded-[28px]`}
-          glassVariant="liquid-refract"
           blur={4}
+          refraction={12}
           bezel={0.65}
           saturation={1.4}
-          glassStyle={TAB_GLASS_STYLE}
+          style={TAB_GLASS_STYLE}
         >
-          {PRIMARY.map(item => {
-            const active = activeView === item.id
-            return (
-              <button
-                key={item.id}
-                data-slot="button"
-                onClick={() => { go(item.id); setMoreOpen(false) }}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 relative transition-all duration-200
-                  ${active ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-              >
-                {active && (
-                  <span className="absolute inset-x-1 inset-y-1 rounded-2xl bg-black/[0.08] dark:bg-white/[0.14]" />
-                )}
-                <item.Icon className="h-[1.1rem] w-[1.1rem] relative z-10" />
-                <span className={`text-[9px] leading-none relative z-10 ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
-              </button>
-            )
-          })}
+          <div className="relative flex items-stretch w-full">
+            {/* Sliding active indicator */}
+            <span
+              className="absolute inset-y-1 rounded-2xl bg-black/[0.08] dark:bg-white/[0.14] pointer-events-none"
+              style={{
+                width: `calc(${100 / TAB_COUNT}% - 8px)`,
+                left: `calc(${(() => {
+                  const i = PRIMARY.findIndex(p => p.id === activeView)
+                  return i >= 0 ? i : PRIMARY.length
+                })()} * ${100 / TAB_COUNT}% + 4px)`,
+                transition: 'left 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+            />
 
-          <button
-            data-slot="button"
-            onClick={() => setMoreOpen(v => !v)}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 relative transition-all duration-200
-              ${moreActive && !moreOpen ? 'text-black dark:text-white' : moreOpen ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white'}`}
-          >
-            {(moreActive && !moreOpen) && (
-              <span className="absolute inset-x-1 inset-y-1 rounded-2xl bg-black/[0.08] dark:bg-white/[0.14]" />
-            )}
-            <MoreHorizontal className="h-[1.1rem] w-[1.1rem] relative z-10" />
-            <span className="text-[9px] leading-none font-medium relative z-10">More</span>
-          </button>
-        </GlassButtonGroup>
+            {PRIMARY.map(item => {
+              const active = activeView === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => { go(item.id); setMoreOpen(false) }}
+                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 relative z-10 transition-colors duration-200
+                    ${active ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}
+                >
+                  <item.Icon className="h-[1.1rem] w-[1.1rem]" />
+                  <span className={`text-[9px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
+                </button>
+              )
+            })}
+
+            <button
+              onClick={() => setMoreOpen(v => !v)}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 relative z-10 transition-colors duration-200
+                ${moreActive || moreOpen ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}
+            >
+              <MoreHorizontal className="h-[1.1rem] w-[1.1rem]" />
+              <span className="text-[9px] leading-none font-medium">More</span>
+            </button>
+          </div>
+        </LiquidGlass>
       </nav>
 
       <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />

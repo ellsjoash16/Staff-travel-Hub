@@ -115,6 +115,15 @@ export default function App() {
   const [authUid, setAuthUid]     = useState<string | null>(null)
 
   useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const apply = (e: MediaQueryList | MediaQueryListEvent) =>
+      document.documentElement.classList.toggle('dark', e.matches)
+    apply(mq)
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
+
+  useEffect(() => {
     return onAuthStateChanged(auth, user => {
       setSignedIn(!!user)
       setAuthReady(true)

@@ -158,12 +158,8 @@ export function LoginScreen() {
 
           {/* Desktop logo + heading */}
           <div className="hidden lg:block mb-7">
-            <div className="flex items-center gap-2.5 mb-6">
-              <img src="/daf-logo.png" alt="DAF" className="h-7 w-7 object-contain" style={{ transform: 'translateX(2px)' }} />
-              <span className="font-gilbert text-[17px] text-foreground">DAFAGRAM</span>
-            </div>
-            <h2 className="text-xl font-semibold text-foreground tracking-tight">
-              {mode === 'signin' ? 'Sign in to your account' : 'Create your account'}
+            <h2 className="text-2xl font-bold text-foreground tracking-tight mb-6">
+              {mode === 'signin' ? 'Welcome back' : 'Create your account'}
             </h2>
             <p className="text-muted-foreground text-sm mt-1">
               {mode === 'signin'

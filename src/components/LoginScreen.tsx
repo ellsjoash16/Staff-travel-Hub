@@ -52,8 +52,8 @@ export function LoginScreen() {
       setTimeout(() => {
         setWordIdx(i => (i + 1) % HERO_WORDS.length)
         setWordVisible(true)
-      }, 350)
-    }, 3000)
+      }, 600)
+    }, 5000)
     return () => clearInterval(id)
   }, [])
 
@@ -147,8 +147,8 @@ export function LoginScreen() {
             <h1 className="text-5xl xl:text-6xl font-bold text-white leading-tight tracking-tight">
               Your adventures,<br />
               <span
-                className="inline-block transition-all duration-300 ease-in-out"
-                style={{ opacity: wordVisible ? 1 : 0, transform: wordVisible ? 'translateY(0)' : 'translateY(8px)' }}
+                className="inline-block transition-all duration-500 ease-in-out"
+                style={{ opacity: wordVisible ? 1 : 0, transform: wordVisible ? 'translateY(0)' : 'translateY(8px)', color: 'hsl(181,90%,58%)' }}
               >
                 {HERO_WORDS[wordIdx]}
               </span>

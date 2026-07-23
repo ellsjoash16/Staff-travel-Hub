@@ -136,7 +136,7 @@ export function LoginScreen() {
             </div>
           </div>
 
-          <p className="text-white/30 text-xs">© {new Date().getFullYear()} Dial a Flight</p>
+          <p className="text-white/30 text-xs">© {new Date().getFullYear()} DialAFlight</p>
         </div>
       </div>
 

@@ -148,7 +148,7 @@ export function LoginScreen() {
               Your adventures,<br />
               <span
                 className="inline-block transition-all duration-500 ease-in-out"
-                style={{ opacity: wordVisible ? 1 : 0, transform: wordVisible ? 'translateY(0)' : 'translateY(8px)', color: 'hsl(181,90%,58%)' }}
+                style={{ opacity: wordVisible ? 1 : 0, transform: wordVisible ? 'translateY(0)' : 'translateY(8px)', color: 'hsl(var(--primary))' }}
               >
                 {HERO_WORDS[wordIdx]}
               </span>

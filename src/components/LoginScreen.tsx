@@ -136,7 +136,7 @@ export function LoginScreen() {
             </div>
           </div>
 
-          <p className="text-white/30 text-xs">© {new Date().getFullYear()} Dial a Flight · Internal use only</p>
+          <p className="text-white/30 text-xs">© {new Date().getFullYear()} Dial a Flight</p>
         </div>
       </div>
 
@@ -165,11 +165,9 @@ export function LoginScreen() {
             <h2 className="text-2xl font-bold text-foreground tracking-tight mb-6">
               {mode === 'signin' ? 'Welcome back' : 'Create your account'}
             </h2>
-            <p className="text-muted-foreground text-sm mt-1">
-              {mode === 'signin'
-                ? 'Use your @dialaflight.co.uk credentials'
-                : 'Join with your company email address'}
-            </p>
+            {mode === 'signup' && (
+              <p className="text-muted-foreground text-sm mt-1">Join with your company email address</p>
+            )}
           </div>
 
           <div className="bg-card/90 backdrop-blur-md lg:bg-card lg:backdrop-blur-none rounded-2xl shadow-2xl lg:shadow-sm p-5 lg:p-5 border border-white/10 lg:border-border">

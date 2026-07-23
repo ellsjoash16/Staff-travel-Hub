@@ -141,20 +141,24 @@ export function LoginScreen() {
       </div>
 
       {/* ── Right: form panel ── */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-background border-l border-border px-6 py-10 lg:px-10 xl:px-16 min-h-screen lg:min-h-0 overflow-y-auto">
+      <div className="flex-1 relative flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto lg:bg-background lg:border-l lg:border-border px-6 py-10 lg:px-10 xl:px-16 min-h-screen lg:min-h-0">
 
-        {/* Mobile hero */}
-        <div className="lg:hidden w-full relative h-44 mb-8 rounded-2xl overflow-hidden flex-shrink-0">
-          <img src={BG} alt="" className="absolute inset-0 w-full h-full object-cover object-center" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/65" />
-          <div className="relative h-full flex flex-col items-center justify-center gap-1.5">
-            <img src="/daf-logo.png" alt="DAF" className="h-12 w-12 object-contain" style={{ transform: 'translateX(4px)' }} />
-            <span className="font-gilbert text-3xl text-white">DAFAGRAM</span>
-            <p className="text-white/55 text-xs tracking-widest uppercase">Staff Travel Hub</p>
-          </div>
+        {/* Mobile: blurred background */}
+        <div className="lg:hidden absolute inset-0 -z-0" style={{
+          backgroundImage: `url(${BG})`,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          filter: 'blur(12px) brightness(0.4) saturate(1.1)',
+          transform: 'scale(1.1)',
+        }} />
+
+        {/* Mobile: logo above card */}
+        <div className="lg:hidden relative z-10 text-center mb-8 flex-shrink-0">
+          <img src="/daf-logo.png" alt="DAF logo" className="h-20 w-20 object-contain mx-auto mb-4" style={{ transform: 'translateX(8px)' }} />
+          <h1 className="font-gilbert text-3xl text-white drop-shadow">DAFAGRAM</h1>
+          <p className="text-white/60 text-sm mt-1">Staff Travel Hub</p>
         </div>
 
-        <div className="w-full max-w-sm">
+        <div className="relative z-10 w-full max-w-sm">
 
           {/* Desktop logo + heading */}
           <div className="hidden lg:block mb-7">
@@ -168,7 +172,7 @@ export function LoginScreen() {
             </p>
           </div>
 
-          <div className="bg-card border border-border rounded-2xl shadow-sm p-5">
+          <div className="bg-card/90 backdrop-blur-md lg:bg-card lg:backdrop-blur-none rounded-2xl shadow-2xl lg:shadow-sm p-5 lg:p-5 border border-white/10 lg:border-border">
           {/* Mode toggle */}
           <div className="flex rounded-xl bg-muted p-1 mb-5">
             <button

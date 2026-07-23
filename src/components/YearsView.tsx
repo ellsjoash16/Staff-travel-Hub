@@ -164,7 +164,7 @@ export function YearsView() {
           {/* ── Right: FAM | External columns ── */}
           <div className="flex-1 min-w-0">
             {activeYear && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:items-start">
                 <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-4 py-4 sm:px-6 sm:py-5">
                   <p className="text-xs font-semibold uppercase tracking-widest text-foreground/50 mb-3 pb-2 border-b border-border/40">FAM · {activeYear}</p>
                   {renderColumn(famYearTrips, allMonthKeys, 'No FAM trips this year')}

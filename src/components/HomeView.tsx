@@ -35,15 +35,15 @@ function SmallCard({
         <div className="flex-1 flex flex-col justify-end py-2 gap-0.5">
           {stat && (
             <>
-              <p className="text-2xl 2xl:text-3xl font-bold text-foreground leading-none tracking-tight">{stat}</p>
-              {statLabel && <p className="text-xs text-muted-foreground">{statLabel}</p>}
+              <p className="text-2xl md:text-base lg:text-lg xl:text-xl 2xl:text-2xl font-bold text-foreground leading-tight tracking-tight line-clamp-2">{stat}</p>
+              {statLabel && <p className="text-[10px] md:text-[9px] lg:text-[10px] xl:text-xs text-muted-foreground">{statLabel}</p>}
             </>
           )}
         </div>
         <div className="flex items-end justify-between gap-2">
           <div>
-            <p className="font-semibold text-foreground text-sm 2xl:text-base leading-tight">{label}</p>
-            <p className="text-muted-foreground text-xs mt-0.5 leading-tight">{sub}</p>
+            <p className="font-semibold text-foreground text-sm md:text-[11px] lg:text-xs xl:text-sm 2xl:text-base leading-tight">{label}</p>
+            <p className="text-muted-foreground text-[10px] md:text-[9px] lg:text-[10px] xl:text-xs 2xl:text-xs mt-0.5 leading-tight line-clamp-2">{sub}</p>
           </div>
           <ArrowRight className="h-4 w-4 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all duration-200 flex-shrink-0 mb-0.5" />
         </div>

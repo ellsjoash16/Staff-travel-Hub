@@ -201,7 +201,7 @@ export const LiquidGlass = forwardRef<HTMLDivElement, LiquidGlassProps>(
 
         {refractionActive && (
           <svg className="absolute size-0 overflow-hidden" aria-hidden>
-            <filter id={filterId} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+            <filter id={filterId} x="-10%" y="-10%" width="120%" height="120%" colorInterpolationFilters="sRGB">
               <feImage href={mapUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map" />
               <feDisplacementMap in="SourceGraphic" in2="map" scale={refraction} xChannelSelector="R" yChannelSelector="G" result="displaced" />
               <feGaussianBlur in="displaced" stdDeviation="0.15" />

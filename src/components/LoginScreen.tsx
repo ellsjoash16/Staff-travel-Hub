@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CircleNotch, SignIn, UserPlus } from '@phosphor-icons/react'
+import { CircleNotch, SignIn, UserPlus, Camera, Globe, Airplane } from '@phosphor-icons/react'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth'
 import { auth, microsoftProvider } from '@/lib/firebase'
 import { saveJobRole } from '@/lib/db'
@@ -21,6 +21,12 @@ const DIVISIONS_BY_BUILDING: Record<string, string[]> = {
 }
 
 const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80'
+
+const FEATURES = [
+  { Icon: Camera,   text: 'Share trip photos and stories with the team'  },
+  { Icon: Globe,    text: 'Explore destinations visited by colleagues'    },
+  { Icon: Airplane, text: 'Register interest in upcoming group trips'     },
+]
 
 type Mode = 'signin' | 'signup'
 
@@ -90,28 +96,78 @@ export function LoginScreen() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `url(${BG})`,
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          filter: 'blur(12px) brightness(0.4) saturate(1.1)',
-          transform: 'scale(1.1)',
-        }} />
+    <div className="min-h-screen flex flex-col lg:flex-row">
+
+      {/* ── Left: hero panel ── */}
+      <div className="hidden lg:flex lg:w-[58%] relative overflow-hidden">
+        <img
+          src={BG}
+          alt=""
+          fetchPriority="high"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+
+        <div className="relative z-10 flex flex-col justify-between h-full p-12 xl:p-16">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <img src="/daf-logo.png" alt="DAF" className="h-9 w-9 object-contain" style={{ transform: 'translateX(3px)' }} />
+            <span className="font-gilbert text-xl text-white tracking-wide">DAFAGRAM</span>
+          </div>
+
+          {/* Headline */}
+          <div className="max-w-lg">
+            <h1 className="text-5xl xl:text-6xl font-bold text-white leading-tight tracking-tight">
+              Your adventures,<br />shared.
+            </h1>
+            <p className="text-white/65 text-lg mt-4 leading-relaxed max-w-sm">
+              The internal hub where DAF staff share travel experiences, discover destinations, and connect as a team.
+            </p>
+            <div className="mt-10 space-y-4">
+              {FEATURES.map(({ Icon, text }) => (
+                <div key={text} className="flex items-center gap-3.5">
+                  <div className="h-8 w-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center flex-shrink-0">
+                    <Icon className="h-[15px] w-[15px] text-white/75" />
+                  </div>
+                  <span className="text-white/75 text-sm leading-snug">{text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-white/30 text-xs">© {new Date().getFullYear()} Dial a Flight · Internal use only</p>
+        </div>
       </div>
 
-      {/* Card */}
-      <div className="relative z-10 w-full max-w-sm mx-4">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <img src="/daf-logo.png" alt="DAF logo" className="h-20 w-20 object-contain mx-auto mb-4" style={{ transform: 'translateX(8px)' }} />
-          <h1 className="font-gilbert text-3xl text-white drop-shadow">DAFAGRAM</h1>
-          <p className="text-white/60 text-sm mt-1">Staff Travel Hub</p>
+      {/* ── Right: form panel ── */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-background px-6 py-10 lg:px-10 xl:px-16 min-h-screen lg:min-h-0 overflow-y-auto">
+
+        {/* Mobile hero */}
+        <div className="lg:hidden w-full relative h-44 mb-8 rounded-2xl overflow-hidden flex-shrink-0">
+          <img src={BG} alt="" className="absolute inset-0 w-full h-full object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/65" />
+          <div className="relative h-full flex flex-col items-center justify-center gap-1.5">
+            <img src="/daf-logo.png" alt="DAF" className="h-12 w-12 object-contain" style={{ transform: 'translateX(4px)' }} />
+            <span className="font-gilbert text-3xl text-white">DAFAGRAM</span>
+            <p className="text-white/55 text-xs tracking-widest uppercase">Staff Travel Hub</p>
+          </div>
         </div>
 
-        <div className="bg-card/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-white/10">
+        <div className="w-full max-w-sm">
+
+          {/* Desktop heading */}
+          <div className="hidden lg:block mb-7">
+            <h2 className="text-2xl font-bold text-foreground tracking-tight">
+              {mode === 'signin' ? 'Welcome back' : 'Create your account'}
+            </h2>
+            <p className="text-muted-foreground text-sm mt-1">
+              {mode === 'signin'
+                ? 'Sign in to access your travel hub'
+                : 'Join the DAFAGRAM community'}
+            </p>
+          </div>
+
           {/* Mode toggle */}
           <div className="flex rounded-xl bg-muted p-1 mb-5">
             <button

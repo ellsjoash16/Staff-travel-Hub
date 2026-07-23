@@ -141,7 +141,7 @@ export function LoginScreen() {
       </div>
 
       {/* ── Right: form panel ── */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-background px-6 py-10 lg:px-10 xl:px-16 min-h-screen lg:min-h-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center bg-background border-l border-border px-6 py-10 lg:px-10 xl:px-16 min-h-screen lg:min-h-0 overflow-y-auto">
 
         {/* Mobile hero */}
         <div className="lg:hidden w-full relative h-44 mb-8 rounded-2xl overflow-hidden flex-shrink-0">
@@ -156,18 +156,23 @@ export function LoginScreen() {
 
         <div className="w-full max-w-sm">
 
-          {/* Desktop heading */}
+          {/* Desktop logo + heading */}
           <div className="hidden lg:block mb-7">
-            <h2 className="text-2xl font-bold text-foreground tracking-tight">
-              {mode === 'signin' ? 'Welcome back' : 'Create your account'}
+            <div className="flex items-center gap-2.5 mb-6">
+              <img src="/daf-logo.png" alt="DAF" className="h-7 w-7 object-contain" style={{ transform: 'translateX(2px)' }} />
+              <span className="font-gilbert text-[17px] text-foreground">DAFAGRAM</span>
+            </div>
+            <h2 className="text-xl font-semibold text-foreground tracking-tight">
+              {mode === 'signin' ? 'Sign in to your account' : 'Create your account'}
             </h2>
             <p className="text-muted-foreground text-sm mt-1">
               {mode === 'signin'
-                ? 'Sign in to access your travel hub'
-                : 'Join the DAFAGRAM community'}
+                ? 'Use your @dialaflight.co.uk credentials'
+                : 'Join with your company email address'}
             </p>
           </div>
 
+          <div className="bg-card border border-border rounded-2xl shadow-sm p-5">
           {/* Mode toggle */}
           <div className="flex rounded-xl bg-muted p-1 mb-5">
             <button
@@ -281,6 +286,7 @@ export function LoginScreen() {
               <svg className="h-4 w-4" viewBox="0 0 23 23"><path fill="#f3f3f3" d="M0 0h23v23H0z"/><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>
               Continue with Microsoft
             </Button>
+          </div>
           </div>
         </div>
       </div>

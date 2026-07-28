@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CalendarDots, MapPin, Airplane } from '@phosphor-icons/react'
+import { CalendarDots, MapPin } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 
 const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=40'
@@ -10,6 +10,11 @@ const MONTH_NAMES = [
 ]
 
 type Trip = ReturnType<typeof useApp>['state']['trips'][number]
+
+function tripGradient(name: string): string {
+  const hue = [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) & 0xffff, 0) % 360
+  return `linear-gradient(135deg, hsl(${hue},52%,28%), hsl(${(hue + 45) % 360},58%,18%))`
+}
 
 function CardSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -77,14 +82,16 @@ export function YearsView() {
     const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
     return (
       <div key={trip.id} className="rounded-xl overflow-hidden border border-border/30 bg-background/50">
-        {/* Photo */}
-        <div className="relative w-full h-28 sm:h-32 flex-shrink-0">
-          {trip.image ? (
-            <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-              <Airplane className="h-8 w-8 text-primary/30" />
-            </div>
+        {/* Photo — gradient always renders; image loads on top and hides on error */}
+        <div className="relative w-full h-28 sm:h-32 flex-shrink-0" style={{ background: tripGradient(trip.name) }}>
+          {trip.image && (
+            <img
+              src={trip.image}
+              alt={trip.name}
+              loading="eager"
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+            />
           )}
           {/* Date badge */}
           {trip.date && (

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CalendarDots, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
+import { destinationImage } from '@/lib/destinationImages'
 
 const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=40'
 
@@ -80,20 +81,23 @@ export function YearsView() {
 
   function renderTrip(trip: Trip) {
     const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
+    // Own uploaded photo takes priority; otherwise a curated image for the
+    // location; otherwise the gradient.
+    const photo = trip.image || destinationImage(loc?.name, loc?.country)
     return (
       <div key={trip.id} className="rounded-xl overflow-hidden border border-border/30 bg-background/50">
         {/* Photo — CSS background handles load failure silently; gradient always visible underneath */}
         <div
           className="relative w-full h-28 sm:h-32 flex-shrink-0"
           style={{
-            backgroundImage: trip.image
-              ? `url("${trip.image}"), ${tripGradient(trip.name)}`
+            backgroundImage: photo
+              ? `url("${photo}"), ${tripGradient(trip.name)}`
               : tripGradient(trip.name),
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
         >
-          {!trip.image && (
+          {!photo && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Airplane className="h-8 w-8 text-white/25" />
             </div>

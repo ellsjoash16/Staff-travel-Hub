@@ -1,0 +1,89 @@
+// Curated, verified Unsplash photos per destination. Used as a fallback image
+// for a trip that has no uploaded photo of its own, matched on the trip's
+// location name (city) first, then its country. Every URL below has been
+// checked to return 200. Unmatched destinations fall back to the gradient.
+
+const U = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=75`
+
+const DESTINATION_IMAGES: Record<string, string> = {
+  // ── Cities (checked first) ──
+  'dubai':        U('1512453979798-5ea266f8880c'),
+  'abu dhabi':    U('1512632578888-169bbbc64f33'),
+  'bali':         U('1537996194471-e657df975ab4'),
+  'marrakech':    U('1539020140153-e479b8c22e70'),
+  'phuket':       U('1552465011-b4e21bf6e79a'),
+  'paris':        U('1502602898657-3e91760cbb34'),
+  'london':       U('1513635269975-59663e0ac1ad'),
+  'new york':     U('1496442226666-8d4d0e62e6e9'),
+  'las vegas':    U('1605833556294-ea5c7a74f57d'),
+  'orlando':      U('1597466599360-3b9775841aec'),
+  'rome':         U('1552832230-c0197dd311b5'),
+  'venice':       U('1514890547357-a9ee288728e0'),
+  'barcelona':    U('1583422409516-2895a77efded'),
+  'santorini':    U('1570077188670-e3a8d69ac5ff'),
+  'tokyo':        U('1540959733332-eab4deabeeaf'),
+  'sydney':       U('1506973035872-a4ec16b8e8d9'),
+  'istanbul':     U('1541432901042-2d8bd64b4a9b'),
+  'cairo':        U('1539768942893-daf53e448371'),
+  'lisbon':       U('1585208798174-6cedd86e019a'),
+  'amsterdam':    U('1534351590666-13e3e96b5017'),
+  'dubrovnik':    U('1589553416260-f586c8f1514f'),
+  'cancun':       U('1512813195386-6cf811ad3542'),
+  'cape town':    U('1580060839134-75a5edca2e99'),
+  'agra':         U('1524492412937-b28074a5d7da'),
+  'havana':       U('1500759285222-a95626b934cb'),
+  'punta cana':   U('1584467735815-f778f274e296'),
+
+  // ── Countries (fallback) ──
+  'united arab emirates': U('1512453979798-5ea266f8880c'),
+  'uae':                  U('1512453979798-5ea266f8880c'),
+  'indonesia':           U('1537996194471-e657df975ab4'),
+  'maldives':            U('1573843981267-be1999ff37cd'),
+  'morocco':             U('1539020140153-e479b8c22e70'),
+  'thailand':            U('1552465011-b4e21bf6e79a'),
+  'france':              U('1502602898657-3e91760cbb34'),
+  'united kingdom':      U('1513635269975-59663e0ac1ad'),
+  'uk':                  U('1513635269975-59663e0ac1ad'),
+  'usa':                 U('1496442226666-8d4d0e62e6e9'),
+  'united states':       U('1496442226666-8d4d0e62e6e9'),
+  'italy':               U('1552832230-c0197dd311b5'),
+  'spain':               U('1583422409516-2895a77efded'),
+  'greece':              U('1570077188670-e3a8d69ac5ff'),
+  'japan':               U('1540959733332-eab4deabeeaf'),
+  'australia':           U('1506973035872-a4ec16b8e8d9'),
+  'singapore':           U('1525625293386-3f8f99389edd'),
+  'turkey':              U('1541432901042-2d8bd64b4a9b'),
+  'egypt':               U('1539768942893-daf53e448371'),
+  'iceland':             U('1504829857797-ddff29c27927'),
+  'switzerland':         U('1531366936337-7c912a4589a7'),
+  'portugal':            U('1585208798174-6cedd86e019a'),
+  'netherlands':         U('1534351590666-13e3e96b5017'),
+  'croatia':             U('1589553416260-f586c8f1514f'),
+  'mexico':              U('1512813195386-6cf811ad3542'),
+  'mauritius':           U('1544551763-46a013bb70d5'),
+  'seychelles':          U('1589979481223-deb893043163'),
+  'south africa':        U('1580060839134-75a5edca2e99'),
+  'vietnam':             U('1528127269322-539801943592'),
+  'india':               U('1524492412937-b28074a5d7da'),
+  'sri lanka':           U('1566296314736-6eaac1ca0cb9'),
+  'jamaica':             U('1580237072617-771c3ecc4a24'),
+  'barbados':            U('1591017403286-fd8493524e1e'),
+  'cyprus':              U('1596436889106-be35e843f974'),
+  'malta':               U('1558271736-cd043ef2e855'),
+  'ireland':             U('1549918864-48ac978761a4'),
+  'germany':             U('1560969184-10fe8719e047'),
+  'canada':              U('1517935706615-2717063c2225'),
+  'cuba':                U('1500759285222-a95626b934cb'),
+  'dominican republic':  U('1584467735815-f778f274e296'),
+  'costa rica':          U('1518259102261-b40117eabbc9'),
+  'new zealand':         U('1507699622108-4be3abd695ad'),
+  'antigua':             U('1590523741831-ab7e8b8f9c7f'),
+}
+
+export function destinationImage(name?: string | null, country?: string | null): string | null {
+  const n = name?.trim().toLowerCase()
+  const c = country?.trim().toLowerCase()
+  if (n && DESTINATION_IMAGES[n]) return DESTINATION_IMAGES[n]
+  if (c && DESTINATION_IMAGES[c]) return DESTINATION_IMAGES[c]
+  return null
+}

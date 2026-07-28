@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CalendarDots, MapPin } from '@phosphor-icons/react'
+import { CalendarDots, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 
 const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=40'
@@ -82,16 +82,21 @@ export function YearsView() {
     const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
     return (
       <div key={trip.id} className="rounded-xl overflow-hidden border border-border/30 bg-background/50">
-        {/* Photo — gradient always renders; image loads on top and hides on error */}
-        <div className="relative w-full h-28 sm:h-32 flex-shrink-0" style={{ background: tripGradient(trip.name) }}>
-          {trip.image && (
-            <img
-              src={trip.image}
-              alt={trip.name}
-              loading="eager"
-              className="absolute inset-0 w-full h-full object-cover"
-              onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-            />
+        {/* Photo — CSS background handles load failure silently; gradient always visible underneath */}
+        <div
+          className="relative w-full h-28 sm:h-32 flex-shrink-0"
+          style={{
+            backgroundImage: trip.image
+              ? `url("${trip.image}"), ${tripGradient(trip.name)}`
+              : tripGradient(trip.name),
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {!trip.image && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Airplane className="h-8 w-8 text-white/25" />
+            </div>
           )}
           {/* Date badge */}
           {trip.date && (

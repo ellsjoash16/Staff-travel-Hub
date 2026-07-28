@@ -18,6 +18,7 @@ import { DatePicker } from './DatePicker'
 import { useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
 import { seedDemoData, clearDemoData } from '@/lib/seed'
+import { tripImage } from '@/lib/destinationImages'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
 
 
@@ -941,8 +942,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   <div className="space-y-2">
                     {[...trips].filter(t => !t.completed).sort((a, b) => a.date.localeCompare(b.date)).map(t => (
                       <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/30">
-                        {t.image
-                          ? <img src={t.image} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                        {tripImage(t, locations)
+                          ? <img src={tripImage(t, locations)!} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
                           : <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Airplane className="h-5 w-5 text-primary/50" /></div>
                         }
                         <div className="flex-1 min-w-0">
@@ -1009,10 +1010,11 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           <div className="space-y-2">
                             {yearTrips.map(t => {
                               const loc = t.locationId ? locations.find(l => l.id === t.locationId) : null
+                              const img = tripImage(t, locations)
                               return (
                                 <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/30">
-                                  {t.image
-                                    ? <img src={t.image} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                                  {img
+                                    ? <img src={img} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
                                     : <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Airplane className="h-5 w-5 text-primary/50" /></div>
                                   }
                                   <div className="flex-1 min-w-0">
@@ -1096,8 +1098,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       {trip && (
                         <div className="rounded-2xl overflow-hidden bg-card border border-border/60">
                           <div className="flex gap-3 p-3 items-center">
-                            {trip.image
-                              ? <img src={trip.image} alt={trip.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                            {tripImage(trip, locations)
+                              ? <img src={tripImage(trip, locations)!} alt={trip.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
                               : <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Airplane className="h-6 w-6 text-primary/40" /></div>
                             }
                             <div className="min-w-0">
@@ -1250,11 +1252,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           {rest.map(trip => {
                             const loc = getLocation(trip.locationId)
                             const regs = regsByTrip.get(trip.id) ?? []
+                            const img = tripImage(trip, locations)
                             return (
                               <div key={trip.id} className="rounded-2xl overflow-hidden bg-card shadow-sm flex flex-col">
                                 <div className="relative w-full h-32 flex-shrink-0">
-                                  {trip.image
-                                    ? <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
+                                  {img
+                                    ? <img src={img} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
                                     : <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center"><Airplane className="h-8 w-8 text-primary/25" /></div>
                                   }
                                 </div>

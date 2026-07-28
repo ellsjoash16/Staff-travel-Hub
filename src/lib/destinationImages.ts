@@ -108,3 +108,20 @@ export function destinationImage(name?: string | null, country?: string | null, 
   if (!val) return null
   return Array.isArray(val) ? val[variant % val.length] : val
 }
+
+type TripLike = { image?: string | null; locationId?: string | null }
+type LocationLike = { id: string; name: string; country: string; imageUrl?: string | null }
+
+// Dead legacy uploads live in the (now billing-disabled) Firebase bucket and
+// will never load again — treat them as absent.
+export function isUsableImage(url?: string | null): boolean {
+  return !!url && !url.includes('firebasestorage')
+}
+
+// The image to actually show for a trip: its destination's photo when it has a
+// location, otherwise its own usable upload; null means no image available.
+export function tripImage(trip: TripLike, locations: LocationLike[], variant = 0): string | null {
+  const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
+  const locPhoto = loc ? (loc.imageUrl || destinationImage(loc.name, loc.country, variant)) : null
+  return locPhoto || (isUsableImage(trip.image) ? (trip.image as string) : null)
+}

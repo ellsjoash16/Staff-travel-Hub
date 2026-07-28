@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { CalendarDots, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
-import { destinationImage } from '@/lib/destinationImages'
+import { tripImage } from '@/lib/destinationImages'
 
 const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=40'
 
@@ -11,11 +11,6 @@ const MONTH_NAMES = [
 ]
 
 type Trip = ReturnType<typeof useApp>['state']['trips'][number]
-
-function tripGradient(name: string): string {
-  const hue = [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) & 0xffff, 0) % 360
-  return `linear-gradient(135deg, hsl(${hue},52%,28%), hsl(${(hue + 45) % 360},58%,18%))`
-}
 
 function CardSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -94,26 +89,19 @@ export function YearsView() {
 
   function renderTrip(trip: Trip) {
     const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
-    // Trips with a location show that destination's picture (this replaces the
-    // old broken per-trip uploads). Trips with no location keep their own image.
-    const locPhoto = loc ? (loc.imageUrl || destinationImage(loc.name, loc.country, variantByTrip.get(trip.id) ?? 0)) : null
-    const photo = locPhoto || trip.image
+    // Destination photo for located trips; own usable upload otherwise. Dead
+    // legacy Firebase uploads are ignored.
+    const photo = tripImage(trip, locations, variantByTrip.get(trip.id) ?? 0)
     return (
       <div key={trip.id} className="rounded-xl overflow-hidden border border-border/30 bg-background/50">
-        {/* Photo — CSS background handles load failure silently; gradient always visible underneath */}
+        {/* Photo sits on a neutral fill; no photo just shows the fill + icon. */}
         <div
-          className="relative w-full h-28 sm:h-32 flex-shrink-0"
-          style={{
-            backgroundImage: photo
-              ? `url("${photo}"), ${tripGradient(trip.name)}`
-              : tripGradient(trip.name),
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
+          className="relative w-full h-28 sm:h-32 flex-shrink-0 bg-muted"
+          style={photo ? { backgroundImage: `url("${photo}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
         >
           {!photo && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Airplane className="h-8 w-8 text-white/25" />
+              <Airplane className="h-8 w-8 text-muted-foreground/30" />
             </div>
           )}
           {/* Date badge */}

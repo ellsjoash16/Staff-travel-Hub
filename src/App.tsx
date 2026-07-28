@@ -3,7 +3,7 @@ import { Toaster, toast } from 'sonner'
 import { CircleNotch } from '@phosphor-icons/react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
-import { saveAccountRecord, insertRegistration, migrateImageUrls } from '@/lib/db'
+import { saveAccountRecord, insertRegistration } from '@/lib/db'
 import { AppProvider, useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import confetti from 'canvas-confetti'
 import type { Registration } from '@/lib/types'
@@ -64,21 +64,6 @@ function AppShell() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false)
   const pendingTripId = useRef<string | null>(null)
   const pendingError  = useRef(false)
-
-  // One-time repair helper for admins: run repairImages() in the browser console
-  // to regenerate download URLs for any images that were uploaded with a broken URL.
-  useEffect(() => {
-    if (!state.isAdmin) return
-    ;(window as unknown as { repairImages?: () => Promise<void> }).repairImages = async () => {
-      toast.loading('Repairing image URLs…', { id: 'img-repair' })
-      try {
-        const { trips, posts } = await migrateImageUrls()
-        toast.success(`Repaired ${trips} trip(s) and ${posts} post(s). Refresh to see them.`, { id: 'img-repair', duration: 8000 })
-      } catch (err) {
-        toast.error((err as Error)?.message || 'Repair failed', { id: 'img-repair' })
-      }
-    }
-  }, [state.isAdmin])
 
   // Capture ?trip=ID from Lotus return URL immediately on mount
   useEffect(() => {

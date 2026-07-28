@@ -49,7 +49,7 @@ export function YearsView() {
   const { trips, locations } = state
   const [selectedYear, setSelectedYear] = useState<string | null>(null)
 
-  const completedTrips = trips.filter(t => t.completed)
+  const completedTrips = trips.filter(t => t.completed && !t.isEvent)
   const famTrips = completedTrips.filter(t => !t.external)
   const extTrips = completedTrips.filter(t => t.external)
 

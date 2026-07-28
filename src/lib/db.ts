@@ -662,6 +662,7 @@ export async function upsertUserProfile(profile: UserProfile): Promise<void> {
     passportFirstName, passportLastName,
     medicalInfo,
     jobRole: profile.jobRole ?? null,
+    building: profile.building ?? null,
     salesDivision: profile.salesDivision ?? null,
     dataConsent: profile.dataConsent,
     updatedAt: serverTimestamp(),
@@ -673,6 +674,7 @@ export async function adminUpdateUserProfile(uid: string, fields: {
   passportFirstName: string; passportLastName: string
   medicalInfo: string | null
   jobRole: string | null
+  building: string | null
   salesDivision: string | null
 }): Promise<void> {
   const [firstName, lastName, passportFirstName, passportLastName, medicalInfo] = await Promise.all([
@@ -685,12 +687,31 @@ export async function adminUpdateUserProfile(uid: string, fields: {
   await adminWrite('userProfiles', uid, 'update', {
     firstName, lastName, passportFirstName, passportLastName, medicalInfo,
     jobRole: fields.jobRole ?? null,
+    building: fields.building ?? null,
     salesDivision: fields.salesDivision ?? null,
-  }, ['firstName', 'lastName', 'passportFirstName', 'passportLastName', 'medicalInfo', 'jobRole', 'salesDivision'])
+  }, ['firstName', 'lastName', 'passportFirstName', 'passportLastName', 'medicalInfo', 'jobRole', 'building', 'salesDivision'])
 }
 
 export async function saveJobRole(uid: string, jobRole: string, salesDivision?: string | null, building?: string | null): Promise<void> {
   await setDoc(doc(db, 'userProfiles', uid), { jobRole, salesDivision: salesDivision ?? null, building: building ?? null }, { merge: true })
+}
+
+// Called at sign-up so the name, role and building the user typed persist on
+// their profile and carry over into every registration and the admin editor.
+export async function saveSignupProfile(uid: string, fields: {
+  firstName: string; lastName: string; jobRole: string
+  salesDivision?: string | null; building?: string | null
+}): Promise<void> {
+  const [firstName, lastName] = await Promise.all([
+    encryptField(fields.firstName),
+    encryptField(fields.lastName),
+  ])
+  await setDoc(doc(db, 'userProfiles', uid), {
+    firstName, lastName,
+    jobRole: fields.jobRole,
+    salesDivision: fields.salesDivision ?? null,
+    building: fields.building ?? null,
+  }, { merge: true })
 }
 
 export async function saveAccountRecord(uid: string, email: string | null, displayName: string | null): Promise<void> {

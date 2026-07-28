@@ -107,7 +107,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [banSaving, setBanSaving] = useState(false)
   const [deletingProfileUid, setDeletingProfileUid] = useState<string | null>(null)
   const [editingProfileUid, setEditingProfileUid] = useState<string | null>(null)
-  const [profileEditForm, setProfileEditForm] = useState({ firstName: '', lastName: '', passportFirstName: '', passportLastName: '', medicalInfo: '', jobRole: '', salesDivision: '' })
+  const [profileEditForm, setProfileEditForm] = useState({ firstName: '', lastName: '', passportFirstName: '', passportLastName: '', medicalInfo: '', jobRole: '', building: '', salesDivision: '' })
   const [profileEditSaving, setProfileEditSaving] = useState(false)
 
   useEffect(() => {
@@ -1554,6 +1554,15 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     />
                                   </div>
                                   <div className="space-y-1">
+                                    <label className="text-xs text-muted-foreground">Building</label>
+                                    <AppSelect
+                                      value={profileEditForm.building}
+                                      onChange={val => setProfileEditForm(f => ({ ...f, building: val }))}
+                                      placeholder="— Select building —"
+                                      options={[{ value: '', label: '— Select building —' }, ...['London','Shirley','Boxley','Sale'].map(b => ({ value: b, label: b }))]}
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
                                     <label className="text-xs text-muted-foreground">Sales Division</label>
                                     <Input placeholder="e.g. North, South…" value={profileEditForm.salesDivision} onChange={e => setProfileEditForm(f => ({ ...f, salesDivision: e.target.value }))} />
                                   </div>
@@ -1573,6 +1582,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                           passportLastName: profileEditForm.passportLastName,
                                           medicalInfo: profileEditForm.medicalInfo.trim() || null,
                                           jobRole: profileEditForm.jobRole || null,
+                                          building: profileEditForm.building || null,
                                           salesDivision: profileEditForm.salesDivision.trim() || null,
                                         })
                                         toast.success('Account updated')
@@ -1595,10 +1605,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     <p className="text-xs text-muted-foreground mb-0.5">Passport name</p>
                                     <p className="font-medium">{u.passportFirstName} {u.passportLastName}</p>
                                   </div>
-                                  {(u.jobRole || u.salesDivision) && (
+                                  {(u.jobRole || u.building || u.salesDivision) && (
                                     <div>
-                                      <p className="text-xs text-muted-foreground mb-0.5">Role / Division</p>
-                                      <p className="font-medium">{[u.jobRole, u.salesDivision].filter(Boolean).join(' · ')}</p>
+                                      <p className="text-xs text-muted-foreground mb-0.5">Role / Building / Division</p>
+                                      <p className="font-medium">{[u.jobRole, u.building, u.salesDivision].filter(Boolean).join(' · ')}</p>
                                     </div>
                                   )}
                                   {u.medicalInfo && (
@@ -1653,6 +1663,29 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   const isBanned = (u.banned ?? false) && (u.banUntil == null || new Date(u.banUntil) > new Date())
                                   return (
                                     <>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          setProfileEditForm({
+                                            firstName: u.firstName ?? '',
+                                            lastName: u.lastName ?? '',
+                                            passportFirstName: u.passportFirstName ?? '',
+                                            passportLastName: u.passportLastName ?? '',
+                                            medicalInfo: u.medicalInfo ?? '',
+                                            jobRole: u.jobRole ?? '',
+                                            building: u.building ?? '',
+                                            salesDivision: u.salesDivision ?? '',
+                                          })
+                                          setEditingProfileUid(u.uid)
+                                        }}
+                                        className="gap-1.5"
+                                      >
+                                        <PencilSimple className="h-3.5 w-3.5" /> Edit Details
+                                      </Button>
                                       <Button
                                         type="button"
                                         size="sm"

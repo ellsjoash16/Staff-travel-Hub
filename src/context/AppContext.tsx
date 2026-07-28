@@ -195,7 +195,7 @@ interface AppContextValue {
   loadMyRegistrations: () => Promise<void>
   toggleAdminUid: (uid: string, isCurrentlyAdmin?: boolean) => Promise<void>
   banUser: (uid: string, banned: boolean, banUntil?: string | null) => Promise<void>
-  editUserProfile: (uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; salesDivision: string | null }) => Promise<void>
+  editUserProfile: (uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; building: string | null; salesDivision: string | null }) => Promise<void>
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -390,7 +390,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     dispatch({ type: 'SET_USER_BANNED', uid, banned, banUntil })
   }
 
-  async function editUserProfile(uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; salesDivision: string | null }): Promise<void> {
+  async function editUserProfile(uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; building: string | null; salesDivision: string | null }): Promise<void> {
     await adminUpdateUserProfile(uid, fields)
     dispatch({ type: 'UPDATE_USER_PROFILE', uid, fields })
   }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { CircleNotch, SignIn, UserPlus, Camera, Globe, Airplane } from '@phosphor-icons/react'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile, sendPasswordResetEmail } from 'firebase/auth'
 import { auth, microsoftProvider } from '@/lib/firebase'
-import { saveJobRole } from '@/lib/db'
+import { saveSignupProfile } from '@/lib/db'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -96,7 +96,13 @@ export function LoginScreen() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
       await updateProfile(cred.user, { displayName: `${firstName.trim()} ${lastName.trim()}` })
-      await saveJobRole(cred.user.uid, jobRole, salesDivision || null, building || null)
+      await saveSignupProfile(cred.user.uid, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        jobRole,
+        salesDivision: salesDivision || null,
+        building: building || null,
+      })
     } catch (err: unknown) {
       const code = (err as { code?: string }).code
       if (code === 'auth/email-already-in-use') {

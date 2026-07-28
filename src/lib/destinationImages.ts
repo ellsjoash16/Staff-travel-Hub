@@ -33,6 +33,14 @@ const DESTINATION_IMAGES: Record<string, string> = {
   'agra':         U('1524492412937-b28074a5d7da'),
   'havana':       U('1500759285222-a95626b934cb'),
   'punta cana':   U('1584467735815-f778f274e296'),
+  'boston':       U('1501979376754-2ff867a4f659'),
+  'chicago':      U('1477414348463-c0eb7f1359b6'),
+  'bruges':       U('1491557345352-5929e343eb89'),
+  'doha':         U('1518684079-3c830dcef090'),
+  'seoul':        U('1517154421773-0529f29ea451'),
+  'seville':      U('1558370781-d6196949e317'),
+  'verona':       U('1560840067-ddcaeb7831d2'),
+  'golden triangle': U('1599661046289-e31897846e41'),
 
   // ── Countries (fallback) ──
   'united arab emirates': U('1512453979798-5ea266f8880c'),
@@ -78,6 +86,10 @@ const DESTINATION_IMAGES: Record<string, string> = {
   'costa rica':          U('1518259102261-b40117eabbc9'),
   'new zealand':         U('1507699622108-4be3abd695ad'),
   'antigua':             U('1590523741831-ab7e8b8f9c7f'),
+  'qatar':               U('1518684079-3c830dcef090'),
+  'belgium':             U('1491557345352-5929e343eb89'),
+  'south korea':         U('1517154421773-0529f29ea451'),
+  'kenya':               U('1516426122078-c23e76319801'),
 }
 
 export function destinationImage(name?: string | null, country?: string | null): string | null {

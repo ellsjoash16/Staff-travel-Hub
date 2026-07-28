@@ -337,7 +337,7 @@ export async function upsertSettings(settings: Settings): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function docToLocation(id: string, d: any): Location {
-  return { id, name: d.name ?? '', country: d.country ?? '' }
+  return { id, name: d.name ?? '', country: d.country ?? '', imageUrl: d.imageUrl ?? null }
 }
 
 export async function fetchLocations(): Promise<Location[]> {
@@ -348,11 +348,11 @@ export async function fetchLocations(): Promise<Location[]> {
 }
 
 export async function insertLocation(location: Location): Promise<void> {
-  await adminWrite('locations', location.id, 'set', { name: location.name, country: location.country })
+  await adminWrite('locations', location.id, 'set', { name: location.name, country: location.country, imageUrl: location.imageUrl ?? null })
 }
 
 export async function updateLocation(location: Location): Promise<void> {
-  await adminWrite('locations', location.id, 'set', { name: location.name, country: location.country })
+  await adminWrite('locations', location.id, 'set', { name: location.name, country: location.country, imageUrl: location.imageUrl ?? null })
 }
 
 export async function removeLocation(id: string): Promise<void> {

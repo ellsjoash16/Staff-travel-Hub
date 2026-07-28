@@ -36,7 +36,7 @@ interface TripForm {
 }
 
 interface LocationForm {
-  name: string; country: string
+  name: string; country: string; imageUrl: string
 }
 
 const emptyPostForm = (): PostForm => ({
@@ -50,12 +50,12 @@ const emptyTripForm = (): TripForm => ({
   name: '', description: '', participants: '', date: today(), endDate: '', registrationDeadline: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: [], eventVenue: '', eventSpaces: '', eventSponsor: '', allowedRoles: [],
 })
 
-const emptyLocationForm = (): LocationForm => ({ name: '', country: '' })
+const emptyLocationForm = (): LocationForm => ({ name: '', country: '', imageUrl: '' })
 
 interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
 export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
-  const { state, dispatch, togglePin, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile } = useApp()
+  const { state, dispatch, togglePin, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile } = useApp()
   const { posts, courses, trips, locations, settings, registrations, userProfiles } = state
 
   const [tab, setTab] = useState('post')
@@ -65,6 +65,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [editingTripId, setEditingTripId] = useState<string | null>(null)
   const [locationForm, setLocationForm] = useState<LocationForm>(emptyLocationForm())
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
+  const [photoResults, setPhotoResults] = useState<{ url: string; thumb: string; credit: string | null }[]>([])
+  const [photoIdx, setPhotoIdx] = useState(0)
+  const [photoSearching, setPhotoSearching] = useState(false)
   const [postSaving, setPostSaving] = useState(false)
   const [tripSaving, setTripSaving] = useState(false)
   const [locationSaving, setLocationSaving] = useState(false)
@@ -331,7 +334,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       toast.error('Name and country are required'); return
     }
     const id = editingLocationId || crypto.randomUUID()
-    const location: Location = { id, name: locationForm.name, country: locationForm.country }
+    const location: Location = { id, name: locationForm.name, country: locationForm.country, imageUrl: locationForm.imageUrl.trim() || null }
     setLocationSaving(true)
     try {
       if (editingLocationId) {
@@ -340,14 +343,38 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
         await addLocation(location); toast.success('Location added!')
       }
       setLocationForm(emptyLocationForm()); setEditingLocationId(null)
+      setPhotoResults([]); setPhotoIdx(0)
     } catch (err) {
       console.error(err); toast.error((err as Error)?.message || 'Failed to save location')
     } finally { setLocationSaving(false) }
   }
 
+  async function findLocationPhoto() {
+    const q = [locationForm.name, locationForm.country].filter(Boolean).join(' ').trim()
+    if (!q) { toast.error('Enter a location name or country first'); return }
+    setPhotoSearching(true)
+    try {
+      const results = await searchPhotos(q)
+      if (results.length === 0) { toast.error('No photos found — try a different name or paste a URL'); return }
+      setPhotoResults(results)
+      setPhotoIdx(0)
+      setLocationForm(f => ({ ...f, imageUrl: results[0].url }))
+    } catch (err) {
+      toast.error((err as Error)?.message || 'Photo search failed')
+    } finally { setPhotoSearching(false) }
+  }
+
+  function cyclePhoto() {
+    if (photoResults.length === 0) return
+    const next = (photoIdx + 1) % photoResults.length
+    setPhotoIdx(next)
+    setLocationForm(f => ({ ...f, imageUrl: photoResults[next].url }))
+  }
+
   function startEditLocation(loc: Location) {
-    setLocationForm({ name: loc.name, country: loc.country })
+    setLocationForm({ name: loc.name, country: loc.country, imageUrl: loc.imageUrl ?? '' })
     setEditingLocationId(loc.id); setTab('locations')
+    setPhotoResults([]); setPhotoIdx(0)
   }
 
   async function handleDeleteLocation(id: string) {
@@ -601,8 +628,41 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 </div>
               </div>
 
+              {/* Location photo */}
+              <div className="space-y-2">
+                <Label>Photo <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <div className="flex items-start gap-3">
+                  <div
+                    className="flex-shrink-0 w-28 h-20 rounded-lg border border-border overflow-hidden bg-muted flex items-center justify-center"
+                    style={locationForm.imageUrl ? { backgroundImage: `url("${locationForm.imageUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+                  >
+                    {!locationForm.imageUrl && <Globe className="h-6 w-6 text-muted-foreground/40" />}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex gap-2">
+                      <Button type="button" size="sm" variant="secondary" onClick={findLocationPhoto} disabled={photoSearching} className="gap-1.5">
+                        {photoSearching ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <MagnifyingGlass className="h-3.5 w-3.5" />}
+                        Find photo
+                      </Button>
+                      {photoResults.length > 1 && (
+                        <Button type="button" size="sm" variant="outline" onClick={cyclePhoto} className="gap-1.5">
+                          <ArrowsClockwise className="h-3.5 w-3.5" /> Try another
+                          <span className="text-muted-foreground">({photoIdx + 1}/{photoResults.length})</span>
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      placeholder="…or paste an image URL"
+                      value={locationForm.imageUrl}
+                      onChange={(e) => { setLocationForm(f => ({ ...f, imageUrl: e.target.value })); setPhotoResults([]) }}
+                    />
+                    <p className="text-[11px] text-muted-foreground">Searches Unsplash for the location name. Trips without their own photo use this image.</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="secondary" onClick={() => { setLocationForm(emptyLocationForm()); setEditingLocationId(null) }} disabled={locationSaving}>Clear</Button>
+                <Button variant="secondary" onClick={() => { setLocationForm(emptyLocationForm()); setEditingLocationId(null); setPhotoResults([]); setPhotoIdx(0) }} disabled={locationSaving}>Clear</Button>
                 <Button onClick={submitLocation} disabled={locationSaving}>
                   {locationSaving ? <><CircleNotch className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingLocationId ? 'Update Location' : 'Add Location'}
                 </Button>

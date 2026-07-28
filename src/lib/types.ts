@@ -8,6 +8,7 @@ export interface Location {
   id: string
   name: string
   country: string
+  imageUrl?: string | null
 }
 
 export interface ReviewItem {

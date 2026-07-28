@@ -81,9 +81,9 @@ export function YearsView() {
 
   function renderTrip(trip: Trip) {
     const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
-    // Own uploaded photo takes priority; otherwise a curated image for the
-    // location; otherwise the gradient.
-    const photo = trip.image || destinationImage(loc?.name, loc?.country)
+    // Own uploaded photo takes priority; then the location's saved image;
+    // then a curated image for the destination; otherwise the gradient.
+    const photo = trip.image || loc?.imageUrl || destinationImage(loc?.name, loc?.country)
     return (
       <div key={trip.id} className="rounded-xl overflow-hidden border border-border/30 bg-background/50">
         {/* Photo — CSS background handles load failure silently; gradient always visible underneath */}

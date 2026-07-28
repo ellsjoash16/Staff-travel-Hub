@@ -180,6 +180,8 @@ interface AppContextValue {
   addLocation: (location: Location) => Promise<void>
   editLocation: (location: Location) => Promise<void>
   deleteLocation: (id: string) => Promise<void>
+  searchPhotos: (query: string) => Promise<{ url: string; thumb: string; credit: string | null }[]>
+
   saveSettings: (settings: Settings) => Promise<void>
   savePageImages: (images: PanelImages, dataUrls: Partial<Record<keyof PanelImages, string | null>>) => Promise<void>
   approvePostFn: (id: string) => Promise<void>
@@ -542,6 +544,20 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
     dispatch({ type: 'DELETE_LOCATION', id })
   }
 
+  async function searchPhotos(query: string): Promise<{ url: string; thumb: string; credit: string | null }[]> {
+    const token = await auth.currentUser?.getIdToken()
+    if (!token) throw new Error('Not signed in')
+    const res = await apiFetch(`/api/unsplash?query=${encodeURIComponent(query)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || 'Photo search failed')
+    }
+    const data = await res.json()
+    return data.results ?? []
+  }
+
   async function saveSettings(settings: Settings): Promise<void> {
     const token = await auth.currentUser?.getIdToken()
     if (!token) throw new Error('Not authenticated')
@@ -601,7 +617,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
 
       submitReview, editSubmission, deleteSubmission,
       addTrip, editTrip, deleteTrip, completeTrip,
-      addLocation, editLocation, deleteLocation,
+      addLocation, editLocation, deleteLocation, searchPhotos,
       saveSettings, savePageImages,
       loadPosts,
       approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,

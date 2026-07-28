@@ -384,7 +384,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     catch { toast.error('Failed to delete location') }
   }
 
-  // ── GearSix ──────────────────────────────────────────────────────────────
+  // ── Settings ──────────────────────────────────────────────────────────────
 
 
   // ── Folders ───────────────────────────────────────────────────────────────
@@ -425,7 +425,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{userProfiles.length}</span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="settings" className="px-3 text-xs">GearSix</TabsTrigger>
+              <TabsTrigger value="settings" className="px-3 text-xs">Settings</TabsTrigger>
             </TabsList>
 
             {/* ── UPLOAD POST ── */}

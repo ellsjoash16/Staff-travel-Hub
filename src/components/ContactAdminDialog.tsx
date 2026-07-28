@@ -87,7 +87,7 @@ export function ContactAdminDialog({ open, onOpenChange, prefillMessage = '' }: 
                 <Button size="sm" onClick={handleSend} disabled={sending} className="gap-2">
                   {sending
                     ? <><CircleNotch className="h-4 w-4 animate-spin" /> Sending…</>
-                    : <><PaperPlaneTilt className="h-4 w-4" /> PaperPlaneTilt</>
+                    : <><PaperPlaneTilt className="h-4 w-4" /> Send</>
                   }
                 </Button>
               </div>

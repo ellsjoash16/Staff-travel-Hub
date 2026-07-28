@@ -4,7 +4,7 @@ import {
   query, where, limit, serverTimestamp,
 } from 'firebase/firestore'
 import {
-  ref, uploadBytes, deleteObject,
+  ref, uploadBytes, getDownloadURL, deleteObject,
 } from 'firebase/storage'
 import { db, storage, auth } from './firebase'
 import type { Post, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile } from './types'
@@ -835,8 +835,7 @@ export async function uploadImage(
   const path = `images/${id}-${Date.now()}.jpg`
   const storageRef = ref(storage, path)
   await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' })
-  const bucket = storageRef.bucket
-  const url = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(path)}?alt=media`
+  const url = await getDownloadURL(storageRef)
   return { url, path }
 }
 

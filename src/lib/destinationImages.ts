@@ -8,7 +8,7 @@ const U = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&f
 const DESTINATION_IMAGES: Record<string, string> = {
   // ── Cities (checked first) ──
   'dubai':        U('1512453979798-5ea266f8880c'),
-  'abu dhabi':    U('1512632578888-169bbbc64f33'),
+  'abu dhabi':    'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/2015_Abu_Dhabi_Grand_Prix_-_Race_start_%2822882439484%29.jpg/960px-2015_Abu_Dhabi_Grand_Prix_-_Race_start_%2822882439484%29.jpg',
   'bali':         U('1537996194471-e657df975ab4'),
   'marrakech':    U('1539020140153-e479b8c22e70'),
   'phuket':       U('1552465011-b4e21bf6e79a'),
@@ -39,7 +39,7 @@ const DESTINATION_IMAGES: Record<string, string> = {
   'doha':         U('1518684079-3c830dcef090'),
   'seoul':        U('1517154421773-0529f29ea451'),
   'seville':      U('1558370781-d6196949e317'),
-  'verona':       U('1560840067-ddcaeb7831d2'),
+  'verona':       'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Verona_cityscape_sunny.jpg/960px-Verona_cityscape_sunny.jpg',
   'golden triangle': U('1599661046289-e31897846e41'),
 
   // ── Countries (fallback) ──

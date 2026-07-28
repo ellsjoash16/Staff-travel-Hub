@@ -53,6 +53,19 @@ export function YearsView() {
   const famTrips = completedTrips.filter(t => !t.external)
   const extTrips = completedTrips.filter(t => t.external)
 
+  // Give each trip an index within its location so multiple trips to the same
+  // place cycle through that destination's available photos instead of repeating.
+  const variantByTrip = new Map<string, number>()
+  {
+    const counts = new Map<string, number>()
+    for (const t of [...completedTrips].sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id.localeCompare(b.id))) {
+      if (!t.locationId) continue
+      const idx = counts.get(t.locationId) ?? 0
+      variantByTrip.set(t.id, idx)
+      counts.set(t.locationId, idx + 1)
+    }
+  }
+
   const famMap = buildYearMap(famTrips)
   const extMap = buildYearMap(extTrips)
   const yearKeys = [...new Set([...famMap.keys(), ...extMap.keys()])].sort((a, b) => b.localeCompare(a))
@@ -83,7 +96,7 @@ export function YearsView() {
     const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
     // Trips with a location show that destination's picture (this replaces the
     // old broken per-trip uploads). Trips with no location keep their own image.
-    const locPhoto = loc ? (loc.imageUrl || destinationImage(loc.name, loc.country)) : null
+    const locPhoto = loc ? (loc.imageUrl || destinationImage(loc.name, loc.country, variantByTrip.get(trip.id) ?? 0)) : null
     const photo = locPhoto || trip.image
     return (
       <div key={trip.id} className="rounded-xl overflow-hidden border border-border/30 bg-background/50">

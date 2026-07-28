@@ -5,7 +5,10 @@
 
 const U = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=75`
 
-const DESTINATION_IMAGES: Record<string, string> = {
+// A destination maps to one image, or several — when a location has more than
+// one photo, trips at that location cycle through them so they don't all look
+// identical.
+const DESTINATION_IMAGES: Record<string, string | string[]> = {
   // ── Cities (checked first) ──
   'dubai':        U('1512453979798-5ea266f8880c'),
   'abu dhabi':    'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/2015_Abu_Dhabi_Grand_Prix_-_Race_start_%2822882439484%29.jpg/960px-2015_Abu_Dhabi_Grand_Prix_-_Race_start_%2822882439484%29.jpg',
@@ -36,7 +39,10 @@ const DESTINATION_IMAGES: Record<string, string> = {
   'boston':       U('1501979376754-2ff867a4f659'),
   'chicago':      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/The_Skyline_Of_Chicago_%28224996407%29.jpeg/960px-The_Skyline_Of_Chicago_%28224996407%29.jpeg',
   'bruges':       U('1491557345352-5929e343eb89'),
-  'doha':         'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Doha_West_Bay_Skyline_Qatar_Jan_2020.jpg/960px-Doha_West_Bay_Skyline_Qatar_Jan_2020.jpg',
+  'doha':         [
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Doha_West_Bay_Skyline_Qatar_Jan_2020.jpg/960px-Doha_West_Bay_Skyline_Qatar_Jan_2020.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/View_of_the_Persian_Gulf_and_the_Museum_of_Islamic_Art_in_Qatar_at_dusk.jpg/960px-View_of_the_Persian_Gulf_and_the_Museum_of_Islamic_Art_in_Qatar_at_dusk.jpg',
+  ],
   'seoul':        U('1517154421773-0529f29ea451'),
   'seville':      U('1558370781-d6196949e317'),
   'verona':       'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Verona_cityscape_sunny.jpg/960px-Verona_cityscape_sunny.jpg',
@@ -86,16 +92,19 @@ const DESTINATION_IMAGES: Record<string, string> = {
   'costa rica':          U('1518259102261-b40117eabbc9'),
   'new zealand':         U('1507699622108-4be3abd695ad'),
   'antigua':             U('1590523741831-ab7e8b8f9c7f'),
-  'qatar':               'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Doha_West_Bay_Skyline_Qatar_Jan_2020.jpg/960px-Doha_West_Bay_Skyline_Qatar_Jan_2020.jpg',
+  'qatar':               [
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Doha_West_Bay_Skyline_Qatar_Jan_2020.jpg/960px-Doha_West_Bay_Skyline_Qatar_Jan_2020.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/View_of_the_Persian_Gulf_and_the_Museum_of_Islamic_Art_in_Qatar_at_dusk.jpg/960px-View_of_the_Persian_Gulf_and_the_Museum_of_Islamic_Art_in_Qatar_at_dusk.jpg',
+  ],
   'belgium':             U('1491557345352-5929e343eb89'),
   'south korea':         U('1517154421773-0529f29ea451'),
   'kenya':               U('1516426122078-c23e76319801'),
 }
 
-export function destinationImage(name?: string | null, country?: string | null): string | null {
+export function destinationImage(name?: string | null, country?: string | null, variant = 0): string | null {
   const n = name?.trim().toLowerCase()
   const c = country?.trim().toLowerCase()
-  if (n && DESTINATION_IMAGES[n]) return DESTINATION_IMAGES[n]
-  if (c && DESTINATION_IMAGES[c]) return DESTINATION_IMAGES[c]
-  return null
+  const val = (n && DESTINATION_IMAGES[n]) || (c && DESTINATION_IMAGES[c]) || null
+  if (!val) return null
+  return Array.isArray(val) ? val[variant % val.length] : val
 }

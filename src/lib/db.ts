@@ -3,10 +3,7 @@ import {
   setDoc, updateDoc, deleteDoc,
   query, where, limit, serverTimestamp,
 } from 'firebase/firestore'
-import {
-  ref, uploadBytes, getDownloadURL, deleteObject,
-} from 'firebase/storage'
-import { db, storage, auth } from './firebase'
+import { db, auth } from './firebase'
 import type { Post, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile } from './types'
 import { encryptField, decryptField } from './crypto'
 
@@ -823,22 +820,40 @@ function compressImage(dataUrl: string, maxWidth = 1920, quality = 0.75): Promis
   })
 }
 
+const CLOUDINARY_CLOUD  = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string | undefined
+const CLOUDINARY_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string | undefined
+
 export async function uploadImage(
   dataUrl: string,
-  id: string,
+  _id: string,
 ): Promise<{ url: string; path: string }> {
+  if (!CLOUDINARY_CLOUD || !CLOUDINARY_PRESET) {
+    throw new Error('Image hosting is not configured — set VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET')
+  }
   const blob = dataUrl.startsWith('data:image/jpeg')
     ? await fetch(dataUrl).then((r) => r.blob())
     : dataUrl.startsWith('data:')
       ? await compressImage(dataUrl)
       : await fetch(dataUrl).then((r) => r.blob())
-  const path = `images/${id}-${Date.now()}.jpg`
-  const storageRef = ref(storage, path)
-  await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' })
-  const url = await getDownloadURL(storageRef)
-  return { url, path }
+
+  const form = new FormData()
+  form.append('file', blob)
+  form.append('upload_preset', CLOUDINARY_PRESET)
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+    method: 'POST',
+    body: form,
+  })
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '')
+    throw new Error(`Image upload failed (${res.status})${detail ? `: ${detail.slice(0, 120)}` : ''}`)
+  }
+  const json = await res.json()
+  return { url: json.secure_url as string, path: json.public_id as string }
 }
 
-export async function deleteImage(path: string): Promise<void> {
-  await deleteObject(ref(storage, path))
+// Cloudinary deletes require a signed server call; at the free-tier scale
+// orphaned images are harmless, so removal is a no-op on the client.
+export async function deleteImage(_path: string): Promise<void> {
+  return
 }

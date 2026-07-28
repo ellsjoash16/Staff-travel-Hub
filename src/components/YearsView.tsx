@@ -76,31 +76,34 @@ export function YearsView() {
   function renderTrip(trip: Trip) {
     const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
     return (
-      <div key={trip.id} className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-background/50 rounded-xl border border-border/30">
-        <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden">
+      <div key={trip.id} className="rounded-xl overflow-hidden border border-border/30 bg-background/50">
+        {/* Photo */}
+        <div className="relative w-full h-28 sm:h-32 flex-shrink-0">
           {trip.image ? (
-            <img src={trip.image} alt="" className="w-full h-full object-cover" />
+            <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-              <Airplane className="h-4 w-4 sm:h-5 sm:w-5 text-primary/50" />
+            <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+              <Airplane className="h-8 w-8 text-primary/30" />
             </div>
           )}
+          {/* Date badge */}
+          {trip.date && (
+            <span className="absolute top-2 right-2 text-[10px] font-medium bg-black/50 text-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full">
+              {new Date(trip.date + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+            </span>
+          )}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-xs sm:text-sm text-foreground truncate">{trip.name}</p>
-          <div className="flex items-center gap-2 sm:gap-3 mt-0.5 flex-wrap">
+        {/* Details */}
+        <div className="px-3 py-2.5">
+          <p className="font-semibold text-xs sm:text-sm text-foreground leading-snug">{trip.name}</p>
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-1">
             {loc && (
               <span className="text-[10px] sm:text-xs text-primary flex items-center gap-1">
-                <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />{loc.name}, {loc.country}
+                <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{loc.name}, {loc.country}
               </span>
             )}
             {trip.participants.length > 0 && (
-              <span className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-[120px] sm:max-w-none">{trip.participants.join(', ')}</span>
-            )}
-            {trip.date && (
-              <span className="text-[10px] sm:text-[11px] text-muted-foreground/60">
-                {new Date(trip.date + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{trip.participants.join(', ')}</span>
             )}
           </div>
         </div>

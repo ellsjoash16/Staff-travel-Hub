@@ -1,10 +1,12 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
-import { Toaster } from 'sonner'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import { Toaster, toast } from 'sonner'
 import { CircleNotch } from '@phosphor-icons/react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
-import { saveAccountRecord } from '@/lib/db'
+import { saveAccountRecord, insertRegistration } from '@/lib/db'
 import { AppProvider, useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
+import confetti from 'canvas-confetti'
+import type { Registration } from '@/lib/types'
 import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
 import { MobileTabBar } from '@/components/MobileTabBar'
@@ -57,9 +59,78 @@ const MapView       = lazy(() => import('@/components/MapView').then(m => ({ def
 const PostDetailDialog = lazy(() => import('@/components/PostDetailDialog').then(m => ({ default: m.PostDetailDialog })))
 
 function AppShell() {
-  const { state } = useApp()
+  const { state, dispatch, loadMyRegistrations } = useApp()
   const [mapPost, setMapPost] = useState<Post | null>(null)
   const [sidebarExpanded, setSidebarExpanded] = useState(false)
+  const pendingTripId = useRef<string | null>(null)
+  const pendingError  = useRef(false)
+
+  // Capture ?trip=ID from Lotus return URL immediately on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tripId = params.get('trip')
+    if (!tripId) return
+    window.history.replaceState({}, '', window.location.pathname)
+    if (params.get('error')) {
+      pendingError.current = true
+      pendingTripId.current = tripId
+    } else {
+      pendingTripId.current = tripId
+    }
+  }, [])
+
+  // Once app data has loaded, process the pending Lotus return
+  useEffect(() => {
+    if (state.loading || !pendingTripId.current) return
+    const tripId = pendingTripId.current
+    const isError = pendingError.current
+    pendingTripId.current = null
+    pendingError.current  = false
+
+    if (isError) {
+      dispatch({ type: 'SET_VIEW', view: 'upcoming' })
+      toast.error('Your registration could not be completed — please try again or contact an admin.')
+      return
+    }
+
+    const trip = state.trips.find(t => t.id === tripId)
+    if (!trip) {
+      toast.error('Trip not found.')
+      return
+    }
+
+    const user = auth.currentUser
+    if (!user) return
+
+    const reg: Registration = {
+      id: `lotus_${user.uid}_${tripId}`,
+      tripId: trip.id,
+      tripName: trip.name,
+      uid: user.uid,
+      email: user.email ?? '',
+      firstName: (user.displayName ?? '').split(' ')[0] || '',
+      lastName: (user.displayName ?? '').split(' ').slice(1).join(' ') || '',
+      passportFirstName: '',
+      passportLastName: '',
+      medicalInfo: null,
+      dataConsent: true,
+      status: 'requested' as const,
+      jobRole: null,
+      salesDivision: null,
+      nominatedPeople: [],
+    }
+
+    insertRegistration(reg)
+      .then(() => loadMyRegistrations())
+      .then(() => {
+        dispatch({ type: 'SET_VIEW', view: 'interest' })
+        confetti({ particleCount: 160, spread: 80, origin: { y: 0.5 }, colors: ['#05979a','#07c5b0','#064e5a','#f59e0b','#ffffff','#34d399'] })
+        toast.success('Registration complete! Good luck! 🎉', { duration: 6000 })
+      })
+      .catch(() => {
+        toast.error('Registration could not be saved — please contact an admin.')
+      })
+  }, [state.loading])
 
   if (state.loading) return <SplashScreen />
 

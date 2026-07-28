@@ -3,8 +3,12 @@ import { MapPin, Calendar, Airplane, Star, Buildings, Users, Medal, Clock } from
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
-import { RegisterInterestDialog } from './RegisterInterestDialog'
 import type { Trip, Location } from '@/lib/types'
+
+function goToLotus(trip: Trip) {
+  const returnUrl = `${window.location.origin}/?trip=${encodeURIComponent(trip.id)}`
+  window.location.href = `http://lotusprofiles/PassportDetails?tripId=${encodeURIComponent(trip.id)}&tripName=${encodeURIComponent(trip.name)}&ReturnURL=${encodeURIComponent(returnUrl)}`
+}
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
 
@@ -55,12 +59,10 @@ function CountdownTimer({ dateStr }: { dateStr: string }) {
 // ── Featured card (next / soonest trip) ───────────────────────────────────────
 
 function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location | null }) {
-  const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
   return (
     <>
-    <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
     <div className="relative rounded-2xl overflow-hidden bg-card shadow-lg mb-4 sm:mb-6">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
       <div className="flex flex-col md:flex-row min-h-[220px] sm:min-h-[280px] lg:min-h-[340px] xl:min-h-[380px] 2xl:min-h-[420px]">
@@ -103,7 +105,7 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
             )}
             {registrationOpen && (
               <div className="mt-3 sm:mt-4">
-                <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-2">
+                <Button size="sm" onClick={() => goToLotus(trip)} className="gap-2">
                   <Airplane className="h-4 w-4" /> Register Interest
                 </Button>
               </div>
@@ -119,13 +121,11 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
 // ── Regular trip card ─────────────────────────────────────────────────────────
 
 function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; location: Location | null; showRegisterInterest: boolean }) {
-  const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
 
   return (
     <>
-    <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
     <div className="flex flex-col rounded-2xl overflow-hidden bg-card shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
 
       {/* Image */}
@@ -158,7 +158,7 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
         </div>
         {registrationOpen && (
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1 text-xs h-7 sm:h-9 sm:text-sm px-2.5 sm:px-3">
+            <Button size="sm" onClick={() => goToLotus(trip)} className="gap-1 text-xs h-7 sm:h-9 sm:text-sm px-2.5 sm:px-3">
               <Airplane className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Register
             </Button>
           </div>
@@ -172,7 +172,6 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
 // ── Event card ────────────────────────────────────────────────────────────────
 
 function EventCard({ trip, location }: { trip: Trip; location: Location | null }) {
-  const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
   const full = trip.eventSpaces != null && trip.participants.length >= trip.eventSpaces
@@ -185,8 +184,6 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
 
   return (
     <>
-      <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
-
       {/* Mobile: horizontal list row */}
       <div className="sm:hidden flex rounded-2xl overflow-hidden bg-card shadow-sm h-[104px]">
         <div className="relative w-28 flex-shrink-0">
@@ -220,7 +217,7 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
               {full ? (
                 <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Full</span>
               ) : (
-                <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1 text-[10px] h-6 px-2 bg-violet-600 hover:bg-violet-700 text-white">
+                <Button size="sm" onClick={() => goToLotus(trip)} className="gap-1 text-[10px] h-6 px-2 bg-violet-600 hover:bg-violet-700 text-white">
                   <Star className="h-2.5 w-2.5" /> Register
                 </Button>
               )}
@@ -271,7 +268,7 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
               {full ? (
                 <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground">Fully Booked</span>
               ) : (
-                <Button size="sm" onClick={() => setDialogOpen(true)} className="gap-1 text-xs h-9 px-3 bg-violet-600 hover:bg-violet-700 text-white">
+                <Button size="sm" onClick={() => goToLotus(trip)} className="gap-1 text-xs h-9 px-3 bg-violet-600 hover:bg-violet-700 text-white">
                   <Star className="h-3.5 w-3.5" /> Register
                 </Button>
               )}

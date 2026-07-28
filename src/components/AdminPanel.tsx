@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash, PencilSimple, CircleNotch, CheckCircle, X, PushPin, PushPinSlash, MapPin, Airplane, Globe, MagnifyingGlass, FolderOpen, FileArrowUp, CaretRight, CaretDown, CalendarDots, Plus, Users, ArrowsClockwise, ShieldCheck, ClipboardText, Check } from '@phosphor-icons/react'
+import { Trash, PencilSimple, CircleNotch, CheckCircle, X, PushPin, PushPinSlash, MapPin, Airplane, Globe, MagnifyingGlass, FolderOpen, FileArrowUp, CaretRight, CaretDown, CalendarDots, Plus, Users, ArrowsClockwise, ShieldCheck } from '@phosphor-icons/react'
 import { AppSelect } from '@/components/ui/app-select'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
@@ -97,7 +97,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [expandedUser, setExpandedUser] = useState<string | null>(null)
   const [expandedRegTrip, setExpandedRegTrip] = useState<string | null>(null)
   const [updatingRegId, setUpdatingRegId] = useState<string | null>(null)
-  const [copiedRegId, setCopiedRegId] = useState<string | null>(null)
   const [registrationsLoading, setRegistrationsLoading] = useState(false)
   const [togglingAdminUid, setTogglingAdminUid] = useState<string | null>(null)
   const [banningUser, setBanningUser] = useState<{ uid: string; name: string } | null>(null)
@@ -1121,32 +1120,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     {updatingRegId === r.id && r.status !== s ? <CircleNotch className="h-3 w-3 animate-spin inline" /> : STATUS_LABELS[s]}
                                   </button>
                                 ))}
-                                <button
-                                  onClick={() => {
-                                    const lines = [
-                                      `Passport name: ${r.passportFirstName} ${r.passportLastName}`,
-                                      `Name: ${r.firstName} ${r.lastName}`,
-                                      `Email: ${r.email}`,
-                                      r.jobRole ? `Role: ${[r.jobRole, r.salesDivision].filter(Boolean).join(' · ')}` : null,
-                                      r.medicalInfo ? `Medical: ${r.medicalInfo}` : null,
-                                      r.nominatedPeople?.length
-                                        ? `Nominated: ${r.nominatedPeople.map(n => n.email ? `${n.name} (${n.email})` : n.name).join(', ')}`
-                                        : null,
-                                    ].filter(Boolean).join('\n')
-                                    void navigator.clipboard.writeText(lines).then(() => {
-                                      setCopiedRegId(r.id)
-                                      setTimeout(() => setCopiedRegId(null), 2000)
-                                    })
-                                  }}
-                                  className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                                  title="Copy for LotusProfiles"
-                                >
-                                  {copiedRegId === r.id
-                                    ? <Check className="h-3.5 w-3.5 text-primary" />
-                                    : <ClipboardText className="h-3.5 w-3.5" />}
-                                </button>
                                 <button onClick={() => { if (confirm('Delete this registration?')) void removeRegistration(r.id) }}
-                                  className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Delete">
+                                  className="ml-auto p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Delete">
                                   <Trash className="h-3.5 w-3.5" />
                                 </button>
                               </div>

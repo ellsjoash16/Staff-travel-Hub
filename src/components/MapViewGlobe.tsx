@@ -1,21 +1,22 @@
 import { useState, useMemo, useCallback } from 'react'
 import Map, { Source, Layer, MapMouseEvent } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { X, BookOpen, CaretLeft as ChevronLeft, List, MapTrifold as MapIcon, Globe, MapPin } from '@phosphor-icons/react'
+import { X, BookOpen, CaretLeft as ChevronLeft, List, MapTrifold as MapIcon, Globe, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
-import type { Post, Course, Location } from '@/lib/types'
+import { tripImage } from '@/lib/destinationImages'
+import type { Post, Course, Location, Trip } from '@/lib/types'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string
 
 type ModalState =
   | null
   | { view: 'country'; country: string; locations: Location[] }
-  | { view: 'location'; location: Location; posts: Post[]; courses: Course[]; backCountry: string }
+  | { view: 'location'; location: Location; posts: Post[]; courses: Course[]; trips: Trip[]; backCountry: string }
 
 export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => void }) {
   const { state } = useApp()
-  const { posts, courses, locations, settings } = state
+  const { posts, courses, locations, trips, settings } = state
   const pinColor = settings.color || '#05979a'
   const [modal, setModal] = useState<ModalState>(null)
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list')
@@ -38,7 +39,10 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
   function openLocation(location: Location, backCountry: string) {
     const locPosts = posts.filter(p => p.locationId === location.id)
     const locCourses = courses.filter(c => c.locationId === location.id)
-    setModal({ view: 'location', location, posts: locPosts, courses: locCourses, backCountry })
+    const locTrips = trips
+      .filter(t => t.completed && !t.isEvent && t.locationId === location.id)
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    setModal({ view: 'location', location, posts: locPosts, courses: locCourses, trips: locTrips, backCountry })
   }
 
   const handleClick = useCallback((e: MapMouseEvent) => {
@@ -53,7 +57,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
     } else {
       setModal({ view: 'country', country, locations: countryLocations })
     }
-  }, [locations, posts, courses])
+  }, [locations, posts, courses, trips])
 
   const handleMouseMove = useCallback((e: MapMouseEvent) => {
     const feature = e.features?.[0]
@@ -339,11 +343,37 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
                     </div>
                   )}
 
-                  {modal.posts.length === 0 && modal.courses.length === 0 && (
+                  {modal.trips.length > 0 && (
+                    <div className={`px-4 pb-4 ${modal.posts.length > 0 || modal.courses.length > 0 ? 'border-t border-border pt-4' : 'pt-4'}`}>
+                      <p className="text-[10px] font-semibold text-primary uppercase tracking-wide mb-3">
+                        Past trips · {modal.trips.length}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {modal.trips.map(t => {
+                          const img = tripImage(t, locations)
+                          return (
+                            <div key={t.id} className="rounded-xl overflow-hidden border border-border">
+                              {img
+                                ? <img src={img} alt="" className="w-full h-[80px] object-cover" />
+                                : <div className="w-full h-[80px] bg-muted flex items-center justify-center"><Airplane className="h-7 w-7 text-muted-foreground/30" /></div>
+                              }
+                              <div className="p-2">
+                                <p className="text-[11px] font-semibold leading-snug truncate text-foreground">{t.name}</p>
+                                {t.participants.length > 0 && <p className="text-[10px] text-muted-foreground truncate">{t.participants.join(', ')}</p>}
+                                {t.date && <p className="text-[9px] text-muted-foreground/70 mt-0.5">{fmtDate(t.date)}</p>}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {modal.posts.length === 0 && modal.courses.length === 0 && modal.trips.length === 0 && (
                     <div className="flex flex-col items-center py-12 text-center">
                       <MapPin className="h-10 w-10 text-muted-foreground/30 mb-3" />
                       <p className="text-muted-foreground text-sm font-medium">{modal.location.name}</p>
-                      <p className="text-muted-foreground/60 text-xs mt-1">No posts or courses yet</p>
+                      <p className="text-muted-foreground/60 text-xs mt-1">No posts, courses or trips yet</p>
                     </div>
                   )}
                 </div>

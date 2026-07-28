@@ -842,3 +842,33 @@ export async function uploadImage(
 export async function deleteImage(path: string): Promise<void> {
   await deleteObject(ref(storage, path))
 }
+
+export async function migrateImageUrls(): Promise<{ trips: number; posts: number }> {
+  let trips = 0, posts = 0
+
+  const tripSnap = await getDocs(collection(db, 'trips'))
+  await Promise.all(tripSnap.docs.map(async d => {
+    const path: string | null = d.data().imagePath ?? null
+    if (!path) return
+    try {
+      const url = await getDownloadURL(ref(storage, path))
+      await updateDoc(doc(db, 'trips', d.id), { image: url })
+      trips++
+    } catch { /* file gone */ }
+  }))
+
+  for (const col of ['posts', 'submissions'] as const) {
+    const snap = await getDocs(collection(db, col))
+    await Promise.all(snap.docs.map(async d => {
+      const paths: string[] = d.data().imagePaths ?? []
+      if (!paths.length) return
+      try {
+        const urls = await Promise.all(paths.map(p => getDownloadURL(ref(storage, p))))
+        await updateDoc(doc(db, col, d.id), { images: urls })
+        posts++
+      } catch { /* skip */ }
+    }))
+  }
+
+  return { trips, posts }
+}

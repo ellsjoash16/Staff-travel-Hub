@@ -18,6 +18,7 @@ import { DatePicker } from './DatePicker'
 import { useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
 import { seedDemoData, clearDemoData } from '@/lib/seed'
+import { migrateImageUrls } from '@/lib/db'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
 
 
@@ -1699,6 +1700,31 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       } catch { toast.error('Failed to save notice') }
                     }}>Save Notice</Button>
                   </div>
+                </div>
+              </div>
+
+              {/* Fix image URLs */}
+              <div className="rounded-2xl border border-dashed border-border bg-muted/20 overflow-hidden">
+                <div className="px-5 py-4 border-b border-border/60 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <FileArrowUp className="h-4 w-4 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Fix Image URLs</p>
+                    <p className="text-xs text-muted-foreground">Regenerate download URLs for all uploaded images — run this once to fix broken photos</p>
+                  </div>
+                </div>
+                <div className="px-5 py-4 flex items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">Reads each stored image path and updates Firestore with a fresh signed URL. Safe to run multiple times.</p>
+                  <Button size="sm" variant="secondary" className="flex-shrink-0" onClick={async () => {
+                    try {
+                      toast.loading('Regenerating image URLs…', { id: 'img-migrate' })
+                      const { trips, posts } = await migrateImageUrls()
+                      toast.success(`Done — ${trips} trip${trips !== 1 ? 's' : ''} and ${posts} post${posts !== 1 ? 's' : ''} updated`, { id: 'img-migrate' })
+                    } catch (err) {
+                      toast.error((err as Error)?.message || 'Migration failed', { id: 'img-migrate' })
+                    }
+                  }}>Fix Image URLs</Button>
                 </div>
               </div>
 

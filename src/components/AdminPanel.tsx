@@ -464,7 +464,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       >
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">{r.title || '(no title)'}</p>
-                          <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">{r.staff} · {r.location}</p>
+                          <p className="text-xs lg:text-sm text-muted-foreground">{r.staff} · {r.location}</p>
                         </div>
                         <CaretRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                       </button>
@@ -501,7 +501,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   images={postForm.images}
                   onReviewChange={(v) => setPost('review', v)}
                 />
-                <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">
+                <p className="text-xs lg:text-sm text-muted-foreground">
                   Photo 1 is always the hero. Click "Insert photo" to place the next photo at that point in the text.
                 </p>
               </div>
@@ -543,7 +543,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     options={[{ value: '', label: '— no location —' }, ...locations.map(l => ({ value: l.id, label: `${l.name}, ${l.country}` }))]}
                   />
                   {locations.length === 0 && (
-                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">Add locations in the Locations tab first</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Add locations in the Locations tab first</p>
                   )}
                 </div>
                 <div className="space-y-1.5">
@@ -572,7 +572,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                         <div className="flex flex-wrap gap-1.5">
                           {suggestions.map(t => (
                             <button key={t} type="button"
-                              className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs xl:text-sm xl:text-base text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                              className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs lg:text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
                               onClick={() => setPost('tags', currentTags.length ? currentTags.join(', ') + ', ' + t : t)}
                             >{t}</button>
                           ))}
@@ -606,7 +606,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
             {/* ── LOCATIONS ── */}
             <TabsContent value="locations" className="space-y-4">
-              <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">Create locations for the world map. Posts and courses are linked to locations — clicking a country on the globe shows all locations for that country.</p>
+              <p className="text-xs lg:text-sm text-muted-foreground">Create locations for the world map. Posts and courses are linked to locations — clicking a country on the globe shows all locations for that country.</p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
@@ -673,7 +673,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               {locations.length > 0 && (
                 <>
                   <hr className="border-border" />
-                  <h3 className="font-semibold text-sm xl:text-base">All Locations ({locations.length})</h3>
+                  <h3 className="font-semibold text-sm lg:text-base">All Locations ({locations.length})</h3>
                   <div className="space-y-2">
                     {locations.map(loc => {
                       const pCount = posts.filter(p => p.locationId === loc.id).length
@@ -681,8 +681,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       return (
                         <div key={loc.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/30">
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm xl:text-base">{loc.name}</p>
-                            <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">{loc.country} · {pCount} post{pCount !== 1 ? 's' : ''} · {cCount} course{cCount !== 1 ? 's' : ''}</p>
+                            <p className="font-semibold text-sm lg:text-base">{loc.name}</p>
+                            <p className="text-xs lg:text-sm text-muted-foreground">{loc.country} · {pCount} post{pCount !== 1 ? 's' : ''} · {cCount} course{cCount !== 1 ? 's' : ''}</p>
                           </div>
                           <div className="flex gap-1.5 flex-shrink-0">
                             <Button size="sm" variant="secondary" onClick={() => startEditLocation(loc)}><PencilSimple className="h-3 w-3" /></Button>
@@ -938,7 +938,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               {trips.filter(t => !t.completed).length > 0 && (
                 <>
                   <hr className="border-border" />
-                  <h3 className="font-semibold text-sm xl:text-base">Upcoming Trips ({trips.filter(t => !t.completed).length})</h3>
+                  <h3 className="font-semibold text-sm lg:text-base">Upcoming Trips ({trips.filter(t => !t.completed).length})</h3>
                   <div className="space-y-2">
                     {[...trips].filter(t => !t.completed).sort((a, b) => a.date.localeCompare(b.date)).map(t => (
                       <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/30">
@@ -948,15 +948,15 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                         }
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <p className="font-semibold text-sm truncate">{t.name}</p>
+                            <p className="font-semibold text-sm lg:text-base truncate">{t.name}</p>
                             {t.external && <span className="text-[10px] font-medium bg-primary/10 text-primary rounded-full px-1.5 py-0.5 flex-shrink-0">External</span>}
                           </div>
                           {t.participants.length > 0 && (
-                            <p className="text-xs xl:text-sm xl:text-base text-muted-foreground truncate">{t.participants.join(', ')}</p>
+                            <p className="text-xs lg:text-sm text-muted-foreground truncate">{t.participants.join(', ')}</p>
                           )}
                           {t.locationId && (() => { const loc = locations.find(l => l.id === t.locationId); return loc ? <p className="text-xs text-primary truncate flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{loc.name}</p> : null })()}
-                          {t.date && <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">{fmtDate(t.date)}{t.endDate ? ` – ${fmtDate(t.endDate)}` : ''}</p>}
-                          {t.registrationDeadline && <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">Deadline: {fmtDate(t.registrationDeadline)}</p>}
+                          {t.date && <p className="text-xs lg:text-sm text-muted-foreground">{fmtDate(t.date)}{t.endDate ? ` – ${fmtDate(t.endDate)}` : ''}</p>}
+                          {t.registrationDeadline && <p className="text-xs lg:text-sm text-muted-foreground">Deadline: {fmtDate(t.registrationDeadline)}</p>}
                           {t.isEvent && <span className="text-[10px] font-medium bg-violet-500/10 text-violet-500 rounded-full px-1.5 py-0.5 w-fit">Event</span>}
                         </div>
                         <div className="flex flex-col gap-1.5 flex-shrink-0">
@@ -978,7 +978,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
             {/* ── BY YEAR ── */}
             <TabsContent value="years" className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">Manually add past trips directly to the By Year view</p>
+                <p className="text-xs lg:text-sm text-muted-foreground">Manually add past trips directly to the By Year view</p>
                 <Button size="sm" className="gap-1.5 flex-shrink-0" onClick={() => {
                   setTripForm({ ...emptyTripForm(), completed: true })
                   setEditingTripId(null)
@@ -1001,7 +1001,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 const years = [...new Set(completedTrips.map(t => t.date?.slice(0, 4) || 'Unknown'))].sort((a, b) => b.localeCompare(a))
                 return (
                   <>
-                    <p className="text-sm xl:text-base text-muted-foreground">{completedTrips.length} completed trip{completedTrips.length !== 1 ? 's' : ''}</p>
+                    <p className="text-sm lg:text-base text-muted-foreground">{completedTrips.length} completed trip{completedTrips.length !== 1 ? 's' : ''}</p>
                     {years.map(year => {
                       const yearTrips = completedTrips.filter(t => (t.date?.slice(0, 4) || 'Unknown') === year)
                       return (
@@ -1019,12 +1019,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   }
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-1.5">
-                                      <p className="font-semibold text-sm truncate">{t.name}</p>
+                                      <p className="font-semibold text-sm lg:text-base truncate">{t.name}</p>
                                       {t.external && <span className="text-[10px] font-medium bg-primary/10 text-primary rounded-full px-1.5 py-0.5 flex-shrink-0">External</span>}
                                     </div>
                                     {loc && <p className="text-xs text-primary flex items-center gap-1 mt-0.5 truncate"><MapPin className="h-3 w-3 flex-shrink-0" />{loc.name}</p>}
-                                    {t.participants.length > 0 && <p className="text-xs xl:text-sm xl:text-base text-muted-foreground truncate">{t.participants.join(', ')}</p>}
-                                    {t.date && <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">{fmtDate(t.date)}</p>}
+                                    {t.participants.length > 0 && <p className="text-xs lg:text-sm text-muted-foreground truncate">{t.participants.join(', ')}</p>}
+                                    {t.date && <p className="text-xs lg:text-sm text-muted-foreground">{fmtDate(t.date)}</p>}
                                   </div>
                                   <div className="flex gap-1.5 flex-shrink-0">
                                     <Button size="sm" variant="secondary" onClick={() => { startEditTrip(t); setTab('trips') }}><PencilSimple className="h-3 w-3" /></Button>
@@ -1090,7 +1090,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       {/* Header */}
                       <div className="flex items-center gap-3">
                         <button onClick={() => setExpandedRegTrip(null)}
-                          className="flex items-center gap-1.5 text-sm xl:text-base text-muted-foreground hover:text-foreground transition-colors">
+                          className="flex items-center gap-1.5 text-sm lg:text-base text-muted-foreground hover:text-foreground transition-colors">
                           <CaretRight className="h-4 w-4 rotate-180" /> Back
                         </button>
                       </div>
@@ -1104,7 +1104,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                             }
                             <div className="min-w-0">
                               <h3 className="font-gilbert text-lg leading-tight">{trip.name}</h3>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs xl:text-sm xl:text-base text-muted-foreground mt-0.5">
+                              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs lg:text-sm text-muted-foreground mt-0.5">
                                 {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
                                 <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}</span>
                               </div>
@@ -1113,7 +1113,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                         </div>
                       )}
 
-                      <p className="text-sm xl:text-base text-muted-foreground">{items.length} registration{items.length !== 1 ? 's' : ''}</p>
+                      <p className="text-sm lg:text-base text-muted-foreground">{items.length} registration{items.length !== 1 ? 's' : ''}</p>
 
                       {items.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -1126,13 +1126,13 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                             <div key={r.id} className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
                               <div className="flex items-start justify-between gap-2">
                                 <div>
-                                  <p className="font-semibold text-sm xl:text-base">{r.firstName} {r.lastName}</p>
-                                  {r.email && <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mt-0.5">{r.email}</p>}
+                                  <p className="font-semibold text-sm lg:text-base">{r.firstName} {r.lastName}</p>
+                                  {r.email && <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">{r.email}</p>}
                                   {r.passportFirstName && (
-                                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mt-0.5">{r.passportFirstName} {r.passportLastName}</p>
+                                    <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">{r.passportFirstName} {r.passportLastName}</p>
                                   )}
                                   {(r.jobRole || r.salesDivision) && (
-                                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mt-0.5">{[r.jobRole, r.salesDivision].filter(Boolean).join(' · ')}</p>
+                                    <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">{[r.jobRole, r.salesDivision].filter(Boolean).join(' · ')}</p>
                                   )}
                                   {r.medicalInfo && <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Medical: {r.medicalInfo}</p>}
                                   {r.dataConsent && <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">✓ Data consent</p>}
@@ -1140,32 +1140,32 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     <div className="mt-1.5 space-y-0.5">
                                       <p className="text-xs font-medium text-primary">Nominations ({r.nominatedPeople.length}):</p>
                                       {r.nominatedPeople.map((n, i) => (
-                                        <p key={i} className="text-xs xl:text-sm xl:text-base text-muted-foreground pl-2">• {n.name}{n.email ? ` (${n.email})` : ''}</p>
+                                        <p key={i} className="text-xs lg:text-sm text-muted-foreground pl-2">• {n.name}{n.email ? ` (${n.email})` : ''}</p>
                                       ))}
                                     </div>
                                   )}
                                   {(r.visitedBefore != null || r.keyLevel || r.destinationInspiration || r.whyChooseYou) && (
                                     <div className="mt-2 pt-2 border-t border-border/50 space-y-1.5">
                                       {r.visitedBefore != null && (
-                                        <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">
+                                        <p className="text-xs lg:text-sm text-muted-foreground">
                                           <span className="font-medium text-foreground">Visited before:</span> {r.visitedBefore ? `Yes${r.visitedWhen ? ` (${r.visitedWhen})` : ''}` : 'No'}
                                         </p>
                                       )}
                                       {r.keyLevel && (
-                                        <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">
+                                        <p className="text-xs lg:text-sm text-muted-foreground">
                                           <span className="font-medium text-foreground">Key level:</span> {r.keyLevel === 'super_key' ? 'Super Key' : 'Key'}
                                         </p>
                                       )}
                                       {r.destinationInspiration && (
                                         <div>
                                           <p className="text-xs font-medium text-foreground">What inspires you:</p>
-                                          <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mt-0.5">{r.destinationInspiration}</p>
+                                          <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">{r.destinationInspiration}</p>
                                         </div>
                                       )}
                                       {r.whyChooseYou && (
                                         <div>
                                           <p className="text-xs font-medium text-foreground">Why choose them:</p>
-                                          <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mt-0.5">{r.whyChooseYou}</p>
+                                          <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">{r.whyChooseYou}</p>
                                         </div>
                                       )}
                                     </div>
@@ -1230,7 +1230,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               <div className="flex-1 p-4 flex flex-col justify-between gap-3">
                                 <div>
                                   <h3 className="font-gilbert text-lg leading-tight mb-1">{featured.name}</h3>
-                                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs xl:text-sm xl:text-base text-muted-foreground">
+                                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs lg:text-sm text-muted-foreground">
                                     {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
                                     <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3" />{new Date(featured.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
                                   </div>
@@ -1264,7 +1264,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                 <div className="flex-1 p-3 flex flex-col gap-2">
                                   <div>
                                     <h3 className="font-gilbert text-base leading-tight mb-0.5">{trip.name}</h3>
-                                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs xl:text-sm xl:text-base text-muted-foreground">
+                                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs lg:text-sm text-muted-foreground">
                                       {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
                                       <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
                                     </div>
@@ -1319,7 +1319,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           </span>
                         ))}
                         {adminFolders.length === 0 && (
-                          <span className="text-xs xl:text-sm xl:text-base text-muted-foreground">No folders yet</span>
+                          <span className="text-xs lg:text-sm text-muted-foreground">No folders yet</span>
                         )}
                       </div>
                       <div className="flex gap-2">
@@ -1389,7 +1389,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
                     {/* Posts */}
                     <div>
-                      <h3 className="font-semibold text-sm mb-2">
+                      <h3 className="font-semibold text-sm lg:text-base mb-2">
                         Posts ({filteredPosts.length}{filteredPosts.length !== posts.length ? ` of ${posts.length}` : ''})
                       </h3>
                       {filteredPosts.length === 0 ? (
@@ -1401,10 +1401,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="border-b border-border">
-                                <th className="text-left py-2 px-3 text-xs xl:text-sm xl:text-base text-muted-foreground font-medium">Photo</th>
-                                <th className="text-left py-2 px-3 text-xs xl:text-sm xl:text-base text-muted-foreground font-medium">Title</th>
-                                <th className="text-left py-2 px-3 text-xs xl:text-sm xl:text-base text-muted-foreground font-medium hidden sm:table-cell">Staff</th>
-                                <th className="text-left py-2 px-3 text-xs xl:text-sm xl:text-base text-muted-foreground font-medium hidden md:table-cell">Date</th>
+                                <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium">Photo</th>
+                                <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium">Title</th>
+                                <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium hidden sm:table-cell">Staff</th>
+                                <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium hidden md:table-cell">Date</th>
                                 <th className="py-2 px-3" />
                               </tr>
                             </thead>
@@ -1474,14 +1474,14 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 )
 
                 if (filtered.length === 0) return (
-                  <p className="text-center text-sm xl:text-base text-muted-foreground py-8">
+                  <p className="text-center text-sm lg:text-base text-muted-foreground py-8">
                     {userProfiles.length === 0 ? 'No registered users yet' : 'No users match your search'}
                   </p>
                 )
 
                 return (
                   <div className="space-y-2">
-                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">{filtered.length} user{filtered.length !== 1 ? 's' : ''}{filtered.length !== userProfiles.length ? ` of ${userProfiles.length}` : ''}</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">{filtered.length} user{filtered.length !== 1 ? 's' : ''}{filtered.length !== userProfiles.length ? ` of ${userProfiles.length}` : ''}</p>
                     {filtered.map(u => {
                       const isExpanded = expandedUser === u.uid
                       const userRegistrations = registrations.filter(r => r.uid === u.uid)
@@ -1497,10 +1497,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               </span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm xl:text-base">
+                              <p className="font-semibold text-sm lg:text-base">
                                 {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.authDisplayName || 'No name yet')}
                               </p>
-                              <p className="text-xs xl:text-sm xl:text-base text-muted-foreground truncate">
+                              <p className="text-xs lg:text-sm text-muted-foreground truncate">
                                 {u.authEmail ?? registrations.find(r => r.uid === u.uid)?.email ?? ''}
                               </p>
                             </div>
@@ -1528,24 +1528,24 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Edit Account</p>
                                   <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1">
-                                      <label className="text-xs xl:text-sm xl:text-base text-muted-foreground">First Name</label>
+                                      <label className="text-xs lg:text-sm text-muted-foreground">First Name</label>
                                       <Input value={profileEditForm.firstName} onChange={e => setProfileEditForm(f => ({ ...f, firstName: e.target.value }))} />
                                     </div>
                                     <div className="space-y-1">
-                                      <label className="text-xs xl:text-sm xl:text-base text-muted-foreground">Last Name</label>
+                                      <label className="text-xs lg:text-sm text-muted-foreground">Last Name</label>
                                       <Input value={profileEditForm.lastName} onChange={e => setProfileEditForm(f => ({ ...f, lastName: e.target.value }))} />
                                     </div>
                                     <div className="space-y-1">
-                                      <label className="text-xs xl:text-sm xl:text-base text-muted-foreground">Passport First Name</label>
+                                      <label className="text-xs lg:text-sm text-muted-foreground">Passport First Name</label>
                                       <Input value={profileEditForm.passportFirstName} onChange={e => setProfileEditForm(f => ({ ...f, passportFirstName: e.target.value }))} />
                                     </div>
                                     <div className="space-y-1">
-                                      <label className="text-xs xl:text-sm xl:text-base text-muted-foreground">Passport Last Name</label>
+                                      <label className="text-xs lg:text-sm text-muted-foreground">Passport Last Name</label>
                                       <Input value={profileEditForm.passportLastName} onChange={e => setProfileEditForm(f => ({ ...f, passportLastName: e.target.value }))} />
                                     </div>
                                   </div>
                                   <div className="space-y-1">
-                                    <label className="text-xs xl:text-sm xl:text-base text-muted-foreground">Job Role</label>
+                                    <label className="text-xs lg:text-sm text-muted-foreground">Job Role</label>
                                     <AppSelect
                                       value={profileEditForm.jobRole}
                                       onChange={val => setProfileEditForm(f => ({ ...f, jobRole: val }))}
@@ -1554,7 +1554,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     />
                                   </div>
                                   <div className="space-y-1">
-                                    <label className="text-xs xl:text-sm xl:text-base text-muted-foreground">Building</label>
+                                    <label className="text-xs lg:text-sm text-muted-foreground">Building</label>
                                     <AppSelect
                                       value={profileEditForm.building}
                                       onChange={val => setProfileEditForm(f => ({ ...f, building: val }))}
@@ -1563,11 +1563,11 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     />
                                   </div>
                                   <div className="space-y-1">
-                                    <label className="text-xs xl:text-sm xl:text-base text-muted-foreground">Sales Division</label>
+                                    <label className="text-xs lg:text-sm text-muted-foreground">Sales Division</label>
                                     <Input placeholder="e.g. North, South…" value={profileEditForm.salesDivision} onChange={e => setProfileEditForm(f => ({ ...f, salesDivision: e.target.value }))} />
                                   </div>
                                   <div className="space-y-1">
-                                    <label className="text-xs xl:text-sm xl:text-base text-muted-foreground">Medical Info</label>
+                                    <label className="text-xs lg:text-sm text-muted-foreground">Medical Info</label>
                                     <Input placeholder="Any medical conditions…" value={profileEditForm.medicalInfo} onChange={e => setProfileEditForm(f => ({ ...f, medicalInfo: e.target.value }))} />
                                   </div>
                                   <div className="flex gap-2 pt-1">
@@ -1598,22 +1598,22 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                               ) : (
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                                   <div>
-                                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mb-0.5">Full name</p>
+                                    <p className="text-xs lg:text-sm text-muted-foreground mb-0.5">Full name</p>
                                     <p className="font-medium">{u.firstName} {u.lastName}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mb-0.5">Passport name</p>
+                                    <p className="text-xs lg:text-sm text-muted-foreground mb-0.5">Passport name</p>
                                     <p className="font-medium">{u.passportFirstName} {u.passportLastName}</p>
                                   </div>
                                   {(u.jobRole || u.building || u.salesDivision) && (
                                     <div>
-                                      <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mb-0.5">Role / Building / Division</p>
+                                      <p className="text-xs lg:text-sm text-muted-foreground mb-0.5">Role / Building / Division</p>
                                       <p className="font-medium">{[u.jobRole, u.building, u.salesDivision].filter(Boolean).join(' · ')}</p>
                                     </div>
                                   )}
                                   {u.medicalInfo && (
                                     <div className="col-span-2">
-                                      <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mb-0.5">Medical info</p>
+                                      <p className="text-xs lg:text-sm text-muted-foreground mb-0.5">Medical info</p>
                                       <p className="font-medium text-amber-600 dark:text-amber-400">{u.medicalInfo}</p>
                                     </div>
                                   )}
@@ -1621,7 +1621,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     const adminFlag = u.isAdmin === true || (settings.adminUids ?? []).includes(u.uid) || SUPERADMIN_UIDS.includes(u.uid)
                                     return (
                                       <div>
-                                        <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mb-0.5">Admin access</p>
+                                        <p className="text-xs lg:text-sm text-muted-foreground mb-0.5">Admin access</p>
                                         <p className={`font-medium text-sm ${adminFlag ? 'text-primary' : 'text-muted-foreground'}`}>
                                           {adminFlag ? '✓ Admin' : 'No'}
                                         </p>
@@ -1629,7 +1629,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     )
                                   })()}
                                   <div>
-                                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground mb-0.5">Data consent</p>
+                                    <p className="text-xs lg:text-sm text-muted-foreground mb-0.5">Data consent</p>
                                     <p className={`font-medium text-sm ${u.dataConsent ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                                       {u.dataConsent ? '✓ Consented' : 'Not given'}
                                     </p>
@@ -1776,7 +1776,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   </div>
                   <div>
                     <p className="font-semibold text-sm xl:text-base 2xl:text-lg">Notice Board</p>
-                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">Shown as a banner on the home screen — leave blank to hide it</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Shown as a banner on the home screen — leave blank to hide it</p>
                   </div>
                 </div>
                 <div className="p-5 xl:p-7 space-y-3 xl:space-y-4">
@@ -1788,7 +1788,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     rows={3}
                   />
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">Supports plain text and emoji. Changing the text resets dismissals for all users.</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Supports plain text and emoji. Changing the text resets dismissals for all users.</p>
                     <Button size="sm" className="flex-shrink-0 xl:h-10 xl:px-4 xl:text-sm 2xl:h-11 2xl:text-base" onClick={async () => {
                       try {
                         await saveSettings({ ...settings, notice: sNotice.trim() })
@@ -1807,11 +1807,11 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   </div>
                   <div>
                     <p className="font-semibold text-sm xl:text-base 2xl:text-lg">Demo Data</p>
-                    <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">Load placeholder posts, locations and trips for demo purposes</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Load placeholder posts, locations and trips for demo purposes</p>
                   </div>
                 </div>
                 <div className="px-5 py-4 xl:px-7 xl:py-6 flex items-center justify-between gap-3 xl:gap-4">
-                  <p className="text-xs xl:text-sm xl:text-base text-muted-foreground">Adds 5 destinations, 5 posts, 3 upcoming trips and 2 past trips. Safe to run multiple times — existing seed data will be overwritten, not duplicated.</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground">Adds 5 destinations, 5 posts, 3 upcoming trips and 2 past trips. Safe to run multiple times — existing seed data will be overwritten, not duplicated.</p>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Button size="sm" variant="destructive" className="xl:h-10 xl:px-4 xl:text-sm 2xl:h-11 2xl:text-base" onClick={async () => {
                       if (!confirm('Remove all demo data? This will delete the 5 seed locations, 5 seed posts and 5 seed trips.')) return
@@ -1862,7 +1862,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
           <DialogTitle>Prohibit {banningUser?.name}</DialogTitle>
         </DialogHeader>
         <DialogBody className="space-y-3 pt-2">
-          <p className="text-sm xl:text-base text-muted-foreground">How long should this ban last?</p>
+          <p className="text-sm lg:text-base text-muted-foreground">How long should this ban last?</p>
           <div className="grid grid-cols-2 gap-2">
             {BAN_DURATIONS.map(({ label, days }) => (
               <Button

@@ -684,12 +684,25 @@ export async function adminUpdateUserProfile(uid: string, fields: {
     encryptField(fields.passportLastName),
     encryptField(fields.medicalInfo),
   ])
-  await adminWrite('userProfiles', uid, 'update', {
-    firstName, lastName, passportFirstName, passportLastName, medicalInfo,
-    jobRole: fields.jobRole ?? null,
-    building: fields.building ?? null,
-    salesDivision: fields.salesDivision ?? null,
-  }, ['firstName', 'lastName', 'passportFirstName', 'passportLastName', 'medicalInfo', 'jobRole', 'building', 'salesDivision'])
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) throw new Error('Not authenticated')
+  const res = await fetch('/api/edit-user-profile', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      uid,
+      fields: {
+        firstName, lastName, passportFirstName, passportLastName, medicalInfo,
+        jobRole: fields.jobRole ?? null,
+        building: fields.building ?? null,
+        salesDivision: fields.salesDivision ?? null,
+      },
+    }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string }
+    throw new Error(body.error ?? `Update failed: ${res.status}`)
+  }
 }
 
 export async function saveJobRole(uid: string, jobRole: string, salesDivision?: string | null, building?: string | null): Promise<void> {

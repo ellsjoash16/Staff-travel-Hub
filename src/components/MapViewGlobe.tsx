@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { X, BookOpen, CaretLeft as ChevronLeft, List, MapTrifold as MapIcon, Globe, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
-import { tripImage } from '@/lib/destinationImages'
+import { tripImage, destinationImage } from '@/lib/destinationImages'
 import type { Post, Course, Location, Trip } from '@/lib/types'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string
@@ -246,19 +246,32 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
                   {modal.locations.map(loc => {
                     const pCount = posts.filter(p => p.locationId === loc.id).length
                     const cCount = courses.filter(c => c.locationId === loc.id).length
+                    const tCount = trips.filter(t => t.completed && !t.isEvent && t.locationId === loc.id).length
+                    const img = loc.imageUrl || destinationImage(loc.name, loc.country)
+                    const summary = [
+                      tCount > 0 && `${tCount} trip${tCount !== 1 ? 's' : ''}`,
+                      pCount > 0 && `${pCount} post${pCount !== 1 ? 's' : ''}`,
+                      cCount > 0 && `${cCount} course${cCount !== 1 ? 's' : ''}`,
+                    ].filter(Boolean).join(' · ')
                     return (
                       <button
                         key={loc.id}
-                        className="w-full text-left flex items-center justify-between p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-muted transition-all group"
+                        className="w-full text-left flex items-center gap-3 p-2.5 rounded-xl border border-border hover:border-primary/40 hover:bg-muted transition-all group"
                         onClick={() => openLocation(loc, modal.country)}
                       >
-                        <div>
-                          <p className="font-semibold text-sm text-foreground">{loc.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {[pCount > 0 && `${pCount} post${pCount !== 1 ? 's' : ''}`, cCount > 0 && `${cCount} course${cCount !== 1 ? 's' : ''}`].filter(Boolean).join(' · ') || 'No content yet'}
+                        <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                          {img
+                            ? <img src={img} alt="" className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center"><MapPin className="h-5 w-5 text-muted-foreground/40" /></div>
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground truncate">{loc.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                            {summary || 'No content yet'}
                           </p>
                         </div>
-                        <ChevronLeft className="h-4 w-4 text-muted-foreground group-hover:text-primary rotate-180 transition-colors" />
+                        <ChevronLeft className="h-4 w-4 text-muted-foreground group-hover:text-primary rotate-180 transition-colors flex-shrink-0" />
                       </button>
                     )
                   })}

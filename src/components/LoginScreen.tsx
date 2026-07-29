@@ -143,9 +143,9 @@ export function LoginScreen() {
 
         <div className="relative z-10 flex flex-col justify-between h-full p-12 xl:p-16">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <img src="/daf-logo.png" alt="DAF" className="h-9 w-9 object-contain" style={{ transform: 'translateX(3px)' }} />
-            <span className="font-gilbert text-xl text-white tracking-wide">DAFAGRAM</span>
+          <div className="flex items-center gap-4">
+            <img src="/daf-logo.png" alt="DAF" className="h-16 w-16 object-contain" style={{ transform: 'translateX(3px)' }} />
+            <span className="font-gilbert text-4xl text-white tracking-wide">DAFAGRAM</span>
           </div>
 
           {/* Headline */}
@@ -201,8 +201,8 @@ export function LoginScreen() {
 
         {/* Mobile: logo above card */}
         <div className="lg:hidden relative z-10 text-center mb-8 flex-shrink-0">
-          <img src="/daf-logo.png" alt="DAF logo" className="h-20 w-20 object-contain mx-auto mb-4" style={{ transform: 'translateX(8px)' }} />
-          <h1 className="font-gilbert text-3xl text-white drop-shadow">DAFAGRAM</h1>
+          <img src="/daf-logo.png" alt="DAF logo" className="h-28 w-28 object-contain mx-auto mb-4" style={{ transform: 'translateX(8px)' }} />
+          <h1 className="font-gilbert text-5xl text-white drop-shadow">DAFAGRAM</h1>
           <p className="text-white/60 text-sm mt-1">Staff Travel Hub</p>
         </div>
 

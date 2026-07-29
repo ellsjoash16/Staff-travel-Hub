@@ -297,15 +297,26 @@ export function LoginScreen() {
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && (mode === 'signin' ? handleSignIn() : handleSignUp())}
               />
-              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none pt-1">
-                <input
-                  type="checkbox"
-                  checked={showPassword}
-                  onChange={e => setShowPassword(e.target.checked)}
-                  className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
-                />
-                Show password
-              </label>
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showPassword}
+                    onChange={e => setShowPassword(e.target.checked)}
+                    className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                  />
+                  Show password
+                </label>
+                {mode === 'signin' && (
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Forgot your password?
+                  </button>
+                )}
+              </div>
             </div>
 
             {mode === 'signup' && (
@@ -319,18 +330,6 @@ export function LoginScreen() {
                   onChange={e => setConfirmPwd(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSignUp()}
                 />
-              </div>
-            )}
-
-            {mode === 'signin' && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Forgot your password?
-                </button>
               </div>
             )}
 

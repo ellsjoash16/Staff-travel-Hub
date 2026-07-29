@@ -142,7 +142,7 @@ export function LoginScreen() {
         <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/40 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
         {/* Blend the right edge into the form panel's background (white / dark) */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-background" />
+        <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(to right, transparent 0%, transparent 68%, hsl(var(--background)) 100%)' }} />
 
         <div className="relative z-10 flex flex-col justify-between h-full p-12 xl:p-16">
           {/* top spacer keeps the logo + headline group vertically centred */}

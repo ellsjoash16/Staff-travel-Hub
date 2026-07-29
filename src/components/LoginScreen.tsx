@@ -42,6 +42,7 @@ export function LoginScreen() {
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
   const [confirmPwd, setConfirmPwd] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [busy, setBusy]           = useState(false)
   const [wordIdx, setWordIdx]     = useState(0)
   const [wordVisible, setWordVisible] = useState(true)
@@ -283,26 +284,36 @@ export function LoginScreen() {
 
             <div className="space-y-1.5">
               <Label>Email Address</Label>
-              <Input type="email" className="h-12 text-base" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+              <Input type="email" className="h-14 text-base" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
               <Label>Password</Label>
               <Input
-                type="password"
-                className="h-12 text-base"
+                type={showPassword ? 'text' : 'password'}
+                className="h-14 text-base"
                 placeholder={mode === 'signup' ? 'Min. 6 characters' : 'Your password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && (mode === 'signin' ? handleSignIn() : handleSignUp())}
               />
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none pt-1">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={e => setShowPassword(e.target.checked)}
+                  className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                />
+                Show password
+              </label>
             </div>
 
             {mode === 'signup' && (
               <div className="space-y-1.5">
                 <Label>Confirm Password</Label>
                 <Input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="h-14 text-base"
                   placeholder="Repeat password"
                   value={confirmPwd}
                   onChange={e => setConfirmPwd(e.target.value)}

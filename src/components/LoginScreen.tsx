@@ -224,19 +224,19 @@ export function LoginScreen() {
           <div className="flex rounded-xl bg-muted p-1 mb-5">
             <button
               onClick={() => setMode('signin')}
-              className={`flex-1 text-sm font-medium py-1.5 rounded-lg transition-all ${mode === 'signin' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`flex-1 text-base font-medium py-2.5 rounded-lg transition-all ${mode === 'signin' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Sign In
             </button>
             <button
               onClick={() => setMode('signup')}
-              className={`flex-1 text-sm font-medium py-1.5 rounded-lg transition-all ${mode === 'signup' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`flex-1 text-base font-medium py-2.5 rounded-lg transition-all ${mode === 'signup' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Create Account
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-5">
             {mode === 'signup' && (
               <>
                 <div className="grid grid-cols-2 gap-3">
@@ -283,13 +283,14 @@ export function LoginScreen() {
 
             <div className="space-y-1.5">
               <Label>Email Address</Label>
-              <Input type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+              <Input type="email" className="h-12 text-base" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
               <Label>Password</Label>
               <Input
                 type="password"
+                className="h-12 text-base"
                 placeholder={mode === 'signup' ? 'Min. 6 characters' : 'Your password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
@@ -323,7 +324,7 @@ export function LoginScreen() {
             )}
 
             <Button
-              className="w-full gap-2"
+              className="w-full gap-2 h-12 text-base"
               onClick={mode === 'signin' ? handleSignIn : handleSignUp}
               disabled={busy}
             >
@@ -341,7 +342,7 @@ export function LoginScreen() {
               <div className="flex-1 h-px bg-border" />
             </div>
 
-            <Button variant="outline" className="w-full gap-2" onClick={handleMicrosoft} disabled={busy}>
+            <Button variant="outline" className="w-full gap-2 h-12 text-base" onClick={handleMicrosoft} disabled={busy}>
               <svg className="h-4 w-4" viewBox="0 0 23 23"><path fill="#f3f3f3" d="M0 0h23v23H0z"/><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>
               Continue with Microsoft
             </Button>

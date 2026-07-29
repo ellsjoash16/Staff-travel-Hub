@@ -131,7 +131,7 @@ export function LoginScreen() {
     <div className="min-h-screen flex flex-col lg:flex-row">
 
       {/* ── Left: hero panel ── */}
-      <div className="hidden lg:flex lg:w-[58%] relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <img
           src={BG}
           alt=""
@@ -190,7 +190,7 @@ export function LoginScreen() {
       </div>
 
       {/* ── Right: form panel ── */}
-      <div className="flex-1 relative flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto lg:bg-background lg:border-l lg:border-border px-6 py-10 lg:px-10 xl:px-16 min-h-screen lg:min-h-0">
+      <div className="flex-1 relative flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto lg:bg-background lg:border-l lg:border-border px-6 py-10 lg:px-8 xl:px-10 min-h-screen lg:min-h-0">
 
         {/* Mobile: blurred background */}
         <div className="lg:hidden absolute inset-0 -z-0" style={{
@@ -207,9 +207,9 @@ export function LoginScreen() {
           <p className="text-white/60 text-sm mt-1">Staff Travel Hub</p>
         </div>
 
-        <div className="relative z-10 w-full max-w-lg">
+        <div className="relative z-10 w-full max-w-2xl">
 
-          <div className="bg-card/90 backdrop-blur-md lg:bg-card lg:backdrop-blur-none rounded-2xl shadow-2xl lg:shadow-sm p-8 lg:p-10 border border-white/10 lg:border-border">
+          <div className="bg-card/90 backdrop-blur-md lg:bg-card lg:backdrop-blur-none rounded-2xl shadow-2xl lg:shadow-sm p-8 lg:p-12 border border-white/10 lg:border-border">
           {/* Desktop heading (inside the card) */}
           <div className="hidden lg:block mb-6">
             <h2 className="text-3xl font-bold text-foreground tracking-tight">

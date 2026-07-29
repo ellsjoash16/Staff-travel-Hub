@@ -1219,27 +1219,27 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                         const regs = regsByTrip.get(featured.id) ?? []
                         return (
                           <div className="rounded-2xl overflow-hidden bg-card shadow-lg">
-                            <div className="flex flex-col sm:flex-row min-h-[180px]">
+                            <div className="flex flex-col sm:flex-row min-h-[180px] lg:min-h-[240px] xl:min-h-[280px]">
                               <div className="relative sm:w-2/5 flex-shrink-0 min-h-[140px] sm:min-h-0">
                                 {featured.image
                                   ? <img src={featured.image} alt={featured.name} className="absolute inset-0 w-full h-full object-cover" />
-                                  : <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><Airplane className="h-10 w-10 text-primary/30" /></div>
+                                  : <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><Airplane className="h-10 w-10 lg:h-14 lg:w-14 text-primary/30" /></div>
                                 }
-                                <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-full">Next Trip</div>
+                                <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-3 lg:py-1 rounded-full">Next Trip</div>
                               </div>
-                              <div className="flex-1 p-4 flex flex-col justify-between gap-3">
+                              <div className="flex-1 p-4 lg:p-6 xl:p-8 flex flex-col justify-between gap-3">
                                 <div>
-                                  <h3 className="font-gilbert text-lg leading-tight mb-1">{featured.name}</h3>
-                                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs lg:text-sm text-muted-foreground">
-                                    {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
-                                    <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3" />{new Date(featured.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
+                                  <h3 className="font-gilbert text-lg lg:text-2xl xl:text-3xl leading-tight mb-1">{featured.name}</h3>
+                                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs lg:text-sm xl:text-base text-muted-foreground">
+                                    {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3 lg:h-4 lg:w-4" />{loc.name}</span>}
+                                    <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3 lg:h-4 lg:w-4" />{new Date(featured.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
                                   </div>
                                 </div>
                                 <button onClick={() => setExpandedRegTrip(featured.id)}
-                                  className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors self-start">
-                                  <Users className="h-4 w-4" />
+                                  className="flex items-center gap-2 text-sm lg:text-lg xl:text-xl font-semibold text-primary hover:text-primary/80 transition-colors self-start">
+                                  <Users className="h-4 w-4 lg:h-6 lg:w-6" />
                                   Registrations ({regs.length})
-                                  <CaretRight className="h-4 w-4" />
+                                  <CaretRight className="h-4 w-4 lg:h-6 lg:w-6" />
                                 </button>
                               </div>
                             </div>
@@ -1248,32 +1248,32 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       })()}
 
                       {rest.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 lg:gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-4 lg:gap-5">
                           {rest.map(trip => {
                             const loc = getLocation(trip.locationId)
                             const regs = regsByTrip.get(trip.id) ?? []
                             const img = tripImage(trip, locations)
                             return (
                               <div key={trip.id} className="rounded-2xl overflow-hidden bg-card shadow-sm flex flex-col">
-                                <div className="relative w-full h-32 flex-shrink-0">
+                                <div className="relative w-full h-32 lg:h-44 xl:h-52 flex-shrink-0">
                                   {img
                                     ? <img src={img} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
-                                    : <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center"><Airplane className="h-8 w-8 text-primary/25" /></div>
+                                    : <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center"><Airplane className="h-8 w-8 lg:h-12 lg:w-12 text-primary/25" /></div>
                                   }
                                 </div>
-                                <div className="flex-1 p-3 flex flex-col gap-2">
+                                <div className="flex-1 p-3 lg:p-5 flex flex-col gap-2 lg:gap-3">
                                   <div>
-                                    <h3 className="font-gilbert text-base leading-tight mb-0.5">{trip.name}</h3>
-                                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs lg:text-sm text-muted-foreground">
-                                      {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{loc.name}</span>}
-                                      <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
+                                    <h3 className="font-gilbert text-base lg:text-xl xl:text-2xl leading-tight mb-0.5">{trip.name}</h3>
+                                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs lg:text-sm xl:text-base text-muted-foreground">
+                                      {loc && <span className="flex items-center gap-1"><MapPin className="h-3 w-3 lg:h-4 lg:w-4" />{loc.name}</span>}
+                                      <span className="flex items-center gap-1"><CalendarDots className="h-3 w-3 lg:h-4 lg:w-4" />{new Date(trip.date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
                                     </div>
                                   </div>
                                   <button onClick={() => setExpandedRegTrip(trip.id)}
-                                    className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors self-start">
-                                    <Users className="h-3.5 w-3.5" />
+                                    className="flex items-center gap-2 text-sm lg:text-base xl:text-lg font-semibold text-primary hover:text-primary/80 transition-colors self-start">
+                                    <Users className="h-3.5 w-3.5 lg:h-5 lg:w-5" />
                                     Registrations ({regs.length})
-                                    <CaretRight className="h-3.5 w-3.5" />
+                                    <CaretRight className="h-3.5 w-3.5 lg:h-5 lg:w-5" />
                                   </button>
                                 </div>
                               </div>

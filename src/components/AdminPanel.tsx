@@ -408,24 +408,24 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const tabsContent = (
           <Tabs value={tab} onValueChange={async (v) => { setTab(v); if (v === 'registrations') { setRegistrationsLoading(true); try { await loadRegistrations() } catch { toast.error('Failed to load registrations') } finally { setRegistrationsLoading(false) } } if (v === 'users' && !usersLoaded) { handleLoadUsers() } }}>
             <TabsList className="overflow-x-auto flex-nowrap">
-              <TabsTrigger value="post" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
-              <TabsTrigger value="locations" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>
-              <TabsTrigger value="trips" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingTripId ? 'Edit Trip' : 'Upcoming Trips'}</TabsTrigger>
-              <TabsTrigger value="years" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">By Year</TabsTrigger>
-              <TabsTrigger value="registrations" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">
+              <TabsTrigger value="post" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
+              <TabsTrigger value="locations" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>
+              <TabsTrigger value="trips" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingTripId ? 'Edit Trip' : 'Upcoming Trips'}</TabsTrigger>
+              <TabsTrigger value="years" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">By Year</TabsTrigger>
+              <TabsTrigger value="registrations" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">
                 Registrations
                 {registrations.length > 0 && (
                   <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{registrations.length}</span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="manage" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">Manage</TabsTrigger>
-              <TabsTrigger value="users" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">
+              <TabsTrigger value="manage" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">Manage</TabsTrigger>
+              <TabsTrigger value="users" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">
                 Users
                 {userProfiles.length > 0 && (
                   <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{userProfiles.length}</span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="settings" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">Settings</TabsTrigger>
+              <TabsTrigger value="settings" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">Settings</TabsTrigger>
             </TabsList>
 
             {/* ── UPLOAD POST ── */}
@@ -1766,21 +1766,22 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
             </TabsContent>
 
             {/* ── SETTINGS ── */}
-            <TabsContent value="settings" className="space-y-3">
+            <TabsContent value="settings" className="space-y-3 xl:space-y-5 2xl:space-y-6 xl:max-w-5xl">
 
               {/* Notice board */}
-              <div className="rounded-2xl border border-border bg-card overflow-hidden">
-                <div className="px-5 py-4 border-b border-border flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Globe className="h-4 w-4 text-primary" />
+              <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+                <div className="px-5 py-4 xl:px-7 xl:py-5 border-b border-border flex items-center gap-3 xl:gap-4">
+                  <div className="w-8 h-8 xl:w-11 xl:h-11 rounded-lg xl:rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Globe className="h-4 w-4 xl:h-5 xl:w-5 text-primary" />
                   </div>
                   <div>
                     <p className="font-semibold text-sm xl:text-base 2xl:text-lg">Notice Board</p>
                     <p className="text-xs xl:text-sm text-muted-foreground">Shown as a banner on the home screen — leave blank to hide it</p>
                   </div>
                 </div>
-                <div className="p-5 space-y-3">
+                <div className="p-5 xl:p-7 space-y-3 xl:space-y-4">
                   <Textarea
+                    className="xl:text-base xl:min-h-[130px]"
                     placeholder="e.g. ✈️ Bali 2026 registrations are now open — head to Upcoming Trips to register your interest!"
                     value={sNotice}
                     onChange={(e) => setSNotice(e.target.value)}
@@ -1800,16 +1801,16 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
               {/* Demo Data */}
               <div className="rounded-2xl border border-dashed border-border bg-muted/20 overflow-hidden">
-                <div className="px-5 py-4 border-b border-border/60 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Globe className="h-4 w-4 text-primary" />
+                <div className="px-5 py-4 xl:px-7 xl:py-5 border-b border-border/60 flex items-center gap-3 xl:gap-4">
+                  <div className="w-8 h-8 xl:w-11 xl:h-11 rounded-lg xl:rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Globe className="h-4 w-4 xl:h-5 xl:w-5 text-primary" />
                   </div>
                   <div>
                     <p className="font-semibold text-sm xl:text-base 2xl:text-lg">Demo Data</p>
                     <p className="text-xs xl:text-sm text-muted-foreground">Load placeholder posts, locations and trips for demo purposes</p>
                   </div>
                 </div>
-                <div className="px-5 py-4 flex items-center justify-between gap-3">
+                <div className="px-5 py-4 xl:px-7 xl:py-6 flex items-center justify-between gap-3 xl:gap-4">
                   <p className="text-xs xl:text-sm text-muted-foreground">Adds 5 destinations, 5 posts, 3 upcoming trips and 2 past trips. Safe to run multiple times — existing seed data will be overwritten, not duplicated.</p>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Button size="sm" variant="destructive" className="xl:h-10 xl:px-4 xl:text-sm 2xl:h-11 2xl:text-base" onClick={async () => {

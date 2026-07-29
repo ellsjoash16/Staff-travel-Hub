@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Globe, ArrowsClockwise } from '@phosphor-icons/react'
+import { Globe, ArrowsClockwise, PlayCircle } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { PostDetailDialog } from './PostDetailDialog'
@@ -98,21 +98,28 @@ export function FeedView() {
     setRefreshing(false)
   }
 
-  // Build a set of regions that have at least one post
+  // Legacy trip reviews live on Articulate Rise 360 (have a riseUrl); new
+  // reviews are written natively in DAFAGRAM. Keep the two separate.
+  const nativePosts = posts.filter((p) => !p.riseUrl)
+  const risePosts = posts.filter((p) => !!p.riseUrl)
+  const isRiseArchive = activeRegion === '__rise__'
+
+  // Region tabs reflect the native feed only
   const regionSet = new Set<string>()
-  for (const post of posts) {
+  for (const post of nativePosts) {
     const loc = post.locationId ? locations.find((l) => l.id === post.locationId) : null
     const region = getRegion(loc?.country)
     if (region) regionSet.add(region)
   }
   const availableRegions = REGIONS.filter((r) => regionSet.has(r.label)).map((r) => r.label)
 
-  const filtered = activeRegion
-    ? posts.filter((p) => {
+  const base = isRiseArchive ? risePosts : nativePosts
+  const filtered = (activeRegion && !isRiseArchive)
+    ? base.filter((p) => {
         const loc = p.locationId ? locations.find((l) => l.id === p.locationId) : null
         return getRegion(loc?.country) === activeRegion
       })
-    : [...posts]
+    : [...base]
 
   const sorted = filtered.sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
@@ -129,15 +136,25 @@ export function FeedView() {
         )}
       </div>
 
-      {/* Region tabs */}
-      <Tabs value={activeRegion ?? '__latest__'} onValueChange={(v) => setActiveRegion(v === '__latest__' ? null : v)} className="mb-5">
+      {/* Region tabs (+ Rise 360 archive) */}
+      <Tabs value={activeRegion ?? '__latest__'} onValueChange={(v) => { setActiveRegion(v === '__latest__' ? null : v); setVisible(PAGE_SIZE) }} className="mb-5">
         <TabsList className="overflow-x-auto scrollbar-none">
           <TabsTrigger value="__latest__">Latest</TabsTrigger>
           {availableRegions.map((region) => (
             <TabsTrigger key={region} value={region}>{region}</TabsTrigger>
           ))}
+          {risePosts.length > 0 && <TabsTrigger value="__rise__">Rise 360 Archive</TabsTrigger>}
         </TabsList>
       </Tabs>
+
+      {isRiseArchive && (
+        <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-3">
+          <PlayCircle className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Older trip reviews hosted on Articulate Rise 360, from before reviews moved into DAFAGRAM. Open one to launch the original.
+          </p>
+        </div>
+      )}
 
       {/* Feed */}
       {sorted.length === 0 ? (

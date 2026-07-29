@@ -35,7 +35,7 @@ export function Header() {
           </div>
         )}
 
-        {/* Centre: MagnifyingGlass expanded (desktop) */}
+        {/* Centre: Search expanded (desktop) */}
         {searchOpen ? (
           <div className="flex flex-1 min-w-0 max-w-md mx-auto sm:mx-auto px-4 sm:px-0">
             <DestinationSearch autoFocus onClose={() => setSearchOpen(false)} />
@@ -44,7 +44,7 @@ export function Header() {
           <div className="hidden sm:flex flex-1" />
         )}
 
-        {/* Right: MagnifyingGlass + Admin */}
+        {/* Right: Search + Admin */}
         <div className="ml-auto sm:ml-0 flex items-center gap-1 flex-shrink-0">
           {searchOpen ? (
             <button

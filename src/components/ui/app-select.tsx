@@ -66,7 +66,7 @@ export function AppSelect({ value, onChange, options, placeholder = '— Select 
                   type="text"
                   value={query}
                   onChange={e => setQuery(e.target.value)}
-                  placeholder="MagnifyingGlass…"
+                  placeholder="Search…"
                   className="w-full pl-8 pr-3 py-1.5 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
                 />
               </div>

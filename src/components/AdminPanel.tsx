@@ -1289,7 +1289,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
             {/* ── MANAGE ── */}
             <TabsContent value="manage" className="space-y-5">
-              {/* MagnifyingGlass + Folder filter */}
+              {/* Search + Folder filter */}
               {(() => {
                 const adminFolders = settings.adminFolders ?? []
                 const q = manageSearch.toLowerCase()
@@ -1335,12 +1335,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       </div>
                     </div>
 
-                    {/* MagnifyingGlass bar */}
+                    {/* Search bar */}
                     <div className="relative">
                       <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <input
                         type="search"
-                        placeholder="MagnifyingGlass posts, staff, destinations…"
+                        placeholder="Search posts, staff, destinations…"
                         value={manageSearch}
                         onChange={e => setManageSearch(e.target.value)}
                         className="w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -1421,7 +1421,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   <td className="py-2 px-3 hidden md:table-cell text-muted-foreground">{p.date || '—'}</td>
                                   <td className="py-2 px-3">
                                     <div className="flex gap-1.5">
-                                      <Button size="sm" variant={p.pinned ? 'default' : 'secondary'} onClick={() => togglePin(p.id, !p.pinned)} title={p.pinned ? 'Unpin' : 'PushPin to top'}>
+                                      <Button size="sm" variant={p.pinned ? 'default' : 'secondary'} onClick={() => togglePin(p.id, !p.pinned)} title={p.pinned ? 'Unpin' : 'Pin to top'}>
                                         {p.pinned ? <PushPinSlash className="h-3 w-3" /> : <PushPin className="h-3 w-3" />}
                                       </Button>
                                       <Button size="sm" variant="secondary" onClick={() => startEditPost(p)}><PencilSimple className="h-3 w-3" /></Button>
@@ -1448,7 +1448,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <input
                     type="search"
-                    placeholder="MagnifyingGlass by email address…"
+                    placeholder="Search by email address…"
                     value={userSearch}
                     onChange={e => setUserSearch(e.target.value)}
                     className="w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"

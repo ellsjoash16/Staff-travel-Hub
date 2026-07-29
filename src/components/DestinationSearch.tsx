@@ -111,7 +111,7 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
           onChange={e => { setQuery(e.target.value); setOpen(true); setActiveIdx(-1) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="MagnifyingGlass posts, locations…"
+          placeholder="Search posts, locations…"
           autoComplete="off"
           className="w-full h-9 pl-9 pr-8 rounded-full bg-white/10 border border-white/15 text-white placeholder:text-white/40 text-sm focus:outline-none focus:bg-white/18 focus:border-white/35 transition-all"
         />

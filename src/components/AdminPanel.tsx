@@ -1248,7 +1248,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       })()}
 
                       {rest.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 lg:gap-4">
                           {rest.map(trip => {
                             const loc = getLocation(trip.locationId)
                             const regs = regsByTrip.get(trip.id) ?? []

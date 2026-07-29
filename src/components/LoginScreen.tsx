@@ -284,14 +284,14 @@ export function LoginScreen() {
 
             <div className="space-y-1.5">
               <Label>Email Address</Label>
-              <Input type="email" className="h-14 text-base" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+              <Input type="email" className="h-16 text-base" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
               <Label>Password</Label>
               <Input
                 type={showPassword ? 'text' : 'password'}
-                className="h-14 text-base"
+                className="h-16 text-base"
                 placeholder={mode === 'signup' ? 'Min. 6 characters' : 'Your password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
@@ -313,7 +313,7 @@ export function LoginScreen() {
                 <Label>Confirm Password</Label>
                 <Input
                   type={showPassword ? 'text' : 'password'}
-                  className="h-14 text-base"
+                  className="h-16 text-base"
                   placeholder="Repeat password"
                   value={confirmPwd}
                   onChange={e => setConfirmPwd(e.target.value)}

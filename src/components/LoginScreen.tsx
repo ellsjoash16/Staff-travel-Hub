@@ -207,11 +207,11 @@ export function LoginScreen() {
           <p className="text-white/60 text-sm mt-1">Staff Travel Hub</p>
         </div>
 
-        <div className="relative z-10 w-full max-w-sm">
+        <div className="relative z-10 w-full max-w-md">
 
           {/* Desktop logo + heading */}
           <div className="hidden lg:block mb-7">
-            <h2 className="text-2xl font-bold text-foreground tracking-tight mb-6">
+            <h2 className="text-3xl font-bold text-foreground tracking-tight mb-6">
               {mode === 'signin' ? 'Welcome back' : 'Create your account'}
             </h2>
             {mode === 'signup' && (
@@ -219,7 +219,7 @@ export function LoginScreen() {
             )}
           </div>
 
-          <div className="bg-card/90 backdrop-blur-md lg:bg-card lg:backdrop-blur-none rounded-2xl shadow-2xl lg:shadow-sm p-5 lg:p-5 border border-white/10 lg:border-border">
+          <div className="bg-card/90 backdrop-blur-md lg:bg-card lg:backdrop-blur-none rounded-2xl shadow-2xl lg:shadow-sm p-6 lg:p-8 border border-white/10 lg:border-border">
           {/* Mode toggle */}
           <div className="flex rounded-xl bg-muted p-1 mb-5">
             <button

@@ -149,7 +149,7 @@ export function LoginScreen() {
           <div className="max-w-lg">
             <div className="flex items-center gap-4 mb-8">
               <img src="/daf-logo.png" alt="DAF" className="h-16 w-16 object-contain" style={{ transform: 'translateX(3px)' }} />
-              <span className="font-gilbert text-4xl text-white tracking-wide leading-none" style={{ transform: 'translate(-6px, 3px)' }}>DAFAGRAM</span>
+              <span className="font-gilbert text-4xl text-white tracking-wide leading-none" style={{ transform: 'translate(-6px, 6px)' }}>DAFAGRAM</span>
             </div>
             <h1 className="text-5xl xl:text-6xl font-bold text-white leading-tight tracking-tight">
               Your adventures,<br />

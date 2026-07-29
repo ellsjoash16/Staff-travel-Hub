@@ -408,24 +408,24 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const tabsContent = (
           <Tabs value={tab} onValueChange={async (v) => { setTab(v); if (v === 'registrations') { setRegistrationsLoading(true); try { await loadRegistrations() } catch { toast.error('Failed to load registrations') } finally { setRegistrationsLoading(false) } } if (v === 'users' && !usersLoaded) { handleLoadUsers() } }}>
             <TabsList className="overflow-x-auto flex-nowrap">
-              <TabsTrigger value="post" className="px-3 text-xs">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
-              <TabsTrigger value="locations" className="px-3 text-xs">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>
-              <TabsTrigger value="trips" className="px-3 text-xs">{editingTripId ? 'Edit Trip' : 'Upcoming Trips'}</TabsTrigger>
-              <TabsTrigger value="years" className="px-3 text-xs">By Year</TabsTrigger>
-              <TabsTrigger value="registrations" className="px-3 text-xs">
+              <TabsTrigger value="post" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
+              <TabsTrigger value="locations" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>
+              <TabsTrigger value="trips" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingTripId ? 'Edit Trip' : 'Upcoming Trips'}</TabsTrigger>
+              <TabsTrigger value="years" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">By Year</TabsTrigger>
+              <TabsTrigger value="registrations" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">
                 Registrations
                 {registrations.length > 0 && (
                   <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{registrations.length}</span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="manage" className="px-3 text-xs">Manage</TabsTrigger>
-              <TabsTrigger value="users" className="px-3 text-xs">
+              <TabsTrigger value="manage" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">Manage</TabsTrigger>
+              <TabsTrigger value="users" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">
                 Users
                 {userProfiles.length > 0 && (
                   <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{userProfiles.length}</span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="settings" className="px-3 text-xs">Settings</TabsTrigger>
+              <TabsTrigger value="settings" className="px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">Settings</TabsTrigger>
             </TabsList>
 
             {/* ── UPLOAD POST ── */}
@@ -1775,8 +1775,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     <Globe className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">Notice Board</p>
-                    <p className="text-xs text-muted-foreground">Shown as a banner on the home screen — leave blank to hide it</p>
+                    <p className="font-semibold text-sm xl:text-base 2xl:text-lg">Notice Board</p>
+                    <p className="text-xs xl:text-sm text-muted-foreground">Shown as a banner on the home screen — leave blank to hide it</p>
                   </div>
                 </div>
                 <div className="p-5 space-y-3">
@@ -1787,8 +1787,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     rows={3}
                   />
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs text-muted-foreground">Supports plain text and emoji. Changing the text resets dismissals for all users.</p>
-                    <Button size="sm" onClick={async () => {
+                    <p className="text-xs xl:text-sm text-muted-foreground">Supports plain text and emoji. Changing the text resets dismissals for all users.</p>
+                    <Button size="sm" className="flex-shrink-0 xl:h-10 xl:px-4 xl:text-sm 2xl:h-11 2xl:text-base" onClick={async () => {
                       try {
                         await saveSettings({ ...settings, notice: sNotice.trim() })
                         toast.success(sNotice.trim() ? 'Notice updated!' : 'Notice cleared')
@@ -1805,14 +1805,14 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     <Globe className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">Demo Data</p>
-                    <p className="text-xs text-muted-foreground">Load placeholder posts, locations and trips for demo purposes</p>
+                    <p className="font-semibold text-sm xl:text-base 2xl:text-lg">Demo Data</p>
+                    <p className="text-xs xl:text-sm text-muted-foreground">Load placeholder posts, locations and trips for demo purposes</p>
                   </div>
                 </div>
                 <div className="px-5 py-4 flex items-center justify-between gap-3">
-                  <p className="text-xs text-muted-foreground">Adds 5 destinations, 5 posts, 3 upcoming trips and 2 past trips. Safe to run multiple times — existing seed data will be overwritten, not duplicated.</p>
+                  <p className="text-xs xl:text-sm text-muted-foreground">Adds 5 destinations, 5 posts, 3 upcoming trips and 2 past trips. Safe to run multiple times — existing seed data will be overwritten, not duplicated.</p>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Button size="sm" variant="destructive" onClick={async () => {
+                    <Button size="sm" variant="destructive" className="xl:h-10 xl:px-4 xl:text-sm 2xl:h-11 2xl:text-base" onClick={async () => {
                       if (!confirm('Remove all demo data? This will delete the 5 seed locations, 5 seed posts and 5 seed trips.')) return
                       try {
                         await clearDemoData()
@@ -1827,7 +1827,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                         toast.error((err as Error)?.message || 'Failed to clear demo data')
                       }
                     }}>Clear Demo Data</Button>
-                    <Button size="sm" variant="secondary" onClick={async () => {
+                    <Button size="sm" variant="secondary" className="xl:h-10 xl:px-4 xl:text-sm 2xl:h-11 2xl:text-base" onClick={async () => {
                       if (!confirm('Load demo data? This will add placeholder posts, locations and trips.')) return
                       try {
                         await seedDemoData()

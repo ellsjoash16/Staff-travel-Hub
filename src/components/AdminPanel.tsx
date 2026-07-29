@@ -1510,7 +1510,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   {u.banUntil ? `Banned until ${new Date(u.banUntil).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Banned'}
                                 </span>
                               )}
-                              {u.isAdmin === true && (
+                              {(u.isAdmin === true || (settings.adminUids ?? []).includes(u.uid) || SUPERADMIN_UIDS.includes(u.uid)) && (
                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Admin</span>
                               )}
                               {u.dataConsent && <span title="Data consent given"><ShieldCheck className="h-4 w-4 text-emerald-500" /></span>}

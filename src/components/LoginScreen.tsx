@@ -193,7 +193,7 @@ export function LoginScreen() {
       </div>
 
       {/* ── Right: form panel ── */}
-      <div className="flex-1 relative flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto lg:bg-background lg:border-l lg:border-border px-6 py-10 lg:px-8 xl:px-10 min-h-screen lg:min-h-0">
+      <div className="flex-1 relative flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto lg:bg-background px-6 py-10 lg:px-8 xl:px-10 min-h-screen lg:min-h-0">
 
         {/* Mobile: blurred background */}
         <div className="lg:hidden absolute inset-0 -z-0" style={{

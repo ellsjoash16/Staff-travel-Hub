@@ -12,6 +12,7 @@ import { Sidebar } from '@/components/Sidebar'
 import { MobileTabBar } from '@/components/MobileTabBar'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LoginScreen } from '@/components/LoginScreen'
+import { Walkthrough } from '@/components/Walkthrough'
 import type { Post } from '@/lib/types'
 
 const LOADING_BG = '/hero-airport.jpg'
@@ -64,6 +65,16 @@ function AppShell() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false)
   const pendingTripId = useRef<string | null>(null)
   const pendingError  = useRef(false)
+
+  // First-run walkthrough — shows on login until the user ticks "Don't show again"
+  const walkthroughKey = `dafagram-tour-${auth.currentUser?.uid ?? 'anon'}`
+  const [showWalkthrough, setShowWalkthrough] = useState(
+    () => localStorage.getItem(walkthroughKey) !== 'dismissed',
+  )
+  function dismissWalkthrough(dontShowAgain: boolean) {
+    if (dontShowAgain) localStorage.setItem(walkthroughKey, 'dismissed')
+    setShowWalkthrough(false)
+  }
 
   // Capture ?trip=ID from Lotus return URL immediately on mount
   useEffect(() => {
@@ -174,6 +185,8 @@ function AppShell() {
         </Suspense>
         </ErrorBoundary>
       </main>
+
+      {showWalkthrough && <Walkthrough onDismiss={dismissWalkthrough} />}
 
       <Toaster position="bottom-right" richColors />
     </div>

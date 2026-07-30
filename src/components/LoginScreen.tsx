@@ -90,7 +90,7 @@ export function LoginScreen() {
     if (!firstName.trim() || !lastName.trim()) { toast.error('Enter your first and last name'); return }
     if (!jobRole) { toast.error('Please select your job role'); return }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { toast.error('Enter a valid email address'); return }
-    if (!email.trim().toLowerCase().endsWith('@dialaflight.co.uk')) { toast.error('You must use your @dialaflight.co.uk email to sign up'); return }
+    if (!/@(dialaflight|dafconcierge)\.co\.uk$/i.test(email.trim())) { toast.error('You must use your @dialaflight.co.uk or @dafconcierge.co.uk email to sign up'); return }
     if (password.length < 6) { toast.error('Password must be at least 6 characters'); return }
     if (password !== confirmPwd) { toast.error('Passwords do not match'); return }
     setBusy(true)
@@ -118,9 +118,9 @@ export function LoginScreen() {
     setBusy(true)
     try {
       const cred = await signInWithPopup(auth, microsoftProvider)
-      if (!cred.user.email?.toLowerCase().endsWith('@dialaflight.co.uk')) {
+      if (!/@(dialaflight|dafconcierge)\.co\.uk$/i.test(cred.user.email ?? '')) {
         await cred.user.delete()
-        toast.error('You must use your @dialaflight.co.uk account')
+        toast.error('You must use your @dialaflight.co.uk or @dafconcierge.co.uk account')
       }
     } catch (err: unknown) {
       const code = (err as { code?: string }).code

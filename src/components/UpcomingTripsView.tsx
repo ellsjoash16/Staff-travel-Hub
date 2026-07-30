@@ -58,7 +58,8 @@ function CountdownTimer({ dateStr }: { dateStr: string }) {
 
 // ── Featured card (next / soonest trip) ───────────────────────────────────────
 
-function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location | null }) {
+function FeaturedTripCard({ trip, locations }: { trip: Trip; locations: Location[] }) {
+  const location = locations[0] ?? null
   const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
@@ -95,7 +96,7 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
             <h2 className="font-gilbert text-xl sm:text-2xl xl:text-3xl mb-1.5 leading-tight">{trip.name}</h2>
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
               {location && (
-                <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3 flex-shrink-0" />{location.name}</span>
+                <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3 flex-shrink-0" />{locations.map(l => l.name).join(' · ')}</span>
               )}
               <span className="flex items-center gap-1.5"><Calendar className="h-3 w-3 flex-shrink-0" />{fmtDate(trip.date)}{trip.endDate ? ` – ${fmtDate(trip.endDate)}` : ''}</span>
               {trip.registrationDeadline && (
@@ -125,7 +126,8 @@ function FeaturedTripCard({ trip, location }: { trip: Trip; location: Location |
 
 // ── Regular trip card ─────────────────────────────────────────────────────────
 
-function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; location: Location | null; showRegisterInterest: boolean }) {
+function TripCard({ trip, locations, showRegisterInterest }: { trip: Trip; locations: Location[]; showRegisterInterest: boolean }) {
+  const location = locations[0] ?? null
   const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
@@ -152,7 +154,7 @@ function TripCard({ trip, location, showRegisterInterest }: { trip: Trip; locati
           <h3 className="font-gilbert text-base sm:text-lg lg:text-xl 2xl:text-2xl mb-1 leading-tight">{trip.name}</h3>
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] sm:text-xs text-muted-foreground mb-1.5">
             {location && (
-              <span className="flex items-center gap-1"><MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{location.name}</span>
+              <span className="flex items-center gap-1"><MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{locations.map(l => l.name).join(' · ')}</span>
             )}
             <span className="flex items-center gap-1"><Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{fmtDate(trip.date)}{trip.endDate ? ` – ${fmtDate(trip.endDate)}` : ''}</span>
             {trip.registrationDeadline && (
@@ -315,6 +317,11 @@ export function UpcomingTripsView() {
     return locationId ? (locations.find(l => l.id === locationId) ?? null) : null
   }
 
+  function getTripLocations(trip: Trip): Location[] {
+    const ids = trip.locationIds?.length ? trip.locationIds : (trip.locationId ? [trip.locationId] : [])
+    return ids.map(id => locations.find(l => l.id === id)).filter(Boolean) as Location[]
+  }
+
   const [featured, ...rest] = upcoming
   const isEmpty = tab === 'trips' ? upcoming.length === 0 : events.length === 0
 
@@ -366,11 +373,11 @@ export function UpcomingTripsView() {
             </div>
           ) : (
             <>
-              {featured && <FeaturedTripCard trip={featured} location={getLocation(featured.locationId)} />}
+              {featured && <FeaturedTripCard trip={featured} locations={getTripLocations(featured)} />}
               {rest.length > 0 && (
                 <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                   {rest.map(trip => (
-                    <TripCard key={trip.id} trip={trip} location={getLocation(trip.locationId)} showRegisterInterest={trip.showRegisterInterest} />
+                    <TripCard key={trip.id} trip={trip} locations={getTripLocations(trip)} showRegisterInterest={trip.showRegisterInterest} />
                   ))}
                 </div>
               )}

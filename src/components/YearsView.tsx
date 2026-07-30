@@ -88,7 +88,8 @@ export function YearsView() {
   const allMonthKeys = [...new Set([...famYearTrips.keys(), ...extYearTrips.keys()])].sort((a, b) => b.localeCompare(a))
 
   function renderTrip(trip: Trip) {
-    const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
+    const locIds = trip.locationIds?.length ? trip.locationIds : (trip.locationId ? [trip.locationId] : [])
+    const tripLocs = locIds.map(id => locations.find(l => l.id === id)).filter(Boolean) as typeof locations
     // Destination photo for located trips; own usable upload otherwise. Dead
     // legacy Firebase uploads are ignored.
     const photo = tripImage(trip, locations, variantByTrip.get(trip.id) ?? 0)
@@ -115,9 +116,10 @@ export function YearsView() {
         <div className="px-3 py-2.5">
           <p className="font-semibold text-xs sm:text-sm text-foreground leading-snug">{trip.name}</p>
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-1">
-            {loc && (
+            {tripLocs.length > 0 && (
               <span className="text-[10px] sm:text-xs text-primary flex items-center gap-1">
-                <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />{loc.name}, {loc.country}
+                <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+                {tripLocs.length === 1 ? `${tripLocs[0].name}, ${tripLocs[0].country}` : tripLocs.map(l => l.name).join(' · ')}
               </span>
             )}
             {trip.participants.length > 0 && (

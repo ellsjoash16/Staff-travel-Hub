@@ -33,7 +33,7 @@ interface PostForm {
 
 
 interface TripForm {
-  name: string; description: string; participants: string; date: string; endDate: string; registrationDeadline: string; image: string | null; locationId: string | null; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string[]; eventVenue: string; eventSpaces: string; eventSponsor: string; allowedRoles: string[]
+  name: string; description: string; participants: string; date: string; endDate: string; registrationDeadline: string; image: string | null; locationIds: string[]; external: boolean; international: boolean; showRegisterInterest: boolean; completed: boolean; isEvent: boolean; eventType: string; eventBuilding: string[]; eventVenue: string; eventSpaces: string; eventSponsor: string; allowedRoles: string[]
 }
 
 interface LocationForm {
@@ -48,7 +48,7 @@ const emptyPostForm = (): PostForm => ({
 })
 
 const emptyTripForm = (): TripForm => ({
-  name: '', description: '', participants: '', date: today(), endDate: '', registrationDeadline: '', image: null, locationId: null, external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: [], eventVenue: '', eventSpaces: '', eventSponsor: '', allowedRoles: [],
+  name: '', description: '', participants: '', date: today(), endDate: '', registrationDeadline: '', image: null, locationIds: [], external: false, international: false, showRegisterInterest: false, completed: false, isEvent: false, eventType: '', eventBuilding: [], eventVenue: '', eventSpaces: '', eventSponsor: '', allowedRoles: [],
 })
 
 const emptyLocationForm = (): LocationForm => ({ name: '', country: '', imageUrl: '' })
@@ -80,15 +80,18 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const buildingRef = useRef<HTMLDivElement>(null)
   const [rolesOpen, setRolesOpen] = useState(false)
   const rolesRef = useRef<HTMLDivElement>(null)
+  const [tripLocOpen, setTripLocOpen] = useState(false)
+  const tripLocRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
       if (buildingRef.current && !buildingRef.current.contains(e.target as Node)) setBuildingOpen(false)
       if (rolesRef.current && !rolesRef.current.contains(e.target as Node)) setRolesOpen(false)
+      if (tripLocRef.current && !tripLocRef.current.contains(e.target as Node)) setTripLocOpen(false)
     }
-    if (buildingOpen || rolesOpen) document.addEventListener('mousedown', handleOutside)
+    if (buildingOpen || rolesOpen || tripLocOpen) document.addEventListener('mousedown', handleOutside)
     return () => document.removeEventListener('mousedown', handleOutside)
-  }, [buildingOpen, rolesOpen])
+  }, [buildingOpen, rolesOpen, tripLocOpen])
   const [manageFolder, setManageFolder] = useState<string | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
 
@@ -261,7 +264,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       endDate: tripForm.endDate || null,
       registrationDeadline: tripForm.registrationDeadline || null,
       image: tripForm.image?.startsWith('https:') ? tripForm.image : null,
-      locationId: tripForm.locationId,
+      locationId: tripForm.locationIds[0] ?? null,
+      locationIds: tripForm.locationIds,
       external: tripForm.external,
       international: tripForm.international,
       showRegisterInterest: tripForm.showRegisterInterest,
@@ -296,7 +300,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       endDate: trip.endDate ?? '',
       registrationDeadline: trip.registrationDeadline ?? '',
       image: trip.image,
-      locationId: trip.locationId ?? null,
+      locationIds: trip.locationIds ?? (trip.locationId ? [trip.locationId] : []),
       external: trip.external ?? false,
       international: trip.international ?? false,
       showRegisterInterest: trip.showRegisterInterest ?? false,
@@ -734,14 +738,41 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 <DatePicker value={tripForm.registrationDeadline} onChange={(v) => setTrip('registrationDeadline', v)} />
               </div>
 
-              <div className="space-y-1.5">
-                <Label>Location <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <AppSelect
-                  value={tripForm.locationId ?? ''}
-                  onChange={val => setTrip('locationId', val || null)}
-                  placeholder="— No location —"
-                  options={[{ value: '', label: '— No location —' }, ...[...locations].sort((a, b) => a.name.localeCompare(b.name)).map(loc => ({ value: loc.id, label: `${loc.name} (${loc.country})` }))]}
-                />
+              <div className="space-y-1.5 relative" ref={tripLocRef}>
+                <Label>Locations <span className="text-muted-foreground font-normal">(optional — pick one or more)</span></Label>
+                <button
+                  type="button"
+                  onClick={() => setTripLocOpen(o => !o)}
+                  className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm lg:text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <span className={tripForm.locationIds.length === 0 ? 'text-muted-foreground' : ''}>
+                    {tripForm.locationIds.length === 0
+                      ? '— No location —'
+                      : tripForm.locationIds.map(id => locations.find(l => l.id === id)?.name).filter(Boolean).join(', ')}
+                  </span>
+                  <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                </button>
+                {tripLocOpen && (
+                  <div className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-background shadow-md">
+                    {[...locations].sort((a, b) => a.name.localeCompare(b.name)).map(loc => (
+                      <label key={loc.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-border accent-primary"
+                          checked={tripForm.locationIds.includes(loc.id)}
+                          onChange={() => {
+                            const next = tripForm.locationIds.includes(loc.id)
+                              ? tripForm.locationIds.filter(x => x !== loc.id)
+                              : [...tripForm.locationIds, loc.id]
+                            setTrip('locationIds', next)
+                          }}
+                        />
+                        {loc.name} <span className="text-muted-foreground">({loc.country})</span>
+                      </label>
+                    ))}
+                    {locations.length === 0 && <p className="px-3 py-2 text-sm text-muted-foreground">No locations yet — add them in the Locations tab.</p>}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-4">
@@ -954,7 +985,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           {t.participants.length > 0 && (
                             <p className="text-xs lg:text-sm text-muted-foreground truncate">{t.participants.join(', ')}</p>
                           )}
-                          {t.locationId && (() => { const loc = locations.find(l => l.id === t.locationId); return loc ? <p className="text-xs text-primary truncate flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{loc.name}</p> : null })()}
+                          {(() => { const ids = t.locationIds?.length ? t.locationIds : (t.locationId ? [t.locationId] : []); const names = ids.map(id => locations.find(l => l.id === id)?.name).filter(Boolean); return names.length ? <p className="text-xs text-primary truncate flex items-center gap-1"><MapPin className="h-3 w-3 flex-shrink-0" />{names.join(' · ')}</p> : null })()}
                           {t.date && <p className="text-xs lg:text-sm text-muted-foreground">{fmtDate(t.date)}{t.endDate ? ` – ${fmtDate(t.endDate)}` : ''}</p>}
                           {t.registrationDeadline && <p className="text-xs lg:text-sm text-muted-foreground">Deadline: {fmtDate(t.registrationDeadline)}</p>}
                           {t.isEvent && <span className="text-[10px] font-medium bg-violet-500/10 text-violet-500 rounded-full px-1.5 py-0.5 w-fit">Event</span>}
@@ -1009,7 +1040,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           <h3 className="font-gilbert text-base mb-2 text-foreground">{year}</h3>
                           <div className="space-y-2">
                             {yearTrips.map(t => {
-                              const loc = t.locationId ? locations.find(l => l.id === t.locationId) : null
+                              const locNames = (t.locationIds?.length ? t.locationIds : (t.locationId ? [t.locationId] : []))
+                                .map(id => locations.find(l => l.id === id)?.name).filter(Boolean)
                               const img = tripImage(t, locations)
                               return (
                                 <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/30">
@@ -1022,7 +1054,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                       <p className="font-semibold text-sm lg:text-base truncate">{t.name}</p>
                                       {t.external && <span className="text-[10px] font-medium bg-primary/10 text-primary rounded-full px-1.5 py-0.5 flex-shrink-0">External</span>}
                                     </div>
-                                    {loc && <p className="text-xs text-primary flex items-center gap-1 mt-0.5 truncate"><MapPin className="h-3 w-3 flex-shrink-0" />{loc.name}</p>}
+                                    {locNames.length > 0 && <p className="text-xs text-primary flex items-center gap-1 mt-0.5 truncate"><MapPin className="h-3 w-3 flex-shrink-0" />{locNames.join(' · ')}</p>}
                                     {t.participants.length > 0 && <p className="text-xs lg:text-sm text-muted-foreground truncate">{t.participants.join(', ')}</p>}
                                     {t.date && <p className="text-xs lg:text-sm text-muted-foreground">{fmtDate(t.date)}</p>}
                                   </div>

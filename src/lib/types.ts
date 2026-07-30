@@ -96,7 +96,8 @@ export interface Trip {
   date: string
   endDate: string | null
   image: string | null
-  locationId: string | null
+  locationId: string | null      // primary location (first of locationIds) — kept for back-compat
+  locationIds?: string[]         // all locations for this trip (from Firestore always populated)
   external: boolean
   completed: boolean
   international: boolean

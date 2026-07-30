@@ -40,7 +40,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
     const locPosts = posts.filter(p => p.locationId === location.id)
     const locCourses = courses.filter(c => c.locationId === location.id)
     const locTrips = trips
-      .filter(t => t.completed && !t.isEvent && t.locationId === location.id)
+      .filter(t => t.completed && !t.isEvent && (t.locationIds?.length ? t.locationIds.includes(location.id) : t.locationId === location.id))
       .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
     setModal({ view: 'location', location, posts: locPosts, courses: locCourses, trips: locTrips, backCountry })
   }
@@ -246,7 +246,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
                   {modal.locations.map(loc => {
                     const pCount = posts.filter(p => p.locationId === loc.id).length
                     const cCount = courses.filter(c => c.locationId === loc.id).length
-                    const tCount = trips.filter(t => t.completed && !t.isEvent && t.locationId === loc.id).length
+                    const tCount = trips.filter(t => t.completed && !t.isEvent && (t.locationIds?.length ? t.locationIds.includes(loc.id) : t.locationId === loc.id)).length
                     const img = loc.imageUrl || destinationImage(loc.name, loc.country)
                     const summary = [
                       tCount > 0 && `${tCount} trip${tCount !== 1 ? 's' : ''}`,

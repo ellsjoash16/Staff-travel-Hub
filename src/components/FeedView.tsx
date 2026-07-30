@@ -181,7 +181,14 @@ export function FeedView() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5 2xl:gap-6 w-full">
             {sorted.slice(0, visible).map((post, i) => (
-              <PostCard key={post.id} post={post} onClick={() => setSelectedPost(post)} tiltDir={i % 2 === 0 ? 1 : -1} />
+              <PostCard
+                key={post.id}
+                post={post}
+                onClick={() => setSelectedPost(post)}
+                tiltDir={i % 2 === 0 ? 1 : -1}
+                locationNames={(post.locationIds?.length ? post.locationIds : (post.locationId ? [post.locationId] : []))
+                  .map(id => locations.find(l => l.id === id)?.name).filter(Boolean) as string[]}
+              />
             ))}
           </div>
           {visible < sorted.length && (

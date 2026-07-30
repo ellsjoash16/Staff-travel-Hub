@@ -9,10 +9,13 @@ interface Props {
   post: Post
   onClick: () => void
   tiltDir?: 1 | -1
+  locationNames?: string[]
 }
 
-export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
+export function PostCard({ post, onClick, tiltDir = 1, locationNames }: Props) {
   const [hovered, setHovered] = useState(false)
+  const locLabel = locationNames?.length ? locationNames.join(' · ') : post.location.name
+  const watermark = locationNames?.[0] ?? post.location.name
 
   return (
     <article
@@ -79,7 +82,7 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
               <p className="font-semibold text-sm 2xl:text-base text-white leading-tight truncate drop-shadow">{post.staff}</p>
               <p className="text-xs 2xl:text-sm text-white/80 flex items-center gap-0.5 truncate drop-shadow">
                 <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
-                {post.location.name}
+                {locLabel}
               </p>
             </div>
           </div>
@@ -91,10 +94,10 @@ export function PostCard({ post, onClick, tiltDir = 1 }: Props) {
 
       {/* Body with destination watermark */}
       <div className="relative px-4 xl:px-5 pt-3 xl:pt-4 pb-2 xl:pb-3 overflow-hidden">
-        {post.location.name && (
+        {watermark && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
             <span className="text-[3.5rem] xl:text-[4.5rem] font-black text-foreground/[0.04] whitespace-nowrap -rotate-12 leading-none tracking-widest uppercase">
-              {post.location.name}
+              {watermark}
             </span>
           </div>
         )}

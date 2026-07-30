@@ -26,7 +26,7 @@ const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activi
 
 interface PostForm {
   title: string; staff: string; staffImage: string | null
-  review: string; locName: string; locationId: string | null
+  review: string; locName: string; locationIds: string[]
   date: string; tags: string; images: string[]
   extras: PostExtras; salesNote: string; riseUrl: string; folder: string | null
 }
@@ -42,7 +42,7 @@ interface LocationForm {
 
 const emptyPostForm = (): PostForm => ({
   title: '', staff: '', staffImage: null, review: '', locName: '',
-  locationId: null, date: today(), tags: '', images: [],
+  locationIds: [], date: today(), tags: '', images: [],
   extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
   salesNote: '', riseUrl: '', folder: null,
 })
@@ -82,16 +82,19 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const rolesRef = useRef<HTMLDivElement>(null)
   const [tripLocOpen, setTripLocOpen] = useState(false)
   const tripLocRef = useRef<HTMLDivElement>(null)
+  const [postLocOpen, setPostLocOpen] = useState(false)
+  const postLocRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
       if (buildingRef.current && !buildingRef.current.contains(e.target as Node)) setBuildingOpen(false)
       if (rolesRef.current && !rolesRef.current.contains(e.target as Node)) setRolesOpen(false)
       if (tripLocRef.current && !tripLocRef.current.contains(e.target as Node)) setTripLocOpen(false)
+      if (postLocRef.current && !postLocRef.current.contains(e.target as Node)) setPostLocOpen(false)
     }
-    if (buildingOpen || rolesOpen || tripLocOpen) document.addEventListener('mousedown', handleOutside)
+    if (buildingOpen || rolesOpen || tripLocOpen || postLocOpen) document.addEventListener('mousedown', handleOutside)
     return () => document.removeEventListener('mousedown', handleOutside)
-  }, [buildingOpen, rolesOpen, tripLocOpen])
+  }, [buildingOpen, rolesOpen, tripLocOpen, postLocOpen])
   const [manageFolder, setManageFolder] = useState<string | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
 
@@ -147,13 +150,14 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     const existingImages = postForm.images.filter((i) => i.startsWith('https:'))
     const newDataUrls = postForm.images.filter((i) => i.startsWith('data:'))
     const staffImageDataUrl = postForm.staffImage?.startsWith('data:') ? postForm.staffImage : null
-    const selectedLocation = locations.find(l => l.id === postForm.locationId)
+    const selectedLocation = locations.find(l => l.id === postForm.locationIds[0])
     const post: Post = {
       id, title: postForm.title, staff: postForm.staff,
       staffImage: postForm.staffImage?.startsWith('https:') ? postForm.staffImage : null,
       review: postForm.review,
       location: { name: selectedLocation?.name ?? postForm.locName, lat: null, lng: null },
-      locationId: postForm.locationId,
+      locationId: postForm.locationIds[0] ?? null,
+      locationIds: postForm.locationIds,
       date: postForm.date || today(),
       tags: [...new Set(postForm.tags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean))],
       images: existingImages,
@@ -184,7 +188,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     setPostForm({
       title: post.title, staff: post.staff, staffImage: post.staffImage,
       review: post.review, locName: post.location.name,
-      locationId: post.locationId,
+      locationIds: post.locationIds ?? (post.locationId ? [post.locationId] : []),
       date: post.date || today(), tags: post.tags.join(', '),
       images: post.images,
       extras: post.extras ?? EMPTY_EXTRAS,
@@ -231,7 +235,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       staffImage: null,
       review: r.review,
       locName: r.location,
-      locationId: null,
+      locationIds: [],
       date: r.date,
       tags: '',
       images: r.images,
@@ -534,18 +538,42 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Location</Label>
-                  <AppSelect
-                    value={postForm.locationId ?? ''}
-                    onChange={(val) => {
-                      const loc = locations.find(l => l.id === val)
-                      setPost('locationId', val || null)
-                      if (loc) setPost('locName', loc.name)
-                    }}
-                    placeholder="— no location —"
-                    options={[{ value: '', label: '— no location —' }, ...locations.map(l => ({ value: l.id, label: `${l.name}, ${l.country}` }))]}
-                  />
+                <div className="space-y-1.5 relative" ref={postLocRef}>
+                  <Label>Locations <span className="text-muted-foreground font-normal">(pick one or more)</span></Label>
+                  <button
+                    type="button"
+                    onClick={() => setPostLocOpen(o => !o)}
+                    className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm lg:text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <span className={postForm.locationIds.length === 0 ? 'text-muted-foreground' : ''}>
+                      {postForm.locationIds.length === 0
+                        ? '— no location —'
+                        : postForm.locationIds.map(id => locations.find(l => l.id === id)?.name).filter(Boolean).join(', ')}
+                    </span>
+                    <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                  </button>
+                  {postLocOpen && locations.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-background shadow-md">
+                      {[...locations].sort((a, b) => a.name.localeCompare(b.name)).map(loc => (
+                        <label key={loc.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-border accent-primary"
+                            checked={postForm.locationIds.includes(loc.id)}
+                            onChange={() => {
+                              const next = postForm.locationIds.includes(loc.id)
+                                ? postForm.locationIds.filter(x => x !== loc.id)
+                                : [...postForm.locationIds, loc.id]
+                              setPost('locationIds', next)
+                              const primary = locations.find(l => l.id === next[0])
+                              if (primary) setPost('locName', primary.name)
+                            }}
+                          />
+                          {loc.name} <span className="text-muted-foreground">({loc.country})</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
                   {locations.length === 0 && (
                     <p className="text-xs lg:text-sm text-muted-foreground">Add locations in the Locations tab first</p>
                   )}

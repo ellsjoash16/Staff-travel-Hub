@@ -104,21 +104,25 @@ export function FeedView() {
   const risePosts = posts.filter((p) => !!p.riseUrl)
   const isRiseArchive = activeRegion === '__rise__'
 
+  // A post can belong to several locations → several regions.
+  function postRegions(p: Post): string[] {
+    const ids = p.locationIds?.length ? p.locationIds : (p.locationId ? [p.locationId] : [])
+    const regions = new Set<string>()
+    for (const id of ids) {
+      const region = getRegion(locations.find((l) => l.id === id)?.country)
+      if (region) regions.add(region)
+    }
+    return [...regions]
+  }
+
   // Region tabs reflect the native feed only
   const regionSet = new Set<string>()
-  for (const post of nativePosts) {
-    const loc = post.locationId ? locations.find((l) => l.id === post.locationId) : null
-    const region = getRegion(loc?.country)
-    if (region) regionSet.add(region)
-  }
+  for (const post of nativePosts) postRegions(post).forEach((r) => regionSet.add(r))
   const availableRegions = REGIONS.filter((r) => regionSet.has(r.label)).map((r) => r.label)
 
   const base = isRiseArchive ? risePosts : nativePosts
   const filtered = (activeRegion && !isRiseArchive)
-    ? base.filter((p) => {
-        const loc = p.locationId ? locations.find((l) => l.id === p.locationId) : null
-        return getRegion(loc?.country) === activeRegion
-      })
+    ? base.filter((p) => postRegions(p).includes(activeRegion))
     : [...base]
 
   const sorted = filtered.sort((a, b) => {

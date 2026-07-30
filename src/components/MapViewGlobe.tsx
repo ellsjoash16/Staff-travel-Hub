@@ -37,7 +37,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
   }, [locations])
 
   function openLocation(location: Location, backCountry: string) {
-    const locPosts = posts.filter(p => p.locationId === location.id)
+    const locPosts = posts.filter(p => (p.locationIds?.length ? p.locationIds.includes(location.id) : p.locationId === location.id))
     const locCourses = courses.filter(c => c.locationId === location.id)
     const locTrips = trips
       .filter(t => t.completed && !t.isEvent && (t.locationIds?.length ? t.locationIds.includes(location.id) : t.locationId === location.id))
@@ -169,7 +169,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
           </div>
           <div className="divide-y divide-border">
             {locs.map(loc => {
-              const pCount = posts.filter(p => p.locationId === loc.id).length
+              const pCount = posts.filter(p => (p.locationIds?.length ? p.locationIds.includes(loc.id) : p.locationId === loc.id)).length
               const cCount = courses.filter(c => c.locationId === loc.id).length
               return (
                 <button
@@ -244,7 +244,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
                   <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wide font-semibold">Select a location</p>
                   {modal.locations.map(loc => {
-                    const pCount = posts.filter(p => p.locationId === loc.id).length
+                    const pCount = posts.filter(p => (p.locationIds?.length ? p.locationIds.includes(loc.id) : p.locationId === loc.id)).length
                     const cCount = courses.filter(c => c.locationId === loc.id).length
                     const tCount = trips.filter(t => t.completed && !t.isEvent && (t.locationIds?.length ? t.locationIds.includes(loc.id) : t.locationId === loc.id)).length
                     const img = loc.imageUrl || destinationImage(loc.name, loc.country)

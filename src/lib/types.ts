@@ -32,7 +32,8 @@ export interface Post {
   staffImage: string | null
   review: string
   location: PostLocation
-  locationId: string | null
+  locationId: string | null      // primary location (first of locationIds)
+  locationIds?: string[]         // all locations for this post
   date: string
   tags: string[]
   images: string[]

@@ -1,60 +1,77 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, CaretLeft, CaretRight, Compass, Camera, Globe, Airplane, CalendarDots, PaperPlaneTilt } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
+import type { View } from '@/lib/types'
 
-const STEPS: { Icon: React.ElementType; title: string; body: string }[] = [
-  { Icon: Compass,        title: 'Welcome to DAFAGRAM',   body: "Your team's hub for sharing travel experiences, discovering destinations and registering for upcoming trips. Here's a quick tour." },
-  { Icon: Camera,         title: 'Browse the Feed',        body: 'See trip photos, reviews and sales tips shared by colleagues from across the business.' },
-  { Icon: Globe,          title: 'Explore the World Map',  body: 'Tap any country to see the destinations colleagues have visited, along with their write-ups and past trips.' },
-  { Icon: Airplane,       title: 'Upcoming Trips',         body: "See what group trips are coming up and register your interest. Use “Update passport info” to keep your details current." },
-  { Icon: CalendarDots,   title: 'Trips By Year',          body: 'Browse the full archive of past FAM and external trips, neatly organised by year.' },
-  { Icon: PaperPlaneTilt, title: 'Share Your Trip',        body: 'Been somewhere great? Submit your own photos and review so the whole team can benefit.' },
+const STEPS: { view: View; Icon: React.ElementType; title: string; body: string }[] = [
+  { view: 'home',     Icon: Compass,        title: 'Welcome to DAFAGRAM',  body: "Your team's hub for travel experiences. This is your home dashboard — jump to any area from here or the sidebar." },
+  { view: 'feed',     Icon: Camera,         title: 'The Feed',             body: 'Trip photos, reviews and sales tips shared by colleagues across the business. Tap any post to read the full write-up.' },
+  { view: 'map',      Icon: Globe,          title: 'The World Map',        body: 'Tap any country to see the destinations colleagues have visited, plus their reviews and past trips.' },
+  { view: 'upcoming', Icon: Airplane,       title: 'Upcoming Trips',       body: 'See what group trips are coming up and register your interest. Use “Update passport info” to keep your details current.' },
+  { view: 'years',    Icon: CalendarDots,   title: 'Trips By Year',        body: 'The full archive of past FAM and external trips, neatly organised by year.' },
+  { view: 'submit',   Icon: PaperPlaneTilt, title: 'Share Your Trip',      body: 'Been somewhere great? Submit your own photos and review so the whole team can benefit.' },
 ]
 
-export function Walkthrough({ onDismiss }: { onDismiss: (dontShowAgain: boolean) => void }) {
+export function Walkthrough({
+  onNavigate,
+  onDismiss,
+}: {
+  onNavigate: (view: View) => void
+  onDismiss: (dontShowAgain: boolean) => void
+}) {
   const [step, setStep] = useState(0)
   const [dontShow, setDontShow] = useState(true)
   const isLast = step === STEPS.length - 1
   const { Icon, title, body } = STEPS[step]
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl overflow-hidden">
+  // Take the user to the screen this step is about.
+  useEffect(() => { onNavigate(STEPS[step].view) }, [step, onNavigate])
 
-        {/* Icon header */}
-        <div className="relative bg-gradient-to-br from-primary/15 to-primary/5 px-6 pt-8 pb-6 flex flex-col items-center text-center">
+  function finish(dontShowAgain: boolean) {
+    onNavigate('home')
+    onDismiss(dontShowAgain)
+  }
+
+  return (
+    // Wrapper lets clicks pass through to the app behind; only the card is interactive.
+    <div className="fixed inset-x-0 bottom-20 lg:bottom-6 z-[100] flex justify-center px-4 pointer-events-none">
+      <div className="pointer-events-auto w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+
+        {/* Header */}
+        <div className="flex items-center gap-3 px-5 pt-4">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <Icon className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-primary/70">Step {step + 1} of {STEPS.length}</p>
+            <h2 className="font-gilbert text-lg text-foreground leading-tight">{title}</h2>
+          </div>
           <button
-            onClick={() => onDismiss(dontShow)}
-            className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Close"
+            onClick={() => finish(dontShow)}
+            className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 self-start"
+            aria-label="Close tour"
           >
             <X className="h-5 w-5" />
           </button>
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
-            <Icon className="h-8 w-8 text-primary" />
-          </div>
-          <h2 className="font-gilbert text-xl text-foreground">{title}</h2>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5">
-          <p className="text-sm text-muted-foreground leading-relaxed text-center min-h-[64px]">{body}</p>
+        <p className="px-5 pt-2 text-sm text-muted-foreground leading-relaxed">{body}</p>
 
-          {/* Progress dots */}
-          <div className="flex items-center justify-center gap-1.5 mt-5">
-            {STEPS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setStep(i)}
-                className={`h-1.5 rounded-full transition-all ${i === step ? 'w-5 bg-primary' : 'w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50'}`}
-                aria-label={`Go to step ${i + 1}`}
-              />
-            ))}
-          </div>
+        {/* Progress dots */}
+        <div className="flex items-center gap-1.5 px-5 mt-4">
+          {STEPS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setStep(i)}
+              className={`h-1.5 rounded-full transition-all ${i === step ? 'w-5 bg-primary' : 'w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50'}`}
+              aria-label={`Go to step ${i + 1}`}
+            />
+          ))}
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-5 flex items-center justify-between gap-3">
+        <div className="px-5 py-4 mt-2 flex items-center justify-between gap-3 border-t border-border/60">
           <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
             <input
               type="checkbox"
@@ -72,7 +89,7 @@ export function Walkthrough({ onDismiss }: { onDismiss: (dontShowAgain: boolean)
               </Button>
             )}
             {isLast ? (
-              <Button size="sm" onClick={() => onDismiss(dontShow)}>Get started</Button>
+              <Button size="sm" onClick={() => finish(dontShow)}>Finish</Button>
             ) : (
               <Button size="sm" onClick={() => setStep(s => s + 1)} className="gap-1">
                 Next <CaretRight className="h-4 w-4" />

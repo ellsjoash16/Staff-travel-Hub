@@ -186,7 +186,12 @@ function AppShell() {
         </ErrorBoundary>
       </main>
 
-      {showWalkthrough && <Walkthrough onDismiss={dismissWalkthrough} />}
+      {showWalkthrough && (
+        <Walkthrough
+          onNavigate={(view) => dispatch({ type: 'SET_VIEW', view })}
+          onDismiss={dismissWalkthrough}
+        />
+      )}
 
       <Toaster position="bottom-right" richColors />
     </div>

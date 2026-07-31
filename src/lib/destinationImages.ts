@@ -47,6 +47,9 @@ const DESTINATION_IMAGES: Record<string, string | string[]> = {
   'seville':      U('1558370781-d6196949e317'),
   'verona':       'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Verona_cityscape_sunny.jpg/960px-Verona_cityscape_sunny.jpg',
   'golden triangle': U('1599661046289-e31897846e41'),
+  'hawaii':       'https://images.unsplash.com/photo-1542259009477-d625272157b7?auto=format&fit=crop&w=1600&q=80',
+  'honolulu':     'https://images.unsplash.com/photo-1542259009477-d625272157b7?auto=format&fit=crop&w=1600&q=80',
+  'maui':         'https://images.unsplash.com/photo-1542259009477-d625272157b7?auto=format&fit=crop&w=1600&q=80',
 
   // ── Countries (fallback) ──
   'united arab emirates': U('1512453979798-5ea266f8880c'),

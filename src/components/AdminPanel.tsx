@@ -146,6 +146,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     if (!postForm.title || !postForm.staff || (!postForm.review && !postForm.riseUrl)) {
       toast.error('Title, staff member and either a review or Rise 360 URL are required'); return
     }
+    if (!postForm.riseUrl && postForm.images.length === 0) {
+      toast.error('Add at least one photo'); return
+    }
     const id = editingPostId || crypto.randomUUID()
     const existingImages = postForm.images.filter((i) => i.startsWith('https:'))
     const newDataUrls = postForm.images.filter((i) => i.startsWith('data:'))

@@ -18,13 +18,15 @@ export default async function handler(req, res) {
     const sa = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
     await verifyIdToken(token, sa.project_id) // reject unauthenticated callers
 
-    const url = `https://api.unsplash.com/search/photos?per_page=12&orientation=landscape&content_filter=high&query=${encodeURIComponent(query)}`
+    // Bias toward scenic travel photos and rank by relevance.
+    const q = `${query} travel`
+    const url = `https://api.unsplash.com/search/photos?per_page=12&orientation=landscape&content_filter=high&order_by=relevant&query=${encodeURIComponent(q)}`
     const r = await fetch(url, { headers: { Authorization: `Client-ID ${key}` } })
     if (!r.ok) return res.status(502).json({ error: `Unsplash error ${r.status}` })
 
     const data = await r.json()
     const results = (data.results ?? []).map((p) => ({
-      url: `${p.urls.raw}&auto=format&fit=crop&w=800&q=75`,
+      url: `${p.urls.raw}&auto=format&fit=crop&w=1600&q=80`,
       thumb: p.urls.thumb,
       credit: p.user?.name ?? null,
     }))

@@ -193,6 +193,16 @@ function AppShell() {
         />
       )}
 
+      {/* Post opened from the search bar (works from any view) */}
+      <Suspense fallback={null}>
+        {state.openPost && (
+          <PostDetailDialog
+            post={state.openPost}
+            onOpenChange={(open) => { if (!open) dispatch({ type: 'SET_OPEN_POST', post: null }) }}
+          />
+        )}
+      </Suspense>
+
       <Toaster position="bottom-right" richColors />
     </div>
   )

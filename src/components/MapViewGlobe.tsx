@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import Map, { Source, Layer, MapMouseEvent } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { X, BookOpen, CaretLeft as ChevronLeft, List, MapTrifold as MapIcon, Globe, MapPin, Airplane } from '@phosphor-icons/react'
@@ -15,7 +15,7 @@ type ModalState =
   | { view: 'location'; location: Location; posts: Post[]; courses: Course[]; trips: Trip[]; backCountry: string }
 
 export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => void }) {
-  const { state } = useApp()
+  const { state, dispatch } = useApp()
   const { posts, courses, locations, trips, settings } = state
   const pinColor = settings.color || '#05979a'
   const [modal, setModal] = useState<ModalState>(null)
@@ -44,6 +44,15 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
       .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
     setModal({ view: 'location', location, posts: locPosts, courses: locCourses, trips: locTrips, backCountry })
   }
+
+  // Open a location's card when the search bar targets one
+  useEffect(() => {
+    if (!state.openLocationId) return
+    const loc = locations.find(l => l.id === state.openLocationId)
+    if (loc) openLocation(loc, loc.country)
+    dispatch({ type: 'SET_OPEN_LOCATION', id: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.openLocationId])
 
   const handleClick = useCallback((e: MapMouseEvent) => {
     const feature = e.features?.[0]

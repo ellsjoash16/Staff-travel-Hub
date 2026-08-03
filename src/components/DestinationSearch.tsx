@@ -65,13 +65,17 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
     setQuery('')
     setOpen(false)
     onClose?.()
-    if (r.type === 'location') dispatch({ type: 'SET_VIEW', view: 'map' })
-    else if (r.type === 'post') {
-      const tag = posts.find(p => `post-${p.id}` === r.id)?.tags[0] ?? null
-      dispatch({ type: 'SET_FILTER', filter: tag })
-      dispatch({ type: 'SET_VIEW', view: 'feed' })
+    if (r.type === 'location') {
+      const id = r.id.replace(/^loc-/, '')
+      dispatch({ type: 'SET_OPEN_LOCATION', id })
+      dispatch({ type: 'SET_VIEW', view: 'map' })
+    } else if (r.type === 'post') {
+      const post = posts.find(p => `post-${p.id}` === r.id)
+      if (post) dispatch({ type: 'SET_OPEN_POST', post })
+    } else if (r.type === 'course') {
+      const course = courses.find(c => `course-${c.id}` === r.id)
+      if (course?.riseUrl) window.open(course.riseUrl, '_blank')
     }
-    else if (r.type === 'course') dispatch({ type: 'SET_VIEW', view: 'upcoming' })
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

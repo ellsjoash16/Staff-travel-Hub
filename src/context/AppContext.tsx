@@ -52,6 +52,8 @@ interface AppState {
   isAdmin: boolean
   activeView: View
   activeFilter: string | null
+  openPost: Post | null           // post to open in a detail dialog (from search)
+  openLocationId: string | null   // location to open on the map (from search)
   loading: boolean
   postsLoaded: boolean
   pendingPosts: Post[]
@@ -71,6 +73,8 @@ type Action =
   | { type: 'SET_LOADING'; value: boolean }
   | { type: 'SET_VIEW'; view: View }
   | { type: 'SET_FILTER'; filter: string | null }
+  | { type: 'SET_OPEN_POST'; post: Post | null }
+  | { type: 'SET_OPEN_LOCATION'; id: string | null }
   | { type: 'SET_ADMIN'; value: boolean }
   | { type: 'SET_PENDING'; posts: Post[] }
   | { type: 'SET_REGISTRATIONS'; registrations: Registration[] }
@@ -113,6 +117,8 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_LOADING': return { ...state, loading: action.value }
     case 'SET_VIEW': return { ...state, activeView: action.view }
     case 'SET_FILTER': return { ...state, activeFilter: action.filter }
+    case 'SET_OPEN_POST': return { ...state, openPost: action.post }
+    case 'SET_OPEN_LOCATION': return { ...state, openLocationId: action.id }
     case 'SET_ADMIN': return { ...state, isAdmin: action.value }
     case 'SET_PENDING': return { ...state, pendingPosts: action.posts }
     case 'SET_REGISTRATIONS': return { ...state, registrations: action.registrations }
@@ -206,7 +212,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     posts: [], courses: [], submissions: [], trips: [], locations: [],
     settings: DEFAULT_SETTINGS,
     isAdmin: uid0 != null && SUPERADMIN_UIDS.includes(uid0),
-    activeView: 'home', activeFilter: null, loading: true,
+    activeView: 'home', activeFilter: null, openPost: null, openLocationId: null, loading: true,
     postsLoaded: false, pendingPosts: [], registrations: [], userProfiles: [], myRegistrations: [],
     currentUserProfile: null,
   })

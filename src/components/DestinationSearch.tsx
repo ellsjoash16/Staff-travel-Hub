@@ -155,7 +155,7 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
                           onMouseDown={() => select(r)}
                           onMouseEnter={() => setActiveIdx(idx)}
                           className={`w-full flex items-center gap-3 px-3 py-2 mx-1.5 rounded-xl text-left transition-colors ${
-                            activeIdx === idx ? 'bg-muted' : 'hover:bg-muted'
+                            activeIdx === idx ? 'bg-primary/10' : 'hover:bg-primary/10'
                           }`}
                           style={{ width: 'calc(100% - 12px)' }}
                         >

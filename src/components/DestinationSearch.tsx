@@ -131,7 +131,7 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
       </div>
 
       {open && query.trim() && (
-        <div className="absolute top-full mt-2 left-0 right-0 bg-zinc-900/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] overflow-hidden z-50">
+        <div className="absolute top-full mt-2 left-0 right-0 bg-zinc-950/50 backdrop-blur-2xl rounded-2xl border border-white/15 shadow-[0_8px_40px_rgba(0,0,0,0.45)] overflow-hidden z-50">
           {results.length === 0 ? (
             <div className="flex items-center gap-3 px-4 py-4">
               <MagnifyingGlass className="h-4 w-4 text-white/50 flex-shrink-0" />

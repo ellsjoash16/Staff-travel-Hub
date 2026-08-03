@@ -223,7 +223,7 @@ export function SubmitView() {
         />
       </div>
       <div className="relative flex justify-center gap-8 xl:gap-12 py-3 sm:py-5 lg:py-6 xl:py-8 px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
-      <div className="w-full max-w-[620px] rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-4 py-4 sm:px-6 sm:py-6">
+      <div className="w-full max-w-[620px] rounded-2xl bg-zinc-950/50 backdrop-blur-2xl border border-white/15 shadow-2xl px-4 py-4 sm:px-6 sm:py-6">
 
         {/* Header card — desktop only */}
         <div className="hidden sm:block rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 mb-6 text-center">
@@ -385,7 +385,7 @@ export function SubmitView() {
 
       {/* ── Desktop tips panel ── */}
       <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0 pt-2">
-        <div className="sticky top-6 rounded-2xl p-5 space-y-4 bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl">
+        <div className="sticky top-6 rounded-2xl p-5 space-y-4 bg-zinc-950/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Step {step} of 6</p>
             <h3 className="font-gilbert text-base text-foreground">{tips.heading}</h3>

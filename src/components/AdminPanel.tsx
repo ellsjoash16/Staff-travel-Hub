@@ -692,7 +692,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       value={locationForm.imageUrl}
                       onChange={(e) => { setLocationForm(f => ({ ...f, imageUrl: e.target.value })); setPhotoResults([]) }}
                     />
-                    <p className="text-[11px] text-muted-foreground">Searches Unsplash for the location name. Trips without their own photo use this image.</p>
+                    <p className="text-[11px] text-muted-foreground">Click Find photo to search Unsplash, or paste any direct image URL to hotlink it. Trips without their own photo use this image.</p>
                   </div>
                 </div>
               </div>

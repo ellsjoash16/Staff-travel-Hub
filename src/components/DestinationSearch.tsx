@@ -93,9 +93,9 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
   }
 
   const typeIcon: Record<ResultType, React.ReactNode> = {
-    location: <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0"><MapPin className="h-4 w-4 text-primary" /></div>,
-    post:     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0"><Camera className="h-4 w-4 text-primary" /></div>,
-    course:   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 flex-shrink-0"><BookOpen className="h-4 w-4 text-emerald-500" /></div>,
+    location: <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 flex-shrink-0"><MapPin className="h-4 w-4 text-white" /></div>,
+    post:     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 flex-shrink-0"><Camera className="h-4 w-4 text-white" /></div>,
+    course:   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 flex-shrink-0"><BookOpen className="h-4 w-4 text-white" /></div>,
   }
 
   const sections: { type: ResultType; label: string }[] = [
@@ -131,11 +131,11 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
       </div>
 
       {open && query.trim() && (
-        <div className="absolute top-full mt-2 left-0 right-0 bg-popover rounded-2xl border border-border shadow-[0_8px_40px_rgba(0,0,0,0.18)] overflow-hidden z-50">
+        <div className="absolute top-full mt-2 left-0 right-0 bg-zinc-900/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] overflow-hidden z-50">
           {results.length === 0 ? (
             <div className="flex items-center gap-3 px-4 py-4">
-              <MagnifyingGlass className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <p className="text-sm text-muted-foreground">No results for <span className="font-medium text-foreground">"{query}"</span></p>
+              <MagnifyingGlass className="h-4 w-4 text-white/50 flex-shrink-0" />
+              <p className="text-sm text-white/70">No results for <span className="font-medium text-white">"{query}"</span></p>
             </div>
           ) : (
             <div className="py-1.5">
@@ -144,7 +144,7 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
                 if (group.length === 0) return null
                 return (
                   <div key={type}>
-                    <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+                    <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-white/50">
                       {label}
                     </p>
                     {group.map(r => {
@@ -155,14 +155,14 @@ export function DestinationSearch({ autoFocus, onClose }: Props) {
                           onMouseDown={() => select(r)}
                           onMouseEnter={() => setActiveIdx(idx)}
                           className={`w-full flex items-center gap-3 px-3 py-2 mx-1.5 rounded-xl text-left transition-colors ${
-                            activeIdx === idx ? 'bg-primary/10' : 'hover:bg-primary/10'
+                            activeIdx === idx ? 'bg-white/10' : 'hover:bg-white/10'
                           }`}
                           style={{ width: 'calc(100% - 12px)' }}
                         >
                           {typeIcon[r.type]}
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium truncate leading-tight">{r.label}</p>
-                            <p className="text-xs text-muted-foreground truncate mt-0.5">{r.sublabel}</p>
+                            <p className="text-sm font-medium truncate leading-tight text-white">{r.label}</p>
+                            <p className="text-xs text-white/60 truncate mt-0.5">{r.sublabel}</p>
                           </div>
                         </button>
                       )

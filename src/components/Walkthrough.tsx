@@ -33,18 +33,17 @@ export function Walkthrough({
   }
 
   return (
-    // `dark` forces the whole component to render in dark-mode colours regardless of the app theme.
     // Wrapper lets clicks pass through to the app behind; only the card is interactive.
-    <div className="dark fixed inset-x-0 bottom-20 lg:bottom-6 z-[100] flex justify-center px-4 pointer-events-none text-foreground">
+    <div className="fixed inset-x-0 bottom-20 lg:bottom-6 z-[100] flex justify-center px-4 pointer-events-none">
       <div className="pointer-events-auto w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
 
         {/* Header */}
         <div className="flex items-center gap-3 px-5 pt-4">
-          <div className="w-11 h-11 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-            <Icon className="h-6 w-6 text-foreground" />
+          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <Icon className="h-6 w-6 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Step {step + 1} of {STEPS.length}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-primary/70">Step {step + 1} of {STEPS.length}</p>
             <h2 className="font-gilbert text-lg text-foreground leading-tight">{title}</h2>
           </div>
           <button

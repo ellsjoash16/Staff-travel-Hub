@@ -207,7 +207,7 @@ export function SubmitView() {
   const tips = STEP_TIPS[step]
 
   return (
-    <div className="relative min-h-full overflow-hidden">
+    <div className="dark relative min-h-full overflow-hidden text-foreground">
       {/* Background — absolute inset-0 stretches to full content height once overflow-auto is on main */}
       <div className="absolute inset-0 pointer-events-none">
         <div

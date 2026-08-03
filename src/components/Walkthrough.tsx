@@ -39,8 +39,8 @@ export function Walkthrough({
 
         {/* Header */}
         <div className="flex items-center gap-3 px-5 pt-4">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-            <Icon className="h-6 w-6 text-primary" />
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 ring-1 ring-primary/15 flex items-center justify-center flex-shrink-0">
+            <Icon className="h-6 w-6 text-primary" weight="duotone" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-primary/70">Step {step + 1} of {STEPS.length}</p>

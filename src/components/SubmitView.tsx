@@ -223,7 +223,7 @@ export function SubmitView() {
         />
       </div>
       <div className="relative flex justify-center gap-8 xl:gap-12 py-3 sm:py-5 lg:py-6 xl:py-8 px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
-      <div className="w-full max-w-[620px] rounded-2xl bg-zinc-950/50 backdrop-blur-2xl border border-white/15 shadow-2xl px-4 py-4 sm:px-6 sm:py-6">
+      <div className="w-full max-w-[620px] submit-glass rounded-2xl bg-zinc-950/50 backdrop-blur-2xl border border-white/15 shadow-2xl px-4 py-4 sm:px-6 sm:py-6">
 
         {/* Header card — desktop only */}
         <div className="hidden sm:block rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 mb-6 text-center">

@@ -171,3 +171,15 @@
 
 /* Hide Mapbox logo */
 .mapboxgl-ctrl-logo { display: none !important; }
+
+/* Submit form: fields on the dark glass panel */
+.submit-glass input:not([type='checkbox']):not([type='radio']),
+.submit-glass textarea {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.submit-glass input::placeholder,
+.submit-glass textarea::placeholder { color: rgba(255, 255, 255, 0.45); }
+.submit-glass label { color: rgba(255, 255, 255, 0.92); }
+.submit-glass .text-muted-foreground { color: rgba(255, 255, 255, 0.55); }

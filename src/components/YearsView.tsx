@@ -68,7 +68,7 @@ export function YearsView() {
 
   if (completedTrips.length === 0) {
     return (
-      <div className="relative h-full overflow-auto">
+      <div className="dark relative h-full overflow-auto text-foreground">
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
         </div>
@@ -156,7 +156,7 @@ export function YearsView() {
   return (
     /* On lg+: fill the viewport, no page scroll — cards scroll internally.
        On mobile: page scrolls naturally. */
-    <div className="relative h-full overflow-auto lg:overflow-hidden">
+    <div className="dark relative h-full overflow-auto lg:overflow-hidden text-foreground">
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div style={{
           position: 'absolute', inset: 0,

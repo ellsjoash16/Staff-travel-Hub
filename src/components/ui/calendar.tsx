@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { DayPicker } from 'react-day-picker'
-import { CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { CaretLeft, CaretRight, CaretDown } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
@@ -26,12 +26,14 @@ export function Calendar({
         months: 'flex flex-col',
         month: 'space-y-3',
         caption: 'flex justify-between items-center mb-1',
-        // Hidden — the styled native <select> shows the value instead (rdp's
-        // default overlay CSS isn't loaded here).
-        caption_label: 'sr-only',
-        // Month + year dropdowns — click to jump quickly.
+        // Month + year dropdowns — click the label to jump quickly. The visible
+        // label sizes tightly to the current value; a transparent <select> is
+        // overlaid on top to open the native picker (rdp's default overlay CSS
+        // isn't loaded here, so we recreate it with Tailwind).
         caption_dropdowns: 'flex items-center gap-1',
-        dropdown: 'appearance-none bg-transparent text-sm font-semibold text-foreground cursor-pointer rounded-md px-1 py-0.5 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1',
+        caption_label: 'inline-flex items-center gap-0.5 text-sm font-semibold text-foreground cursor-pointer rounded-md px-1 py-0.5 hover:bg-muted',
+        dropdown: 'absolute inset-0 w-full h-full appearance-none opacity-0 cursor-pointer',
+        dropdown_icon: 'h-3 w-3 text-muted-foreground',
         dropdown_month: 'relative inline-flex items-center',
         dropdown_year: 'relative inline-flex items-center',
         vhidden: 'sr-only',
@@ -66,6 +68,7 @@ export function Calendar({
       components={{
         IconLeft: () => <CaretLeft className="h-4 w-4" />,
         IconRight: () => <CaretRight className="h-4 w-4" />,
+        IconDropdown: () => <CaretDown className="h-3 w-3 text-muted-foreground" />,
       }}
       {...props}
     />

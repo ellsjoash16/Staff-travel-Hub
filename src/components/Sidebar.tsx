@@ -146,7 +146,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
       >
         {/* ── Logo ── */}
         <div
-          className={`flex-shrink-0 flex items-center h-14 sm:h-16 2xl:h-20 overflow-hidden border-b border-white/10 bg-gradient-to-b from-zinc-950/90 to-black/95 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_6px_24px_rgba(0,0,0,0.25)] ${expanded ? 'px-4' : 'justify-center'}`}
+          className={`flex-shrink-0 flex items-center h-14 sm:h-16 2xl:h-20 overflow-hidden border-b border-white/10 bg-gradient-to-b from-zinc-950/90 to-black/95 backdrop-blur-2xl shadow-[0_6px_24px_rgba(0,0,0,0.25)] ${expanded ? 'px-4' : 'justify-center'}`}
         >
           <button
             type="button"

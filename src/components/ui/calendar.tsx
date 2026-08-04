@@ -5,17 +5,36 @@ import { cn } from '@/lib/utils'
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
-export function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+export function Calendar({
+  className,
+  classNames,
+  showOutsideDays = true,
+  captionLayout = 'dropdown-buttons',
+  fromYear = 2005,
+  toYear = new Date().getFullYear() + 5,
+  ...props
+}: CalendarProps) {
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       fixedWeeks
+      captionLayout={captionLayout}
+      fromYear={fromYear}
+      toYear={toYear}
       className={cn('p-3 w-[280px]', className)}
       classNames={{
         months: 'flex flex-col',
         month: 'space-y-3',
         caption: 'flex justify-between items-center mb-1',
-        caption_label: 'text-sm font-semibold text-foreground',
+        // Hidden — the styled native <select> shows the value instead (rdp's
+        // default overlay CSS isn't loaded here).
+        caption_label: 'sr-only',
+        // Month + year dropdowns — click to jump quickly.
+        caption_dropdowns: 'flex items-center gap-1',
+        dropdown: 'appearance-none bg-transparent text-sm font-semibold text-foreground cursor-pointer rounded-md px-1 py-0.5 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1',
+        dropdown_month: 'relative inline-flex items-center',
+        dropdown_year: 'relative inline-flex items-center',
+        vhidden: 'sr-only',
         nav: 'flex items-center gap-1',
         nav_button: cn(
           'h-7 w-7 bg-transparent p-0 rounded-lg hover:bg-muted transition-colors inline-flex items-center justify-center text-muted-foreground hover:text-foreground'

@@ -65,7 +65,7 @@ function ScrollerCaption({ displayMonth }: CaptionProps) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 z-20 mt-1 flex gap-1 rounded-xl border border-border bg-popover p-1 shadow-lg">
+          <div className="absolute top-full left-0 z-20 mt-1 flex gap-1 rounded-xl border border-border bg-card p-1 shadow-xl">
             <div ref={monthCol} className="h-48 w-32 overflow-y-auto scroll-smooth">
               {MONTHS.map((m, i) => {
                 const sel = i === curMonth

@@ -151,6 +151,12 @@ function AppShell() {
       <Sidebar onExpandedChange={setSidebarExpanded} />
       <MobileTabBar />
 
+      {/* One glass glimmer that sweeps the whole top strip — across the sidebar,
+          then through the header — reading as a single continuous bar. */}
+      <div aria-hidden className="pointer-events-none fixed top-0 left-0 right-0 h-14 sm:h-16 2xl:h-20 z-[60] overflow-hidden">
+        <div className="header-glimmer absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+      </div>
+
       <main
         className={`flex-1 min-h-0 overflow-auto transition-all duration-200 ${
           sidebarExpanded ? 'lg:ml-60 xl:ml-72' : 'lg:ml-16 xl:ml-20'

@@ -11,7 +11,7 @@ export function Header() {
   const logoOffset = (() => { try { const s = localStorage.getItem('logo-offset'); return s ? JSON.parse(s) : { x: 0, y: 0 } } catch { return { x: 0, y: 0 } } })()
 
   return (
-    <header className="sticky top-0 z-40 bg-zinc-950/70 backdrop-blur-xl border-b border-white/10">
+    <header className="sticky top-0 z-40 bg-zinc-950/60 backdrop-blur-2xl border-b border-white/10">
       <div className="flex h-14 sm:h-16 2xl:h-20 items-center pr-4 sm:pr-6 2xl:pr-10 gap-3 2xl:gap-4">
 
         {/* Left: Logo + Title (mobile only) */}

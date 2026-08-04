@@ -11,7 +11,7 @@ export function Header() {
   const logoOffset = (() => { try { const s = localStorage.getItem('logo-offset'); return s ? JSON.parse(s) : { x: 0, y: 0 } } catch { return { x: 0, y: 0 } } })()
 
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-b from-zinc-950/80 to-black/92 backdrop-blur-2xl border-b border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_6px_24px_rgba(0,0,0,0.25)]">
+    <header className="sticky top-0 z-40 bg-gradient-to-b from-zinc-950/90 to-black/95 backdrop-blur-2xl border-b border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_6px_24px_rgba(0,0,0,0.25)]">
       {/* Glass glimmer — a light band that sweeps across every few seconds */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="header-glimmer absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent" />

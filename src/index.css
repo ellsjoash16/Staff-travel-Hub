@@ -183,3 +183,14 @@
 .submit-glass textarea::placeholder { color: rgba(255, 255, 255, 0.45); }
 .submit-glass label { color: rgba(255, 255, 255, 0.92); }
 .submit-glass .text-muted-foreground { color: rgba(255, 255, 255, 0.55); }
+
+/* Glass header glimmer — sweeps a light band across, then rests */
+@keyframes header-glimmer {
+  0%   { transform: translateX(-160%) skewX(-14deg); opacity: 0; }
+  6%   { opacity: 1; }
+  16%  { transform: translateX(360%) skewX(-14deg); opacity: 1; }
+  20%  { opacity: 0; }
+  100% { transform: translateX(360%) skewX(-14deg); opacity: 0; }
+}
+.header-glimmer { animation: header-glimmer 7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .header-glimmer { animation: none; } }

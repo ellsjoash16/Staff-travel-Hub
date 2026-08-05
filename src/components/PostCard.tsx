@@ -105,7 +105,7 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames }: Props) {
         {post.riseUrl ? (
           <p className="relative text-sm text-primary font-medium flex items-center gap-1.5">
             <PlayCircle className="h-3.5 w-3.5 flex-shrink-0" />
-            Launch Rise 360
+            Click to see review
           </p>
         ) : (
           <p className="relative text-sm 2xl:text-base text-muted-foreground leading-relaxed line-clamp-3">{post.review}</p>

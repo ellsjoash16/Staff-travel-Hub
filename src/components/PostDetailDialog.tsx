@@ -193,7 +193,7 @@ export function PostDetailDialog({ post, onOpenChange }: Props) {
                 <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                   <PlayCircle className="h-10 w-10 text-primary" />
                 </div>
-                <span className="text-sm font-semibold text-primary">Launch Rise 360</span>
+                <span className="text-sm font-semibold text-primary">Click to see review</span>
               </a>
             ) : (
               <div className="space-y-5">

@@ -34,16 +34,16 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames }: Props) {
     >
     <article className="bg-card rounded-2xl overflow-hidden border border-border/40 w-full">
       {/* Image with overlaid author */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden rounded-t-2xl">
         {post.images.length > 0 ? (
           <img
             src={post.images[0]}
             alt={post.title}
-            className="w-full aspect-[4/3] object-cover group-hover:scale-[1.03] transition-transform duration-500"
+            className="w-full aspect-[4/3] object-cover rounded-t-2xl group-hover:scale-[1.03] transition-transform duration-500"
             loading="lazy"
           />
         ) : (
-          <div className="w-full aspect-[4/3] bg-gradient-to-br from-primary/25 via-primary/10 to-transparent flex items-center justify-center">
+          <div className="w-full aspect-[4/3] rounded-t-2xl bg-gradient-to-br from-primary/25 via-primary/10 to-transparent flex items-center justify-center">
             <Globe className="h-12 w-12 text-primary/30" />
           </div>
         )}

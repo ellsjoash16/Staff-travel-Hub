@@ -13,6 +13,7 @@ import { MobileTabBar } from '@/components/MobileTabBar'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LoginScreen } from '@/components/LoginScreen'
 import { Walkthrough } from '@/components/Walkthrough'
+import { ForcePasswordChange } from '@/components/ForcePasswordChange'
 import type { Post } from '@/lib/types'
 
 const LOADING_BG = '/hero-airport.jpg'
@@ -208,6 +209,8 @@ function AppShell() {
           />
         )}
       </Suspense>
+
+      {state.currentUserProfile?.mustChangePassword && <ForcePasswordChange />}
 
       <Toaster position="bottom-right" richColors />
     </div>

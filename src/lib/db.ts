@@ -653,7 +653,12 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     banned: data.banned ?? false,
     banUntil: data.banUntil ?? null,
     isAdmin: data.isAdmin ?? false,
+    mustChangePassword: data.mustChangePassword ?? false,
   }
+}
+
+export async function clearMustChangePassword(uid: string): Promise<void> {
+  await setDoc(doc(db, 'userProfiles', uid), { mustChangePassword: false }, { merge: true })
 }
 
 export async function upsertUserProfile(profile: UserProfile): Promise<void> {

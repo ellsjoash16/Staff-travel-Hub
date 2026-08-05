@@ -131,6 +131,7 @@ export interface UserProfile {
   banned?: boolean
   banUntil?: string | null
   isAdmin?: boolean
+  mustChangePassword?: boolean
 }
 
 export interface NominatedPerson {

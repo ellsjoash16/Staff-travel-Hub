@@ -15,7 +15,7 @@ import {
   uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
   fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, deleteUserProfile,
-  fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile, adminCreateUser,
+  fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile, adminCreateUser, clearMustChangePassword,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
 import { auth, appCheck, getAppCheckToken } from '@/lib/firebase'
@@ -60,7 +60,7 @@ interface AppState {
   registrations: Registration[]
   userProfiles: (UserProfile & { updatedAt: string | null })[]
   myRegistrations: Registration[]
-  currentUserProfile: { jobRole: string | null; salesDivision: string | null } | null
+  currentUserProfile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean } | null
 }
 
 type Action =
@@ -85,7 +85,7 @@ type Action =
   | { type: 'SET_USER_BANNED'; uid: string; banned: boolean; banUntil: string | null }
   | { type: 'SET_MY_REGISTRATIONS'; registrations: Registration[] }
   | { type: 'ADD_MY_REGISTRATION'; registration: Registration }
-  | { type: 'SET_CURRENT_USER_PROFILE'; profile: { jobRole: string | null; salesDivision: string | null } | null }
+  | { type: 'SET_CURRENT_USER_PROFILE'; profile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean } | null }
   | { type: 'UPDATE_USER_PROFILE'; uid: string; fields: Partial<UserProfile> }
   | { type: 'UPDATE_TRIP_PARTICIPANTS'; tripId: string; name: string; action: 'add' | 'remove' }
   | { type: 'SET_POSTS_LOADED' }
@@ -204,6 +204,7 @@ interface AppContextValue {
   banUser: (uid: string, banned: boolean, banUntil?: string | null) => Promise<void>
   editUserProfile: (uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; building: string | null; salesDivision: string | null }) => Promise<void>
   createUser: (fields: { email: string; password: string; firstName: string; lastName: string; jobRole: string; salesDivision?: string | null; building?: string | null }) => Promise<void>
+  completePasswordChange: () => Promise<void>
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -286,7 +287,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       }
 
       if (profile) {
-        dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision } })
+        dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision, mustChangePassword: profile.mustChangePassword } })
       }
     }
     init()
@@ -338,6 +339,17 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   async function createUser(fields: { email: string; password: string; firstName: string; lastName: string; jobRole: string; salesDivision?: string | null; building?: string | null }): Promise<void> {
     await adminCreateUser(fields)
     await loadUserProfiles()
+  }
+
+  async function completePasswordChange(): Promise<void> {
+    const uid = auth.currentUser?.uid
+    if (uid) await clearMustChangePassword(uid).catch(() => {})
+    dispatch({
+      type: 'SET_CURRENT_USER_PROFILE',
+      profile: state.currentUserProfile
+        ? { ...state.currentUserProfile, mustChangePassword: false }
+        : { jobRole: null, salesDivision: null, mustChangePassword: false },
+    })
   }
 
   async function setRegistrationStatus(id: string, status: RegistrationStatus): Promise<void> {
@@ -642,7 +654,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
       addLocation, editLocation, deleteLocation, searchPhotos,
       saveSettings, savePageImages,
       loadPosts,
-      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, createUser, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, createUser, completePasswordChange, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
     }}>
       {children}
     </AppContext.Provider>

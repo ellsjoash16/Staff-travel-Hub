@@ -65,7 +65,7 @@ export default async function handler(req, res) {
 
     // Write the user profile doc (firstName/lastName arrive already encrypted
     // from the admin client; the server never sees the plaintext names).
-    const profile = toFields({
+    const profileData = {
       authEmail: cleanEmail,
       authDisplayName: displayName || null,
       firstName: firstNameEnc ?? null,
@@ -73,10 +73,14 @@ export default async function handler(req, res) {
       jobRole: jobRole || null,
       salesDivision: salesDivision || null,
       building: building || null,
-    })
-    const maskQuery = Object.keys({
-      authEmail: 1, authDisplayName: 1, firstName: 1, lastName: 1, jobRole: 1, salesDivision: 1, building: 1,
-    }).map(f => `updateMask.fieldPaths=${f}`).join('&')
+    }
+    const profile = {
+      ...toFields(profileData),
+      // Force a password change on first sign-in (temp password was set by admin).
+      mustChangePassword: { booleanValue: true },
+    }
+    const maskQuery = [...Object.keys(profileData), 'mustChangePassword']
+      .map(f => `updateMask.fieldPaths=${f}`).join('&')
     const writeRes = await fetch(`${fsBase}/userProfiles/${newUid}?${maskQuery}`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },

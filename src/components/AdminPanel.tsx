@@ -1745,7 +1745,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       Create account
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">The user signs in with this email and temporary password, then can change their password from the sidebar.</p>
+                  <p className="text-xs text-muted-foreground">The user signs in with this email and temporary password, then is prompted to set their own password before they can continue.</p>
                 </div>
               )}
 

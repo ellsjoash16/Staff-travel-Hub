@@ -56,7 +56,7 @@ const emptyLocationForm = (): LocationForm => ({ name: '', country: '', imageUrl
 interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
 export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
-  const { state, dispatch, togglePin, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile } = useApp()
+  const { state, dispatch, togglePin, movePostsToFolder, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile } = useApp()
   const { posts, courses, trips, locations, settings, registrations, userProfiles } = state
 
   const [tab, setTab] = useState('post')
@@ -97,6 +97,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   }, [buildingOpen, rolesOpen, tripLocOpen, postLocOpen])
   const [manageFolder, setManageFolder] = useState<string | null>(null)
   const [newFolderName, setNewFolderName] = useState('')
+  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set())
+  const [movingPosts, setMovingPosts] = useState(false)
 
   const [sNotice, setSNotice] = useState('')
 
@@ -414,6 +416,29 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     const updated = { ...settings, adminFolders: settings.adminFolders.filter(f => f !== name) }
     try { await saveSettings(updated); if (manageFolder === name) setManageFolder(null) }
     catch { toast.error('Failed to remove folder') }
+  }
+
+  function toggleSelectPost(id: string) {
+    setSelectedPosts(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  async function moveSelectedToFolder(folder: string | null) {
+    const ids = [...selectedPosts]
+    if (ids.length === 0) return
+    setMovingPosts(true)
+    try {
+      await movePostsToFolder(ids, folder)
+      setSelectedPosts(new Set())
+      toast.success(`Moved ${ids.length} post${ids.length !== 1 ? 's' : ''} to ${folder ?? 'Unassigned'}`)
+    } catch {
+      toast.error('Failed to move posts')
+    } finally {
+      setMovingPosts(false)
+    }
   }
 
   const tabsContent = (
@@ -1451,10 +1476,47 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     )}
 
                     {/* Posts */}
+                    {(() => {
+                      const filteredIds = filteredPosts.map(p => p.id)
+                      const selectedInView = filteredIds.filter(id => selectedPosts.has(id))
+                      const allSelected = filteredIds.length > 0 && selectedInView.length === filteredIds.length
+                      const someSelected = selectedInView.length > 0 && !allSelected
+                      const toggleAll = () => setSelectedPosts(prev => {
+                        const next = new Set(prev)
+                        if (allSelected) filteredIds.forEach(id => next.delete(id))
+                        else filteredIds.forEach(id => next.add(id))
+                        return next
+                      })
+                      return (
                     <div>
                       <h3 className="font-semibold text-sm lg:text-base mb-2">
                         Posts ({filteredPosts.length}{filteredPosts.length !== posts.length ? ` of ${posts.length}` : ''})
                       </h3>
+
+                      {/* Bulk action bar — appears once posts are selected */}
+                      {selectedPosts.size > 0 && (
+                        <div className="sticky top-0 z-10 mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2">
+                          <span className="text-xs lg:text-sm font-medium text-foreground">
+                            {selectedPosts.size} selected
+                          </span>
+                          <div className="flex items-center gap-2 ml-auto">
+                            <span className="text-xs text-muted-foreground hidden sm:inline">Move to</span>
+                            <div className="w-40">
+                              <AppSelect
+                                value=""
+                                onChange={(val) => moveSelectedToFolder(val === '__none__' ? null : val)}
+                                placeholder={movingPosts ? 'Moving…' : 'Choose folder…'}
+                                options={[
+                                  ...adminFolders.map(f => ({ value: f, label: f })),
+                                  { value: '__none__', label: 'Unassigned' },
+                                ]}
+                              />
+                            </div>
+                            <Button size="sm" variant="ghost" onClick={() => setSelectedPosts(new Set())}>Clear</Button>
+                          </div>
+                        </div>
+                      )}
+
                       {filteredPosts.length === 0 ? (
                         <p className="text-center text-muted-foreground py-6 text-sm">
                           {posts.length === 0 ? 'No posts yet' : 'No posts match your search'}
@@ -1464,16 +1526,37 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="border-b border-border">
+                                <th className="py-2 px-3 w-8">
+                                  <input
+                                    type="checkbox"
+                                    checked={allSelected}
+                                    ref={el => { if (el) el.indeterminate = someSelected }}
+                                    onChange={toggleAll}
+                                    className="h-4 w-4 rounded border-border accent-primary cursor-pointer align-middle"
+                                    title={allSelected ? 'Deselect all' : 'Select all'}
+                                  />
+                                </th>
                                 <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium">Photo</th>
                                 <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium">Title</th>
                                 <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium hidden sm:table-cell">Staff</th>
+                                <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium hidden lg:table-cell">Folder</th>
                                 <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium hidden md:table-cell">Date</th>
                                 <th className="py-2 px-3" />
                               </tr>
                             </thead>
                             <tbody>
-                              {filteredPosts.map((p) => (
-                                <tr key={p.id} className="border-b border-border/50 hover:bg-muted/40 transition-colors">
+                              {filteredPosts.map((p) => {
+                                const checked = selectedPosts.has(p.id)
+                                return (
+                                <tr key={p.id} className={`border-b border-border/50 transition-colors ${checked ? 'bg-primary/5' : 'hover:bg-muted/40'}`}>
+                                  <td className="py-2 px-3">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => toggleSelectPost(p.id)}
+                                      className="h-4 w-4 rounded border-border accent-primary cursor-pointer align-middle"
+                                    />
+                                  </td>
                                   <td className="py-2 px-3">
                                     {p.images[0]
                                       ? <img src={p.images[0]} alt="" className="w-11 h-11 rounded-lg object-cover" />
@@ -1481,6 +1564,11 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   </td>
                                   <td className="py-2 px-3 font-medium max-w-[140px] truncate">{p.title}</td>
                                   <td className="py-2 px-3 hidden sm:table-cell text-muted-foreground">{p.staff}</td>
+                                  <td className="py-2 px-3 hidden lg:table-cell text-muted-foreground">
+                                    {p.folder
+                                      ? <span className="inline-flex items-center gap-1 rounded-full bg-muted border border-border px-2 py-0.5 text-xs"><FolderOpen className="h-3 w-3" />{p.folder}</span>
+                                      : <span className="text-xs text-muted-foreground/50">—</span>}
+                                  </td>
                                   <td className="py-2 px-3 hidden md:table-cell text-muted-foreground">{p.date || '—'}</td>
                                   <td className="py-2 px-3">
                                     <div className="flex gap-1.5">
@@ -1492,12 +1580,15 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     </div>
                                   </td>
                                 </tr>
-                              ))}
+                                )
+                              })}
                             </tbody>
                           </table>
                         </div>
                       )}
                     </div>
+                      )
+                    })()}
 
                   </>
                 )

@@ -158,6 +158,10 @@ export async function togglePinPost(id: string, pinned: boolean): Promise<void> 
   await adminWrite('posts', id, 'update', { pinned }, ['pinned'])
 }
 
+export async function setPostFolder(id: string, folder: string | null): Promise<void> {
+  await adminWrite('posts', id, 'update', { folder: folder ?? null }, ['folder'])
+}
+
 export async function updatePost(
   post: Post,
   newImagePaths: string[] | undefined,

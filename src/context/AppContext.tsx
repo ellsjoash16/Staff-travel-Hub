@@ -8,7 +8,7 @@ import {
 import type { Post, Course, Submission, Settings, View, PanelImages, Trip, Location, Registration, RegistrationStatus, UserProfile } from '@/lib/types'
 import {
   fetchPosts, fetchSettings, fetchTrips, fetchLocations,
-  insertPost, updatePost, removePost, togglePinPost,
+  insertPost, updatePost, removePost, togglePinPost, setPostFolder,
   updateSubmission, removeSubmission,
   insertTrip, updateTrip, removeTrip, markTripComplete,
   insertLocation, updateLocation, removeLocation,
@@ -172,6 +172,7 @@ interface AppContextValue {
   state: AppState
   dispatch: React.Dispatch<Action>
   togglePin: (id: string, pinned: boolean) => Promise<void>
+  movePostsToFolder: (ids: string[], folder: string | null) => Promise<void>
   addPost: (post: Post, newDataUrls: string[], staffImageDataUrl: string | null) => Promise<void>
   editPost: (post: Post, newDataUrls: string[], staffImageDataUrl: string | null) => Promise<void>
   deletePost: (id: string) => Promise<void>
@@ -407,6 +408,14 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
     if (post) dispatch({ type: 'UPDATE_POST', post: { ...post, pinned } })
   }
 
+  async function movePostsToFolder(ids: string[], folder: string | null): Promise<void> {
+    await Promise.all(ids.map(id => setPostFolder(id, folder)))
+    for (const id of ids) {
+      const post = state.posts.find(p => p.id === id)
+      if (post) dispatch({ type: 'UPDATE_POST', post: { ...post, folder } })
+    }
+  }
+
   async function addPost(post: Post, newDataUrls: string[], staffImageDataUrl: string | null): Promise<void> {
     const uploaded = await Promise.all(newDataUrls.map(url => uploadImage(url, post.id)))
     let finalPost = { ...post, images: uploaded.map((r) => r.url) }
@@ -619,6 +628,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
     <AppContext.Provider value={{
       state, dispatch,
       togglePin,
+      movePostsToFolder,
       addPost, editPost, deletePost,
 
       submitReview, editSubmission, deleteSubmission,

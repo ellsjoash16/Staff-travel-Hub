@@ -14,33 +14,109 @@ const MONTHS = [
 const navBtn =
   'h-7 w-7 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none'
 
-// Caption with a single pop-out panel holding both a month column and a year
-// column — scroll and tap either to jump, adjust both before closing.
+// Wheel geometry: an odd number of visible rows so one sits dead centre.
+const ITEM_H = 34
+const VISIBLE = 5
+const PAD = (VISIBLE - 1) / 2 // blank rows above/below so ends reach the centre
+
+const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
+
+// An iOS-style wheel: snap-to-centre scroller where the middle row is the
+// selection. Off-centre rows fade and shrink for depth.
+function WheelColumn({
+  items,
+  selectedIndex,
+  onSelect,
+  align = 'center',
+  width,
+}: {
+  items: string[]
+  selectedIndex: number
+  onSelect: (i: number) => void
+  align?: 'center' | 'left'
+  width: string
+}) {
+  const ref = React.useRef<HTMLDivElement>(null)
+  const settle = React.useRef<ReturnType<typeof setTimeout>>()
+  const [active, setActive] = React.useState(selectedIndex)
+
+  // Centre the current value on open and whenever it changes externally.
+  React.useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.scrollTop = selectedIndex * ITEM_H
+    setActive(selectedIndex)
+  }, [selectedIndex])
+
+  function handleScroll() {
+    const el = ref.current
+    if (!el) return
+    const i = clamp(Math.round(el.scrollTop / ITEM_H), 0, items.length - 1)
+    setActive(i)
+    clearTimeout(settle.current)
+    // After momentum settles, commit the centred row.
+    settle.current = setTimeout(() => {
+      const idx = clamp(Math.round(el.scrollTop / ITEM_H), 0, items.length - 1)
+      if (idx !== selectedIndex) onSelect(idx)
+    }, 110)
+  }
+
+  function pick(i: number) {
+    ref.current?.scrollTo({ top: i * ITEM_H, behavior: 'smooth' })
+    if (i !== selectedIndex) onSelect(i)
+  }
+
+  return (
+    <div
+      ref={ref}
+      onScroll={handleScroll}
+      className={cn('relative overflow-y-auto scrollbar-hide snap-y snap-mandatory', width)}
+      style={{ height: VISIBLE * ITEM_H }}
+    >
+      <div style={{ height: PAD * ITEM_H }} />
+      {items.map((label, i) => {
+        const dist = Math.abs(i - active)
+        const sel = i === active
+        return (
+          <button
+            key={label}
+            type="button"
+            onClick={() => pick(i)}
+            className={cn(
+              'w-full snap-center flex items-center px-2 rounded-md transition-colors select-none',
+              align === 'center' ? 'justify-center' : 'justify-start',
+              sel ? 'text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'
+            )}
+            style={{
+              height: ITEM_H,
+              opacity: dist === 0 ? 1 : Math.max(0.25, 1 - dist * 0.28),
+              transform: `scale(${Math.max(0.82, 1 - dist * 0.07)})`,
+            }}
+          >
+            {label}
+          </button>
+        )
+      })}
+      <div style={{ height: PAD * ITEM_H }} />
+    </div>
+  )
+}
+
+// Caption with a single pop-out panel holding both a month wheel and a year
+// wheel — spin either to jump, adjust both before closing.
 function ScrollerCaption({ displayMonth }: CaptionProps) {
   const { goToMonth, previousMonth, nextMonth } = useNavigation()
   const dp = useDayPicker()
   const [open, setOpen] = React.useState(false)
-  const monthCol = React.useRef<HTMLDivElement>(null)
-  const yearCol = React.useRef<HTMLDivElement>(null)
 
   const fromYear = dp.fromDate?.getFullYear() ?? 2005
   const toYear = dp.toDate?.getFullYear() ?? new Date().getFullYear() + 5
   const years: number[] = []
-  for (let y = toYear; y >= fromYear; y--) years.push(y)
+  for (let y = fromYear; y <= toYear; y++) years.push(y)
 
   const curMonth = displayMonth.getMonth()
   const curYear = displayMonth.getFullYear()
-
-  // Centre the current month + year when the panel opens.
-  React.useEffect(() => {
-    if (!open) return
-    const c = (el: HTMLDivElement | null) =>
-      el?.querySelector('[data-selected="true"]')?.scrollIntoView({ block: 'center' })
-    c(monthCol.current)
-    c(yearCol.current)
-  }, [open])
-
-  const jump = (m: number, y: number) => goToMonth(new Date(y, m, 1))
+  const yearIdx = clamp(curYear - fromYear, 0, years.length - 1)
 
   return (
     <div className="relative flex items-center justify-between mb-1">
@@ -65,45 +141,26 @@ function ScrollerCaption({ displayMonth }: CaptionProps) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 z-20 mt-1 flex gap-1 rounded-xl border border-border bg-card p-1 shadow-xl">
-            <div ref={monthCol} className="h-48 w-32 overflow-y-auto scroll-smooth">
-              {MONTHS.map((m, i) => {
-                const sel = i === curMonth
-                return (
-                  <button
-                    key={m}
-                    type="button"
-                    data-selected={sel}
-                    onClick={() => jump(i, curYear)}
-                    className={cn(
-                      'w-full text-left text-sm rounded-md px-2.5 py-1.5 transition-colors',
-                      sel ? 'bg-primary text-primary-foreground font-semibold' : 'text-foreground hover:bg-muted'
-                    )}
-                  >
-                    {m}
-                  </button>
-                )
-              })}
-            </div>
-            <div ref={yearCol} className="h-48 w-20 overflow-y-auto scroll-smooth">
-              {years.map(y => {
-                const sel = y === curYear
-                return (
-                  <button
-                    key={y}
-                    type="button"
-                    data-selected={sel}
-                    onClick={() => jump(curMonth, y)}
-                    className={cn(
-                      'w-full text-center text-sm rounded-md px-2 py-1.5 transition-colors',
-                      sel ? 'bg-primary text-primary-foreground font-semibold' : 'text-foreground hover:bg-muted'
-                    )}
-                  >
-                    {y}
-                  </button>
-                )
-              })}
-            </div>
+          <div className="absolute top-full left-0 z-20 mt-1 flex gap-1 rounded-xl border border-border bg-card p-1.5 shadow-xl">
+            {/* Centre selection band spanning both wheels. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-1.5 rounded-lg bg-primary/10 border-y border-primary/25"
+              style={{ height: ITEM_H, top: `calc(50% - ${ITEM_H / 2}px)` }}
+            />
+            <WheelColumn
+              items={MONTHS}
+              selectedIndex={curMonth}
+              onSelect={(i) => goToMonth(new Date(curYear, i, 1))}
+              align="left"
+              width="w-28"
+            />
+            <WheelColumn
+              items={years.map(String)}
+              selectedIndex={yearIdx}
+              onSelect={(i) => goToMonth(new Date(years[i], curMonth, 1))}
+              width="w-16"
+            />
           </div>
         </>
       )}

@@ -15,7 +15,7 @@ import {
   uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
   fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, deleteUserProfile,
-  fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile,
+  fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile, adminCreateUser,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
 import { auth, appCheck, getAppCheckToken } from '@/lib/firebase'
@@ -203,6 +203,7 @@ interface AppContextValue {
   toggleAdminUid: (uid: string, isCurrentlyAdmin?: boolean) => Promise<void>
   banUser: (uid: string, banned: boolean, banUntil?: string | null) => Promise<void>
   editUserProfile: (uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; building: string | null; salesDivision: string | null }) => Promise<void>
+  createUser: (fields: { email: string; password: string; firstName: string; lastName: string; jobRole: string; salesDivision?: string | null; building?: string | null }) => Promise<void>
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -332,6 +333,11 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   async function loadUserProfiles(): Promise<void> {
     const profiles = await fetchAllUserProfiles()
     dispatch({ type: 'SET_USER_PROFILES', profiles })
+  }
+
+  async function createUser(fields: { email: string; password: string; firstName: string; lastName: string; jobRole: string; salesDivision?: string | null; building?: string | null }): Promise<void> {
+    await adminCreateUser(fields)
+    await loadUserProfiles()
   }
 
   async function setRegistrationStatus(id: string, status: RegistrationStatus): Promise<void> {
@@ -636,7 +642,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
       addLocation, editLocation, deleteLocation, searchPhotos,
       saveSettings, savePageImages,
       loadPosts,
-      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, createUser, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
     }}>
       {children}
     </AppContext.Provider>

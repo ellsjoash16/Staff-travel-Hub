@@ -40,6 +40,17 @@ interface LocationForm {
   name: string; country: string; imageUrl: string
 }
 
+// Mirrors the sign-up form options in LoginScreen.
+const NEW_USER_ROLES = ['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM']
+const NEW_USER_BUILDINGS = ['London', 'Shirley', 'Boxley', 'Sale']
+const NEW_USER_DIVISIONS: Record<string, string[]> = {
+  London:  ['Supertravel', 'World Options', 'Which Flight', 'Travel Solutions'],
+  Shirley: ['Red Admiral', 'Direct Line', 'International Flyer', 'World Travel Service'],
+  Boxley:  ['Fare Deals', 'Flying Start', 'Flightcall', 'Travel Options'],
+  Sale:    ['Manchester S', 'Manchester R', 'Manchester X'],
+}
+const emptyNewUser = () => ({ firstName: '', lastName: '', email: '', password: '', jobRole: '', building: '', salesDivision: '' })
+
 const emptyPostForm = (): PostForm => ({
   title: '', staff: '', staffImage: null, review: '', locName: '',
   locationIds: [], date: today(), tags: '', images: [],
@@ -56,7 +67,7 @@ const emptyLocationForm = (): LocationForm => ({ name: '', country: '', imageUrl
 interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
 export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
-  const { state, dispatch, togglePin, movePostsToFolder, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile } = useApp()
+  const { state, dispatch, togglePin, movePostsToFolder, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile, createUser } = useApp()
   const { posts, courses, trips, locations, settings, registrations, userProfiles } = state
 
   const [tab, setTab] = useState('post')
@@ -107,6 +118,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [usersLoaded, setUsersLoaded] = useState(false)
   const [usersLoading, setUsersLoading] = useState(false)
   const [userSearch, setUserSearch] = useState('')
+  const [newUserOpen, setNewUserOpen] = useState(false)
+  const [newUser, setNewUser] = useState(emptyNewUser())
+  const [creatingUser, setCreatingUser] = useState(false)
   const [expandedUser, setExpandedUser] = useState<string | null>(null)
   const [expandedRegTrip, setExpandedRegTrip] = useState<string | null>(null)
   const [updatingRegId, setUpdatingRegId] = useState<string | null>(null)
@@ -137,6 +151,31 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       console.error('[handleLoadUsers]', err)
       toast.error(`Failed to load users: ${(err as Error)?.message || String(err) || 'unknown error'}`)
     } finally { setUsersLoading(false) }
+  }
+
+  async function handleCreateUser() {
+    const n = newUser
+    if (!n.firstName.trim() || !n.lastName.trim()) { toast.error('Enter first and last name'); return }
+    if (!/^[^\s@]+@(dialaflight|dafconcierge|lotusgroup)\.co\.uk$/i.test(n.email.trim())) { toast.error('Email must be a @dialaflight.co.uk, @dafconcierge.co.uk or @lotusgroup.co.uk address'); return }
+    if (n.password.length < 6) { toast.error('Password must be at least 6 characters'); return }
+    if (!n.jobRole) { toast.error('Select a job role'); return }
+    setCreatingUser(true)
+    try {
+      await createUser({
+        email: n.email.trim(),
+        password: n.password,
+        firstName: n.firstName.trim(),
+        lastName: n.lastName.trim(),
+        jobRole: n.jobRole,
+        salesDivision: n.salesDivision || null,
+        building: n.building || null,
+      })
+      toast.success(`Account created for ${n.email.trim()}`)
+      setNewUser(emptyNewUser())
+      setNewUserOpen(false)
+    } catch (err: unknown) {
+      toast.error((err as Error)?.message || 'Failed to create account')
+    } finally { setCreatingUser(false) }
   }
 
   function setPost<K extends keyof PostForm>(key: K, value: PostForm[K]) {
@@ -1635,11 +1674,80 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     className="w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
+                <Button size="sm" className="gap-1.5 flex-shrink-0" onClick={() => setNewUserOpen(o => !o)}>
+                  <Plus className="h-3.5 w-3.5" />
+                  New user
+                </Button>
                 <Button size="sm" variant="secondary" className="gap-1.5 flex-shrink-0" onClick={handleLoadUsers} disabled={usersLoading}>
                   {usersLoading ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <ArrowsClockwise className="h-3.5 w-3.5" />}
                   Refresh
                 </Button>
               </div>
+
+              {/* Create account form */}
+              {newUserOpen && (
+                <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-sm">Create a new account</h4>
+                    <button onClick={() => setNewUserOpen(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label>First name</Label>
+                      <Input value={newUser.firstName} onChange={e => setNewUser(u => ({ ...u, firstName: e.target.value }))} placeholder="First name" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Last name</Label>
+                      <Input value={newUser.lastName} onChange={e => setNewUser(u => ({ ...u, lastName: e.target.value }))} placeholder="Last name" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Email</Label>
+                      <Input type="email" value={newUser.email} onChange={e => setNewUser(u => ({ ...u, email: e.target.value }))} placeholder="name@dialaflight.co.uk" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Temporary password</Label>
+                      <Input type="text" value={newUser.password} onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))} placeholder="At least 6 characters" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Job role</Label>
+                      <AppSelect
+                        value={newUser.jobRole}
+                        onChange={val => setNewUser(u => ({ ...u, jobRole: val }))}
+                        placeholder="— Select role —"
+                        options={[{ value: '', label: '— Select role —' }, ...NEW_USER_ROLES.map(r => ({ value: r, label: r }))]}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Building</Label>
+                      <AppSelect
+                        value={newUser.building}
+                        onChange={val => setNewUser(u => ({ ...u, building: val, salesDivision: '' }))}
+                        placeholder="— Select building —"
+                        options={[{ value: '', label: '— Select building —' }, ...NEW_USER_BUILDINGS.map(b => ({ value: b, label: b }))]}
+                      />
+                    </div>
+                    {newUser.building && (
+                      <div className="space-y-1">
+                        <Label>Sales division</Label>
+                        <AppSelect
+                          value={newUser.salesDivision}
+                          onChange={val => setNewUser(u => ({ ...u, salesDivision: val }))}
+                          placeholder="— Select division —"
+                          options={[{ value: '', label: '— Select division —' }, ...(NEW_USER_DIVISIONS[newUser.building] ?? []).map(d => ({ value: d, label: d }))]}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-end gap-2 pt-1">
+                    <Button size="sm" variant="ghost" onClick={() => { setNewUser(emptyNewUser()); setNewUserOpen(false) }}>Cancel</Button>
+                    <Button size="sm" onClick={handleCreateUser} disabled={creatingUser} className="gap-1.5">
+                      {creatingUser && <CircleNotch className="h-3.5 w-3.5 animate-spin" />}
+                      Create account
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">The user signs in with this email and temporary password, then can change their password from the sidebar.</p>
+                </div>
+              )}
 
               {usersLoading && !usersLoaded ? (
                 <div className="flex items-center justify-center py-16 text-muted-foreground">

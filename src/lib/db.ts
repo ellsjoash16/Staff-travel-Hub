@@ -716,6 +716,35 @@ export async function adminUpdateUserProfile(uid: string, fields: {
   }
 }
 
+export async function adminCreateUser(fields: {
+  email: string; password: string
+  firstName: string; lastName: string; jobRole: string
+  salesDivision?: string | null; building?: string | null
+}): Promise<{ uid: string; email: string; displayName: string | null }> {
+  const [firstNameEnc, lastNameEnc] = await Promise.all([
+    encryptField(fields.firstName),
+    encryptField(fields.lastName),
+  ])
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) throw new Error('Not authenticated')
+  const res = await fetch('/api/create-user', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: fields.email.trim(),
+      password: fields.password,
+      displayName: `${fields.firstName.trim()} ${fields.lastName.trim()}`.trim(),
+      jobRole: fields.jobRole,
+      salesDivision: fields.salesDivision ?? null,
+      building: fields.building ?? null,
+      firstNameEnc, lastNameEnc,
+    }),
+  })
+  const body = await res.json().catch(() => ({})) as { uid?: string; email?: string; displayName?: string | null; error?: string }
+  if (!res.ok) throw new Error(body.error ?? `Create failed: ${res.status}`)
+  return { uid: body.uid!, email: body.email ?? fields.email.trim(), displayName: body.displayName ?? null }
+}
+
 export async function saveJobRole(uid: string, jobRole: string, salesDivision?: string | null, building?: string | null): Promise<void> {
   await setDoc(doc(db, 'userProfiles', uid), { jobRole, salesDivision: salesDivision ?? null, building: building ?? null }, { merge: true })
 }

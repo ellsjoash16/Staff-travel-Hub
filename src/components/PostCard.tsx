@@ -18,7 +18,7 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames }: Props) {
   const watermark = locationNames?.[0] ?? post.location.name
 
   return (
-    <article
+    <div
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -28,10 +28,11 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames }: Props) {
           : 'rotate(0deg) translateY(0px)',
         transition: 'transform 0.25s ease-out, box-shadow 0.25s ease-out',
       }}
-      className={`group bg-card rounded-2xl overflow-hidden cursor-pointer border border-border/40 w-full ${
+      className={`group cursor-pointer w-full rounded-2xl ${
         hovered ? 'shadow-2xl' : 'shadow-md'
       }`}
     >
+    <article className="bg-card rounded-2xl overflow-hidden border border-border/40 w-full">
       {/* Image with overlaid author */}
       <div className="relative overflow-hidden">
         {post.images.length > 0 ? (
@@ -120,5 +121,6 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames }: Props) {
         </div>
       )}
     </article>
+    </div>
   )
 }

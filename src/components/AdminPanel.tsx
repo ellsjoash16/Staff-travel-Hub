@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash, PencilSimple, CircleNotch, CheckCircle, X, PushPin, PushPinSlash, MapPin, Airplane, Globe, MagnifyingGlass, FolderOpen, FileArrowUp, CaretRight, CaretDown, CalendarDots, Plus, Users, ArrowsClockwise, ShieldCheck } from '@phosphor-icons/react'
+import { Trash, PencilSimple, CircleNotch, CheckCircle, Check, X, PushPin, PushPinSlash, MapPin, Airplane, Globe, MagnifyingGlass, FolderOpen, FileArrowUp, CaretRight, CaretDown, CalendarDots, Plus, Users, ArrowsClockwise, ShieldCheck } from '@phosphor-icons/react'
 import { AppSelect } from '@/components/ui/app-select'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
@@ -99,6 +99,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [newFolderName, setNewFolderName] = useState('')
   const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set())
   const [movingPosts, setMovingPosts] = useState(false)
+  const [selectMode, setSelectMode] = useState(false)
 
   const [sNotice, setSNotice] = useState('')
 
@@ -1489,12 +1490,21 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       })
                       return (
                     <div>
-                      <h3 className="font-semibold text-sm lg:text-base mb-2">
-                        Posts ({filteredPosts.length}{filteredPosts.length !== posts.length ? ` of ${posts.length}` : ''})
-                      </h3>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <h3 className="font-semibold text-sm lg:text-base">
+                          Posts ({filteredPosts.length}{filteredPosts.length !== posts.length ? ` of ${posts.length}` : ''})
+                        </h3>
+                        <Button
+                          size="sm"
+                          variant={selectMode ? 'default' : 'secondary'}
+                          onClick={() => { setSelectMode(m => !m); setSelectedPosts(new Set()) }}
+                        >
+                          {selectMode ? 'Done' : 'Select'}
+                        </Button>
+                      </div>
 
                       {/* Bulk action bar — appears once posts are selected */}
-                      {selectedPosts.size > 0 && (
+                      {selectMode && selectedPosts.size > 0 && (
                         <div className="sticky top-0 z-10 mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2">
                           <span className="text-xs lg:text-sm font-medium text-foreground">
                             {selectedPosts.size} selected
@@ -1526,22 +1536,31 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="border-b border-border">
-                                <th className="py-2 px-3 w-8">
-                                  <input
-                                    type="checkbox"
-                                    checked={allSelected}
-                                    ref={el => { if (el) el.indeterminate = someSelected }}
-                                    onChange={toggleAll}
-                                    className="h-4 w-4 rounded border-border accent-primary cursor-pointer align-middle"
-                                    title={allSelected ? 'Deselect all' : 'Select all'}
-                                  />
-                                </th>
                                 <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium">Photo</th>
                                 <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium">Title</th>
                                 <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium hidden sm:table-cell">Staff</th>
                                 <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium hidden lg:table-cell">Folder</th>
                                 <th className="text-left py-2 px-3 text-xs lg:text-sm text-muted-foreground font-medium hidden md:table-cell">Date</th>
                                 <th className="py-2 px-3" />
+                                {selectMode && (
+                                  <th className="py-2 px-3 w-10 text-right">
+                                    <button
+                                      type="button"
+                                      onClick={toggleAll}
+                                      title={allSelected ? 'Deselect all' : 'Select all'}
+                                      className={`h-5 w-5 rounded-full border-2 inline-flex items-center justify-center transition-colors ${
+                                        allSelected
+                                          ? 'bg-primary border-primary text-primary-foreground'
+                                          : someSelected
+                                            ? 'bg-primary/30 border-primary'
+                                            : 'border-muted-foreground/40 hover:border-primary'
+                                      }`}
+                                    >
+                                      {allSelected && <Check className="h-3 w-3" weight="bold" />}
+                                      {someSelected && <span className="h-0.5 w-2 rounded-full bg-primary" />}
+                                    </button>
+                                  </th>
+                                )}
                               </tr>
                             </thead>
                             <tbody>
@@ -1549,14 +1568,6 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                 const checked = selectedPosts.has(p.id)
                                 return (
                                 <tr key={p.id} className={`border-b border-border/50 transition-colors ${checked ? 'bg-primary/5' : 'hover:bg-muted/40'}`}>
-                                  <td className="py-2 px-3">
-                                    <input
-                                      type="checkbox"
-                                      checked={checked}
-                                      onChange={() => toggleSelectPost(p.id)}
-                                      className="h-4 w-4 rounded border-border accent-primary cursor-pointer align-middle"
-                                    />
-                                  </td>
                                   <td className="py-2 px-3">
                                     {p.images[0]
                                       ? <img src={p.images[0]} alt="" className="w-11 h-11 rounded-lg object-cover" />
@@ -1579,6 +1590,22 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                       <Button size="sm" variant="destructive" onClick={() => handleDeletePost(p.id)}><Trash className="h-3 w-3" /></Button>
                                     </div>
                                   </td>
+                                  {selectMode && (
+                                    <td className="py-2 px-3 text-right">
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleSelectPost(p.id)}
+                                        title={checked ? 'Deselect' : 'Select'}
+                                        className={`h-5 w-5 rounded-full border-2 inline-flex items-center justify-center transition-colors ${
+                                          checked
+                                            ? 'bg-primary border-primary text-primary-foreground'
+                                            : 'border-muted-foreground/40 hover:border-primary'
+                                        }`}
+                                      >
+                                        {checked && <Check className="h-3 w-3" weight="bold" />}
+                                      </button>
+                                    </td>
+                                  )}
                                 </tr>
                                 )
                               })}

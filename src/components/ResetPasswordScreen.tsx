@@ -55,7 +55,8 @@ export function ResetPasswordScreen({ oobCode }: { oobCode: string }) {
       <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl overflow-hidden">
         {/* Brand header */}
         <div className="flex items-center gap-3 px-7 pt-7 pb-2">
-          <img src="/daf-logo.png" alt="DAF" className="h-9 w-9 object-contain" />
+          {/* Logo art is white; invert it to black on the light card, leave white on the dark card */}
+          <img src="/daf-logo.png" alt="DAF" className="h-9 w-9 object-contain invert dark:invert-0" />
           <span className="font-gilbert text-2xl text-foreground tracking-wide leading-none">DAFAGRAM</span>
         </div>
 

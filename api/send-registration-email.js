@@ -148,7 +148,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'DAFagram <noreply@dialaflight.co.uk>'
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'DAFAGRAM <noreply@dafagram.co.uk>'
     const { subject, html } = buildEmail({ type, to, name, tripName, status })
 
     const isConfirmed = type === 'status_change' && status === 'confirmed'

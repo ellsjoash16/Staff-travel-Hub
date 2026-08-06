@@ -63,7 +63,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'DAFagram <noreply@dialaflight.co.uk>',
+        from: 'DAFAGRAM <noreply@dafagram.co.uk>',
         to: [ADMIN_EMAIL],
         reply_to: fromEmail,
         subject: `Message from ${esc(fromName)} — DAFagram`,

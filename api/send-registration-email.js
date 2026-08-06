@@ -1,5 +1,4 @@
 import { parseServiceAccount, getAccessToken, verifyIdToken, checkRateLimit } from './_lib.js'
-import { sendMail, mailerConfigured } from './_mailer.js'
 
 async function isCallerAdmin(fsBase, accessToken, uid) {
   const res = await fetch(`${fsBase}/settings/main`, {
@@ -87,7 +86,8 @@ export default async function handler(req, res) {
   const token = (req.headers.authorization ?? '').replace('Bearer ', '').trim()
   if (!token) return res.status(401).json({ error: 'Unauthorised' })
 
-  if (!mailerConfigured()) return res.status(500).json({ error: 'Email service not configured' })
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) return res.status(500).json({ error: 'Email service not configured' })
 
   try {
     const sa = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
@@ -122,16 +122,32 @@ export default async function handler(req, res) {
       }
     }
 
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'DAFagram <noreply@dialaflight.co.uk>'
     const { subject, html } = buildEmail({ type, to, name, tripName, status })
 
     const isConfirmed = type === 'status_change' && status === 'confirmed'
 
-    await sendMail({
-      to,
+    const payload = {
+      from: fromEmail,
+      to: [to],
       subject,
       html,
-      ...(isConfirmed ? { cc: FAM_ADMIN_EMAIL } : {}),
+      ...(isConfirmed ? { cc: [FAM_ADMIN_EMAIL] } : {}),
+    }
+
+    const emailRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     })
+
+    if (!emailRes.ok) {
+      const txt = await emailRes.text()
+      throw new Error(`Resend error ${emailRes.status}: ${txt.slice(0, 200)}`)
+    }
 
     console.log(`[send-email] ${type} → ${to}${isConfirmed ? ` (cc: ${FAM_ADMIN_EMAIL})` : ''}`)
     res.status(200).json({ ok: true })

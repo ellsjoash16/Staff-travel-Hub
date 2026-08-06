@@ -47,7 +47,13 @@ export default async function handler(req, res) {
     // oobCode and point at OUR branded /reset page instead (same host that
     // served this request).
     const fbLink = oobData.oobLink
-    if (!fbLink) throw new Error('No reset link returned')
+    if (!fbLink) {
+      // With email-enumeration protection on, an unregistered address returns
+      // 200 with no link. Treat exactly like EMAIL_NOT_FOUND: silently succeed
+      // so we neither error nor reveal whether the account exists.
+      console.log(`[send-reset-email] no link for ${email} (likely no account) — silently ok`)
+      return res.status(200).json({ ok: true })
+    }
     const oobCode = new URL(fbLink).searchParams.get('oobCode')
     if (!oobCode) throw new Error('No reset code in link')
     const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0]

@@ -69,13 +69,13 @@ export function emailShell({ preheader = '', heading, contentHtml, footNote }) {
           <tr>
             <td style="padding:22px 36px;border-top:1px solid #eef1f4;background-color:#fafbfc">
               <p style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED}">
-                ${footNote || 'Sent by DAFAGRAM — the Dial a Flight staff travel hub.<br>This is an automated message; you don\'t need to reply.'}
+                ${footNote || 'Sent by DAFAGRAM — the DialAFlight staff travel hub.<br>This is an automated message; you don\'t need to reply.'}
               </p>
             </td>
           </tr>
 
         </table>
-        <p style="font-family:${FONT};font-size:11px;color:#a5aeb8;margin:18px 0 0">&copy; Dial a Flight &middot; DAFAGRAM</p>
+        <p style="font-family:${FONT};font-size:11px;color:#a5aeb8;margin:18px 0 0">&copy; DialAFlight &middot; DAFAGRAM</p>
       </td>
     </tr>
   </table>

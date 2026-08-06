@@ -1,7 +1,7 @@
 # DAFAGRAM — Staff Travel Hub
 
 ## Project Overview
-Internal web app for DAF/Dial a Flight staff to share travel experiences, browse destinations, and register interest in upcoming group trips.
+Internal web app for DAF/DialAFlight staff to share travel experiences, browse destinations, and register interest in upcoming group trips.
 
 **Stack:** React + TypeScript + Vite + Tailwind CSS + shadcn/ui
 **Auth:** Firebase Authentication (email/password + Microsoft SSO)

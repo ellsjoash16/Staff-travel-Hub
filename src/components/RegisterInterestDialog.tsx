@@ -134,15 +134,9 @@ export function RegisterInterestDialog({ trip, open, onOpenChange }: Props) {
     setNominatedPeople(p => p.filter((_, idx) => idx !== i))
   }
 
-  async function sendRegEmail(to: string, name: string, tripName: string) {
-    auth.currentUser?.getIdToken().then(token => {
-      fetch('/api/send-registration-email', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'registered', to, name, tripName }),
-      }).catch(() => {})
-    }).catch(() => {})
-  }
+  // Automated confirmation emails are disabled — no verified sending domain.
+  // Registrations still save to Firestore and show in the admin panel.
+  function sendRegEmail(_to: string, _name: string, _tripName: string) {}
 
   function questionAnswers() {
     return {

@@ -357,15 +357,6 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     const prevStatus = reg?.status
     await updateRegistrationStatus(id, status)
     dispatch({ type: 'UPDATE_REGISTRATION_STATUS', id, status })
-    if (reg && reg.email && status !== prevStatus) {
-      auth.currentUser?.getIdToken().then(token => {
-        apiFetch('/api/send-registration-email', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'status_change', to: reg.email, name: reg.firstName, tripName: reg.tripName, status }),
-        }).catch(() => {})
-      }).catch(() => {})
-    }
     if (reg) {
       const fullName = `${reg.firstName} ${reg.lastName}`.trim()
       if (status === 'confirmed' && prevStatus !== 'confirmed') {

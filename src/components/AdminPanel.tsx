@@ -1718,7 +1718,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label>Building</Label>
+                      <Label>Building <span className="text-muted-foreground font-normal">(optional)</span></Label>
                       <AppSelect
                         value={newUser.building}
                         onChange={val => setNewUser(u => ({ ...u, building: val, salesDivision: '' }))}
@@ -1728,7 +1728,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     </div>
                     {newUser.building && (
                       <div className="space-y-1">
-                        <Label>Sales division</Label>
+                        <Label>Sales division <span className="text-muted-foreground font-normal">(optional)</span></Label>
                         <AppSelect
                           value={newUser.salesDivision}
                           onChange={val => setNewUser(u => ({ ...u, salesDivision: val }))}

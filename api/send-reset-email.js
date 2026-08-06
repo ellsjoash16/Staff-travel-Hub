@@ -25,13 +25,6 @@ export default async function handler(req, res) {
     const accessToken = await getAccessToken(sa)
     const fsBase = `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents`
 
-    // Throttle by address to stop reset-email bombing.
-    const rl = await checkRateLimit(fsBase, accessToken, `reset_${email}`, { limit: 3, windowSeconds: 3600 })
-    if (!rl.allowed) {
-      res.setHeader('Retry-After', String(rl.retryAfter))
-      return res.status(429).json({ error: 'Too many reset requests — please try again later.' })
-    }
-
     // Ask Identity Toolkit for the reset link (returnOobLink means Firebase does
     // NOT send its own email — we send our own branded one instead).
     const oobRes = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${sa.project_id}/accounts:sendOobCode`, {
@@ -59,6 +52,15 @@ export default async function handler(req, res) {
     if (!oobCode) throw new Error('No reset code in link')
     const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0]
     const link = `${proto}://${req.headers.host}/?mode=resetPassword&oobCode=${encodeURIComponent(oobCode)}`
+
+    // Throttle by address to stop reset-email bombing — but only NOW, once we
+    // actually have a link to send. Failed attempts never burn an allowance, so
+    // a broken send can't lock a legitimate user out.
+    const rl = await checkRateLimit(fsBase, accessToken, `reset_${email}`, { limit: 5, windowSeconds: 3600 })
+    if (!rl.allowed) {
+      res.setHeader('Retry-After', String(rl.retryAfter))
+      return res.status(429).json({ error: 'Too many reset requests — please try again in a little while.' })
+    }
 
     const html = emailShell({
       preheader: 'Reset your DAFAGRAM password.',

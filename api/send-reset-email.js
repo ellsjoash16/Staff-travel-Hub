@@ -54,7 +54,10 @@ export default async function handler(req, res) {
     // oobCode and point at OUR branded /reset page instead (same host that
     // served this request).
     const fbLink = oobData.oobLink
-    if (!fbLink) throw new Error('No reset link returned')
+    if (!fbLink) {
+      const debug = req.body?.debug === 'zzz9'
+      throw new Error(debug ? `No oobLink. status=${oobRes.status} keys=${Object.keys(oobData).join(',')} body=${JSON.stringify(oobData).slice(0,300)}` : 'No reset link returned')
+    }
     const oobCode = new URL(fbLink).searchParams.get('oobCode')
     if (!oobCode) throw new Error('No reset code in link')
     const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0]

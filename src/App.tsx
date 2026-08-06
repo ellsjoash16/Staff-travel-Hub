@@ -14,7 +14,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LoginScreen } from '@/components/LoginScreen'
 import { Walkthrough } from '@/components/Walkthrough'
 import { ForcePasswordChange } from '@/components/ForcePasswordChange'
-import { ResetPasswordScreen } from '@/components/ResetPasswordScreen'
 import type { Post } from '@/lib/types'
 
 const LOADING_BG = '/hero-airport.jpg'
@@ -217,11 +216,6 @@ export default function App() {
   const [signedIn, setSignedIn]   = useState(false)
   const [authUid, setAuthUid]     = useState<string | null>(null)
 
-  // Password-reset link lands here (signed-out) via ?mode=resetPassword&oobCode=…
-  // Handle it before any auth gating so the branded reset screen shows.
-  const resetParams = new URLSearchParams(window.location.search)
-  const resetCode = resetParams.get('mode') === 'resetPassword' ? resetParams.get('oobCode') : null
-
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const apply = (e: MediaQueryList | MediaQueryListEvent) =>
@@ -239,15 +233,6 @@ export default function App() {
       if (user) saveAccountRecord(user.uid, user.email, user.displayName).catch(console.error)
     })
   }, [])
-
-  if (resetCode) {
-    return (
-      <>
-        <ResetPasswordScreen oobCode={resetCode} />
-        <Toaster position="bottom-right" richColors />
-      </>
-    )
-  }
 
   if (!authReady) return <SplashScreen />
 

@@ -1,5 +1,6 @@
 import { parseServiceAccount, getAccessToken, checkRateLimit } from './_lib.js'
 import { emailShell, button, COLORS } from './_email.js'
+import { sendMail, mailerConfigured } from './_mailer.js'
 
 function esc(str) {
   return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
@@ -12,8 +13,7 @@ function esc(str) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
 
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) return res.status(500).json({ error: 'Email service not configured' })
+  if (!mailerConfigured()) return res.status(500).json({ error: 'Email service not configured' })
 
   const email = String(req.body?.email ?? '').trim().toLowerCase()
   if (!/^[^\s@]+@(dialaflight|dafconcierge|lotusgroup)\.co\.uk$/i.test(email) || email.length > 200) {
@@ -81,16 +81,7 @@ export default async function handler(req, res) {
       footNote: 'Sent by DAFAGRAM — the DialAFlight staff travel hub.<br>Didn\'t request a password reset? You can ignore this email.',
     })
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'DAFagram <noreply@dialaflight.co.uk>'
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: fromEmail, to: [email], subject: 'Reset your DAFAGRAM password', html }),
-    })
-    if (!emailRes.ok) {
-      const txt = await emailRes.text()
-      throw new Error(`Resend error ${emailRes.status}: ${txt.slice(0, 200)}`)
-    }
+    await sendMail({ to: email, subject: 'Reset your DAFAGRAM password', html })
 
     console.log(`[send-reset-email] reset link sent to ${email}`)
     res.status(200).json({ ok: true })

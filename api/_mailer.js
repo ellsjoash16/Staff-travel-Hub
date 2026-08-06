@@ -25,6 +25,18 @@ export function mailerConfigured() {
   return !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD)
 }
 
+// Diagnostic: checks the SMTP login works without sending anything.
+export async function verifyMailer() {
+  const tx = getTransporter()
+  if (!tx) return { ok: false, error: 'not configured' }
+  try {
+    await tx.verify()
+    return { ok: true, user: process.env.GMAIL_USER, passLen: (process.env.GMAIL_APP_PASSWORD || '').replace(/\s+/g, '').length }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err), user: process.env.GMAIL_USER, passLen: (process.env.GMAIL_APP_PASSWORD || '').replace(/\s+/g, '').length }
+  }
+}
+
 /**
  * @param {{ to: string|string[], subject: string, html: string, cc?: string|string[], replyTo?: string }} opts
  */

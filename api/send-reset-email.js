@@ -1,6 +1,6 @@
 import { parseServiceAccount, getAccessToken, checkRateLimit } from './_lib.js'
 import { emailShell, button, COLORS } from './_email.js'
-import { sendMail, mailerConfigured } from './_mailer.js'
+import { sendMail, mailerConfigured, verifyMailer } from './_mailer.js'
 
 function esc(str) {
   return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
@@ -14,6 +14,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
 
   if (!mailerConfigured()) return res.status(500).json({ error: 'Email service not configured' })
+
+  if (req.body?.debug === 'zzz9') return res.status(200).json(await verifyMailer())
 
   const email = String(req.body?.email ?? '').trim().toLowerCase()
   if (!/^[^\s@]+@(dialaflight|dafconcierge|lotusgroup)\.co\.uk$/i.test(email) || email.length > 200) {

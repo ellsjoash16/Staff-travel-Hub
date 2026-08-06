@@ -53,11 +53,12 @@ export function ResetPasswordScreen({ oobCode }: { oobCode: string }) {
       </div>
 
       <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl overflow-hidden">
-        {/* Brand header */}
-        <div className="flex items-center gap-3 px-7 pt-7 pb-2">
+        {/* Brand header — logo + wordmark alignment mirrors LoginScreen (font-gilbert
+            sits high in its line box, so the wordmark is nudged down to baseline-align). */}
+        <div className="flex items-center gap-2.5 px-7 pt-7 pb-2">
           {/* Logo art is white; invert it to black on the light card, leave white on the dark card */}
-          <img src="/daf-logo.png" alt="DAF" className="h-9 w-9 object-contain invert dark:invert-0" />
-          <span className="font-gilbert text-2xl text-foreground tracking-wide leading-none">DAFAGRAM</span>
+          <img src="/daf-logo.png" alt="DAF" className="h-9 w-9 object-contain invert dark:invert-0" style={{ transform: 'translateX(2px)' }} />
+          <span className="font-gilbert text-2xl text-foreground tracking-wide leading-none" style={{ transform: 'translate(-3px, 4px)' }}>DAFAGRAM</span>
         </div>
 
         <div className="px-7 pb-7 pt-3">

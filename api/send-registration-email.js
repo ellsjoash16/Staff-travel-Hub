@@ -1,4 +1,5 @@
 import { parseServiceAccount, getAccessToken, verifyIdToken, checkRateLimit } from './_lib.js'
+import { emailShell, button, pill, COLORS } from './_email.js'
 
 async function isCallerAdmin(fsBase, accessToken, uid) {
   const res = await fetch(`${fsBase}/settings/main`, {
@@ -27,21 +28,35 @@ function statusLabel(status) {
   }
 }
 
+// A subtle "trip" info row shown under the greeting.
+function tripRow(safeTrip) {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 8px">
+      <tr>
+        <td style="background-color:#f1f5f9;border-radius:10px;padding:14px 18px">
+          <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:${COLORS.MUTED};margin-bottom:3px">Trip</div>
+          <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:${COLORS.INK}">${safeTrip}</div>
+        </td>
+      </tr>
+    </table>`
+}
+
 function buildEmail({ type, to, name, tripName, status }) {
   const firstName = esc(name.split(' ')[0] || name)
   const safeTrip = esc(tripName)
 
   if (type === 'registered') {
     return {
-      subject: `Registration received – ${safeTrip}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a">
-          <h2 style="color:#1a1a1a">Hi ${firstName},</h2>
-          <p>Thanks for registering your interest in <strong>${safeTrip}</strong>.</p>
-          <p>We've received your registration and will be in touch soon with next steps.</p>
-          <p style="color:#666;font-size:13px;margin-top:32px">— The DAFagram Team</p>
-        </div>
-      `,
+      subject: `Registration received – ${tripName}`,
+      html: emailShell({
+        preheader: `We've received your interest in ${tripName}.`,
+        heading: `Thanks, ${firstName} — you're registered`,
+        contentHtml: `
+          <p style="margin:0 0 18px">We've received your interest in the trip below. Our team will review registrations and be in touch with the next steps soon.</p>
+          ${tripRow(safeTrip)}
+          <p style="margin:18px 0 0;color:${COLORS.MUTED};font-size:14px">Good luck — we'll let you know as soon as there's an update.</p>
+        `,
+      }),
     }
   }
 
@@ -50,30 +65,41 @@ function buildEmail({ type, to, name, tripName, status }) {
     const isConfirmed = status === 'confirmed'
     const isRefused = status === 'refused'
 
-    const bodyText = isConfirmed
-      ? `Great news — your registration for <strong>${safeTrip}</strong> has been <strong style="color:#16a34a">confirmed</strong>!`
+    const statusPill = isConfirmed
+      ? pill('Confirmed', COLORS.GREEN)
       : isRefused
-      ? `Unfortunately, your registration for <strong>${safeTrip}</strong> has been <strong style="color:#dc2626">unsuccessful</strong> at this time.`
-      : `Your registration for <strong>${safeTrip}</strong> has been updated to <strong>${label}</strong>.`
+      ? pill('Unsuccessful', COLORS.RED)
+      : pill(label, COLORS.BRAND)
+
+    const bodyText = isConfirmed
+      ? `Great news — your registration for the trip below has been <strong style="color:${COLORS.GREEN}">confirmed</strong>.`
+      : isRefused
+      ? `Unfortunately your registration for the trip below has been <strong style="color:${COLORS.RED}">unsuccessful</strong> this time. Keep an eye out — more trips are added regularly.`
+      : `Your registration for the trip below has been updated.`
 
     const lotusSection = isConfirmed ? `
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:24px 0">
-        <p style="margin:0 0 8px;font-weight:600;color:#15803d">Next step: update your passport details</p>
-        <p style="margin:0 0 12px;font-size:14px;color:#166534">Please make sure your passport details are up to date in Lotus Profiles before travel.</p>
-        <a href="${LOTUS_LINK}" style="display:inline-block;background:#16a34a;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600">Update Passport Details</a>
-      </div>
-    ` : ''
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0 0">
+        <tr>
+          <td style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px 22px">
+            <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#15803d;margin-bottom:6px">Next step: update your passport details</div>
+            <p style="margin:0 0 4px;font-size:14px;line-height:1.6;color:#166534">Please make sure your passport details are up to date in Lotus Profiles before travel.</p>
+            ${button('Update Passport Details', LOTUS_LINK, COLORS.GREEN)}
+          </td>
+        </tr>
+      </table>` : ''
 
     return {
-      subject: `Registration update: ${label} – ${safeTrip}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a">
-          <h2 style="color:#1a1a1a">Hi ${firstName},</h2>
-          <p>${bodyText}</p>
+      subject: `Registration update: ${label} – ${tripName}`,
+      html: emailShell({
+        preheader: `Your registration for ${tripName} is now ${label}.`,
+        heading: `Hi ${firstName}, here's an update`,
+        contentHtml: `
+          <p style="margin:0 0 14px">${statusPill}</p>
+          <p style="margin:0 0 18px">${bodyText}</p>
+          ${tripRow(safeTrip)}
           ${lotusSection}
-          <p style="color:#666;font-size:13px;margin-top:32px">— The DAFagram Team</p>
-        </div>
-      `,
+        `,
+      }),
     }
   }
 

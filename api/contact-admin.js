@@ -1,4 +1,5 @@
 import { parseServiceAccount, getAccessToken, verifyIdToken, checkRateLimit } from './_lib.js'
+import { emailShell, COLORS } from './_email.js'
 
 const ADMIN_EMAIL = 'famadmin@dialaflight.co.uk'
 
@@ -38,14 +39,22 @@ export default async function handler(req, res) {
       return res.status(429).json({ error: 'Too many messages — please try again later.' })
     }
 
-    const html = `
-      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a">
-        <h2 style="color:#1a1a1a">Message from ${esc(fromName)}</h2>
-        <p style="color:#666;font-size:13px;margin-bottom:4px">${esc(fromEmail)}</p>
-        <div style="background:#f5f5f5;border-radius:8px;padding:16px;margin:16px 0;white-space:pre-wrap;font-size:14px">${esc(message.trim())}</div>
-        <p style="color:#666;font-size:12px;margin-top:24px">Sent via DAFagram — reply to this email to respond directly to ${esc(fromName)}.</p>
-      </div>
-    `
+    const html = emailShell({
+      preheader: `New message from ${esc(fromName)}`,
+      heading: `New message from ${esc(fromName)}`,
+      contentHtml: `
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 18px">
+          <tr>
+            <td style="background-color:#f1f5f9;border-radius:10px;padding:12px 16px">
+              <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:${COLORS.MUTED};margin-bottom:3px">From</div>
+              <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:${COLORS.INK}">${esc(fromName)} &middot; <a href="mailto:${esc(fromEmail)}" style="color:${COLORS.BRAND};text-decoration:none">${esc(fromEmail)}</a></div>
+            </td>
+          </tr>
+        </table>
+        <div style="border-left:3px solid ${COLORS.BRAND};background-color:#fafbfc;border-radius:0 10px 10px 0;padding:16px 18px;white-space:pre-wrap;font-size:15px;line-height:1.6;color:#334155">${esc(message.trim())}</div>
+      `,
+      footNote: `Sent via DAFAGRAM &middot; Reply to this email to respond directly to ${esc(fromName)}.`,
+    })
 
     const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',

@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
     // Ask Identity Toolkit for the reset link (returnOobLink means Firebase does
     // NOT send its own email — we send our own branded one instead).
-    const oobRes = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode', {
+    const oobRes = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${sa.project_id}/accounts:sendOobCode`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ requestType: 'PASSWORD_RESET', email, returnOobLink: true }),

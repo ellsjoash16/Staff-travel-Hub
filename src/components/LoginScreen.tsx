@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { CircleNotch, SignIn, UserPlus, Camera, Globe, Airplane } from '@phosphor-icons/react'
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile, sendPasswordResetEmail } from 'firebase/auth'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth'
 import { auth, microsoftProvider } from '@/lib/firebase'
 import { saveSignupProfile } from '@/lib/db'
 import { Button } from '@/components/ui/button'
@@ -79,12 +79,16 @@ export function LoginScreen() {
     if (!email.trim()) { toast.error('Enter your email address first'); return }
     setBusy(true)
     try {
-      await sendPasswordResetEmail(auth, email.trim())
-      toast.success('Password reset email sent — check your inbox')
-    } catch (err: unknown) {
-      const code = (err as { code?: string }).code
-      if (code === 'auth/too-many-requests') { toast.error('Too many attempts — please wait a few minutes and try again') }
-      else { toast.error('Could not send reset email — check the address and try again') }
+      const res = await fetch('/api/send-reset-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      if (res.status === 429) { toast.error('Too many reset requests — please try again in a little while'); return }
+      if (!res.ok) { toast.error('Could not send reset email — check the address and try again'); return }
+      toast.success('If that account exists, a reset email is on its way — check your inbox')
+    } catch {
+      toast.error('Could not send reset email — please try again')
     } finally { setBusy(false) }
   }
 

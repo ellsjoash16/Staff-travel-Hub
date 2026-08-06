@@ -50,8 +50,15 @@ export default async function handler(req, res) {
       throw new Error(oobData.error?.message ?? `sendOobCode failed: ${oobRes.status}`)
     }
 
-    const link = oobData.oobLink
-    if (!link) throw new Error('No reset link returned')
+    // Firebase's oobLink points at its own generic reset page. Pull out just the
+    // oobCode and point at OUR branded /reset page instead (same host that
+    // served this request).
+    const fbLink = oobData.oobLink
+    if (!fbLink) throw new Error('No reset link returned')
+    const oobCode = new URL(fbLink).searchParams.get('oobCode')
+    if (!oobCode) throw new Error('No reset code in link')
+    const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0]
+    const link = `${proto}://${req.headers.host}/?mode=resetPassword&oobCode=${encodeURIComponent(oobCode)}`
 
     const html = emailShell({
       preheader: 'Reset your DAFAGRAM password.',

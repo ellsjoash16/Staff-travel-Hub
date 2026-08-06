@@ -1,4 +1,5 @@
 import { parseServiceAccount, getAccessToken, verifyIdToken, checkRateLimit } from './_lib.js'
+import { sendMail, mailerConfigured } from './_mailer.js'
 
 const ADMIN_EMAIL = 'famadmin@dialaflight.co.uk'
 
@@ -12,8 +13,7 @@ export default async function handler(req, res) {
   const token = (req.headers.authorization ?? '').replace('Bearer ', '').trim()
   if (!token) return res.status(401).json({ error: 'Unauthorised' })
 
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) return res.status(500).json({ error: 'Email service not configured' })
+  if (!mailerConfigured()) return res.status(500).json({ error: 'Email service not configured' })
 
   try {
     const sa = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
@@ -47,25 +47,12 @@ export default async function handler(req, res) {
       </div>
     `
 
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'DAFagram <noreply@dialaflight.co.uk>',
-        to: [ADMIN_EMAIL],
-        reply_to: fromEmail,
-        subject: `Message from ${esc(fromName)} — DAFagram`,
-        html,
-      }),
+    await sendMail({
+      to: ADMIN_EMAIL,
+      replyTo: fromEmail,
+      subject: `Message from ${esc(fromName)} — DAFagram`,
+      html,
     })
-
-    if (!emailRes.ok) {
-      const txt = await emailRes.text()
-      throw new Error(`Resend error ${emailRes.status}: ${txt.slice(0, 200)}`)
-    }
 
     console.log(`[contact-admin] ${fromName} <${fromEmail}>`)
     res.status(200).json({ ok: true })

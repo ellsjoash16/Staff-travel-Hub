@@ -12,7 +12,7 @@ export const NAV: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'feed',     label: 'Feed',               Icon: Camera },
   { id: 'map',      label: 'World Map',           Icon: Globe2 },
   { id: 'upcoming', label: 'Upcoming Trips',      Icon: Plane },
-  { id: 'interest', label: 'Registered Interest', Icon: ClipboardCheck },
+  { id: 'interest', label: 'My Registrations', Icon: ClipboardCheck },
   { id: 'years',    label: 'Trips By Year',       Icon: CalendarDays },
   { id: 'submit',   label: 'Submit Trip',         Icon: Send },
 ]

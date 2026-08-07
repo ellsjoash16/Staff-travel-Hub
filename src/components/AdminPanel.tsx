@@ -2190,11 +2190,11 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent size="lg">
+        <DialogContent size="lg" className="overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>Admin Panel</DialogTitle>
           </DialogHeader>
-          <DialogBody className="pt-2">
+          <DialogBody className="pt-2 min-w-0">
             {tabsContent}
           </DialogBody>
         </DialogContent>

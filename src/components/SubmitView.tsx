@@ -123,6 +123,9 @@ export function SubmitView() {
   const hasRating = [extras.airlines, extras.hotels, extras.cruises, extras.activities, extras.dmcs]
     .some(list => list.length > 0)
 
+  // Live word count for the review (ignoring the "---" photo separators).
+  const reviewWordCount = review.replace(/---/g, ' ').split(/\s+/).filter(Boolean).length
+
   function next() {
     if (step === 1 && (!firstName.trim() || !lastName.trim())) {
       toast.error('Please enter both your first and last name')
@@ -151,9 +154,8 @@ export function SubmitView() {
 
   async function handleSubmit() {
     // Review is optional — but if written, it must be a proper 100+ word write-up.
-    const reviewWords = review.trim() ? review.trim().split(/\s+/).filter(Boolean).length : 0
-    if (review.trim() && reviewWords < 100) {
-      toast.error(`Your review should be at least 100 words (currently ${reviewWords})`)
+    if (review.trim() && reviewWordCount < 100) {
+      toast.error(`Your review should be at least 100 words (currently ${reviewWordCount})`)
       return
     }
 
@@ -359,7 +361,17 @@ export function SubmitView() {
 
         {step === 6 && (
           <div className="space-y-1.5">
-            <Label>Your Review <span className="text-muted-foreground font-normal">(optional — 100+ words if you write one)</span></Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label>Your Review <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <span className={`text-xs font-medium tabular-nums ${
+                reviewWordCount === 0 ? 'text-muted-foreground'
+                : reviewWordCount < 100 ? 'text-amber-500'
+                : 'text-emerald-500'
+              }`}>
+                {reviewWordCount} {reviewWordCount === 1 ? 'word' : 'words'}
+                {reviewWordCount > 0 && reviewWordCount < 100 ? ` · ${100 - reviewWordCount} to go` : reviewWordCount >= 100 ? ' ✓' : ''}
+              </span>
+            </div>
             <BlogEditor
               review={review}
               images={images}

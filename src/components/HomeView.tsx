@@ -33,17 +33,17 @@ function SmallCard({
       <div className="p-4 2xl:p-5 h-full flex flex-col">
         <Icon className="h-5 w-5 2xl:h-6 2xl:w-6 text-muted-foreground flex-shrink-0" />
         <div className="flex-1 flex flex-col justify-end py-2 gap-0.5">
-          {stat && (
-            <>
-              <p className="text-2xl md:text-base lg:text-lg xl:text-xl 2xl:text-2xl font-bold text-foreground leading-tight tracking-tight line-clamp-2">{stat}</p>
-              {statLabel && <p className="text-[10px] md:text-[9px] lg:text-[10px] xl:text-xs text-muted-foreground">{statLabel}</p>}
-            </>
-          )}
+          <p className="text-2xl md:text-base lg:text-lg xl:text-xl 2xl:text-2xl font-bold text-foreground leading-tight tracking-tight line-clamp-2">{label}</p>
+          <p className="text-[10px] md:text-[9px] lg:text-[10px] xl:text-xs text-muted-foreground leading-tight line-clamp-2">{sub}</p>
         </div>
         <div className="flex items-end justify-between gap-2">
           <div>
-            <p className="font-bold text-foreground text-base md:text-sm lg:text-base xl:text-lg 2xl:text-xl leading-tight">{label}</p>
-            <p className="text-muted-foreground text-xs md:text-[10px] lg:text-xs xl:text-sm 2xl:text-sm mt-0.5 leading-tight line-clamp-2">{sub}</p>
+            {stat && (
+              <p className="font-semibold text-foreground text-sm md:text-[11px] lg:text-xs xl:text-sm 2xl:text-base leading-tight">
+                {stat}
+                {statLabel && <span className="font-normal text-muted-foreground"> {statLabel}</span>}
+              </p>
+            )}
           </div>
           <ArrowRight className="h-4 w-4 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all duration-200 flex-shrink-0 mb-0.5" />
         </div>

@@ -9,7 +9,7 @@ const STEPS: { view: View; Icon: React.ElementType; title: string; body: string 
   { view: 'map',      Icon: Globe,          title: 'The World Map',        body: 'Tap any country to see the destinations colleagues have visited, plus their reviews and past trips.' },
   { view: 'upcoming', Icon: Airplane,       title: 'Upcoming Trips',       body: 'See what group trips are coming up and register your interest. Use “Update passport info” to keep your details current.' },
   { view: 'years',    Icon: CalendarDots,   title: 'Trips By Year',        body: 'The full archive of past FAM and external trips, neatly organised by year.' },
-  { view: 'submit',   Icon: PaperPlaneTilt, title: 'Share Your Trip',      body: 'Been somewhere great? Submit your own photos and review so the whole team can benefit.' },
+  { view: 'submit',   Icon: PaperPlaneTilt, title: 'Share My Trip',        body: 'Been somewhere great? Submit your own photos and review so the whole team can benefit.' },
 ]
 
 export function Walkthrough({

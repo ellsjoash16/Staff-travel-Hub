@@ -248,7 +248,7 @@ export function SubmitView() {
               <Airplane className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <h2 className="font-gilbert text-2xl mb-0.5">Share Your Trip</h2>
+          <h2 className="font-gilbert text-2xl mb-0.5">Share My Trip</h2>
           <p className="text-xs text-muted-foreground">
             We'll guide you through each section — takes about 2 minutes
           </p>
@@ -259,7 +259,7 @@ export function SubmitView() {
           <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Airplane className="h-3.5 w-3.5 text-primary" />
           </div>
-          <h2 className="font-gilbert text-base">Share Your Trip</h2>
+          <h2 className="font-gilbert text-base">Share My Trip</h2>
         </div>
 
         <StepProgress current={step} />
@@ -401,7 +401,7 @@ export function SubmitView() {
             <Button onClick={handleSubmit} disabled={submitting} className="gap-2">
               {submitting
                 ? <><CircleNotch className="h-4 w-4 animate-spin" /> {uploadProgress && uploadProgress.done < uploadProgress.total ? `Uploading ${uploadProgress.done}/${uploadProgress.total} photos…` : 'Submitting…'}</>
-                : <><PaperPlaneTilt className="h-4 w-4" /> Submit Trip</>
+                : <><PaperPlaneTilt className="h-4 w-4" /> Share My Trip</>
               }
             </Button>
           )}

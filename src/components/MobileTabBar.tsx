@@ -8,7 +8,7 @@ import type { View } from '@/lib/types'
 const PRIMARY: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'feed',     label: 'Feed',     Icon: Camera },
   { id: 'upcoming', label: 'Upcoming', Icon: Plane },
-  { id: 'submit',   label: 'Submit',   Icon: Send },
+  { id: 'submit',   label: 'Share',    Icon: Send },
   { id: 'map',      label: 'Map',      Icon: Globe2 },
 ]
 

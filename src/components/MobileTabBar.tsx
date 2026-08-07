@@ -14,7 +14,7 @@ const PRIMARY: { id: View; label: string; Icon: React.ElementType }[] = [
 
 const SECONDARY: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'interest', label: 'My Registrations', Icon: ClipboardCheck },
-  { id: 'years',    label: 'Trips By Year',    Icon: CalendarDays },
+  { id: 'years',    label: 'DAF Adventures',   Icon: CalendarDays },
 ]
 
 const ADMIN_ITEMS: { id: View; label: string; Icon: React.ElementType }[] = [

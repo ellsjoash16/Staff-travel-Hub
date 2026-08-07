@@ -174,7 +174,7 @@ export function YearsView() {
           {/* ── Left sidebar: header + year nav ── */}
           <div className="lg:w-52 xl:w-60 lg:flex-shrink-0 lg:flex lg:flex-col">
             <div className="rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl px-4 py-3 sm:px-6 sm:py-5 mb-3 sm:mb-4">
-              <h2 className="font-gilbert text-xl sm:text-2xl text-foreground leading-tight">By Year</h2>
+              <h2 className="font-gilbert text-xl sm:text-2xl text-foreground leading-tight">DAF Adventures</h2>
               <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
                 {famTrips.length} FAM · {extTrips.length} External · {yearKeys.length} year{yearKeys.length !== 1 ? 's' : ''}
               </p>

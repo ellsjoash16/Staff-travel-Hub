@@ -14,7 +14,7 @@ const SMALL_PANELS: {
 }[] = [
   { key: 'map',      Icon: Globe,         label: 'World Map',        sub: 'Explore destinations'            },
   { key: 'upcoming', Icon: Airplane,       label: 'Upcoming Trips',   sub: 'See what\'s coming next'         },
-  { key: 'years',    Icon: CalendarDots,   label: 'Trips By Year',    sub: 'Browse the archive'              },
+  { key: 'years',    Icon: CalendarDots,   label: 'DAF Adventures',   sub: 'Browse the archive'              },
   { key: 'interest', Icon: ClipboardText,  label: 'My Registrations', sub: 'Track your registered interest'  },
   { key: 'submit',   Icon: PaperPlaneTilt, label: 'Share My Trip',    sub: 'Submit your own adventure'       },
 ]

@@ -23,18 +23,18 @@ const STEP_TIPS: Record<number, { heading: string; bullets: string[] }> = {
   1: { heading: 'Getting started', bullets: ['Your name will appear on the published post', 'Make sure it matches how you would like to be credited', 'Both first and last name are required'] },
   2: { heading: 'Trip details', bullets: ['Use a descriptive title e.g. Bali 2026', 'Set the date you travelled, not today', 'The destination helps us pin it on the world map'] },
   3: { heading: 'Photo tips', bullets: ['Minimum 4 photos, up to 10', 'Landscape photos work best for the hero image', 'Your first photo becomes the cover of your post', 'High quality images make a big difference'] },
-  4: { heading: 'Ratings are optional', bullets: ['Only add what is relevant to your trip', 'Be honest — these help the sales team', 'You can rate airlines, hotels, cruises, DMCs and activities'] },
-  5: { heading: 'Sales note tips', bullets: ['This is for the sales team, not published publicly', 'Include anything useful for selling this destination', 'Price points, unique experiences, best time to go'] },
-  6: { heading: 'Writing your review', bullets: ['Write in first person — share your personal experience', 'Aim for at least 3 or 4 paragraphs', 'Use Insert photo to break up the text with images', 'Spell check before submitting'] },
+  4: { heading: 'Ratings are required', bullets: ['Add at least one rating to continue', 'Only rate what is relevant to your trip', 'Be honest — these help the sales team', 'You can rate airlines, hotels, cruises, DMCs and activities'] },
+  5: { heading: 'Sales note required', bullets: ['This is for the sales team, not published publicly', 'Include anything useful for selling this destination', 'Price points, unique experiences, best time to go'] },
+  6: { heading: 'Writing your review', bullets: ['This step is optional — but if you write one, make it count', 'Aim for at least 100 words', 'Write in first person — share your personal experience', 'Use Insert photo to break up the text with images'] },
 }
 
 const STEPS = [
   { id: 1, label: 'You',        icon: User,         title: "Who's submitting?",    subtitle: 'Just your name so we know who to credit' },
   { id: 2, label: 'Trip',       icon: MapPin,        title: 'Where did you go?',    subtitle: 'Tell us about your trip' },
   { id: 3, label: 'Photos',     icon: Camera,        title: 'Add some photos',      subtitle: 'Between 4 and 10 photos of your trip' },
-  { id: 4, label: 'Ratings',    icon: Star,          title: 'Rate your experience', subtitle: 'Hotels, airlines & more — all optional' },
-  { id: 5, label: 'Sales Note', icon: NotebookPen,   title: 'Sales note',           subtitle: 'Any tips or highlights for the sales team' },
-  { id: 6, label: 'Review',     icon: PenLine,       title: 'Your overall review',  subtitle: 'A summary of your trip experience' },
+  { id: 4, label: 'Ratings',    icon: Star,          title: 'Rate your experience', subtitle: 'Rate at least one — hotels, airlines & more' },
+  { id: 5, label: 'Sales Note', icon: NotebookPen,   title: 'Sales note',           subtitle: 'Required tips or highlights for the sales team' },
+  { id: 6, label: 'Review',     icon: PenLine,       title: 'Your overall review',  subtitle: 'Optional — but 100+ words if you write one' },
 ]
 
 // ── Progress indicator ───────────────────────────────────────────────────────
@@ -119,6 +119,10 @@ export function SubmitView() {
 
   const stepInfo = STEPS[step - 1]
 
+  // Ratings are now required — at least one entry across any category.
+  const hasRating = [extras.airlines, extras.hotels, extras.cruises, extras.activities, extras.dmcs]
+    .some(list => list.length > 0)
+
   function next() {
     if (step === 1 && (!firstName.trim() || !lastName.trim())) {
       toast.error('Please enter both your first and last name')
@@ -132,14 +136,24 @@ export function SubmitView() {
       toast.error(`Please add at least 4 photos (${images.length} added so far)`)
       return
     }
+    if (step === 4 && !hasRating) {
+      toast.error('Please add at least one rating')
+      return
+    }
+    if (step === 5 && !salesNote.trim()) {
+      toast.error('Please add a sales note')
+      return
+    }
     setStep(s => s + 1)
   }
 
   function back() { setStep(s => s - 1) }
 
   async function handleSubmit() {
-    if (!review.trim()) {
-      toast.error('Please write your review before submitting')
+    // Review is optional — but if written, it must be a proper 100+ word write-up.
+    const reviewWords = review.trim() ? review.trim().split(/\s+/).filter(Boolean).length : 0
+    if (review.trim() && reviewWords < 100) {
+      toast.error(`Your review should be at least 100 words (currently ${reviewWords})`)
       return
     }
 
@@ -325,14 +339,14 @@ export function SubmitView() {
           <div className="space-y-1.5">
             <ReviewExtras value={extras} onChange={setExtras} />
             <p className="text-xs text-muted-foreground pt-1">
-              All categories are optional — add only what's relevant to your trip.
+              Add at least one rating to continue — only what's relevant to your trip.
             </p>
           </div>
         )}
 
         {step === 5 && (
           <div className="space-y-1.5">
-            <Label>Sales Note <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Label>Sales Note <span className="text-destructive">*</span></Label>
             <Textarea
               placeholder="Any tips, highlights or talking points for the sales team…"
               value={salesNote}
@@ -345,7 +359,7 @@ export function SubmitView() {
 
         {step === 6 && (
           <div className="space-y-1.5">
-            <Label>Your Review <span className="text-destructive">*</span></Label>
+            <Label>Your Review <span className="text-muted-foreground font-normal">(optional — 100+ words if you write one)</span></Label>
             <BlogEditor
               review={review}
               images={images}

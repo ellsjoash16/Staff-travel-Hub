@@ -112,7 +112,7 @@ export function HomeView() {
       {/* ── Hero ── */}
       <div
         className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-md transition-shadow duration-200
-          h-52 sm:h-auto sm:flex-[2] flex-shrink-0"
+          h-60 sm:h-auto sm:flex-[2] flex-shrink-0"
         onClick={() => navigate('feed')}
       >
         <img
@@ -155,10 +155,9 @@ export function HomeView() {
               </p>
             </div>
             <div className="flex-shrink-0 mb-0.5">
-              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/15 hover:bg-white/25 transition-colors duration-200 backdrop-blur-sm border border-white/20 rounded-full px-2 py-1 sm:px-4 sm:py-2">
-                <Camera className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-white" />
-                <span className="text-white text-[10px] sm:text-sm font-medium whitespace-nowrap">Browse Feed</span>
-                <ArrowRight className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-white" />
+              <div className="flex items-center gap-2 sm:gap-2.5 bg-white/15 hover:bg-white/25 transition-colors duration-200 backdrop-blur-sm border border-white/20 rounded-full px-3.5 py-2.5 sm:px-4 sm:py-3">
+                <Camera className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
             </div>
           </div>

@@ -22,7 +22,7 @@ import { tripImage } from '@/lib/destinationImages'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
 
 
-const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [], airplanes: [] }
+const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
 
 interface PostForm {
   title: string; staff: string; staffImage: string | null
@@ -54,7 +54,7 @@ const emptyNewUser = () => ({ firstName: '', lastName: '', email: '', password: 
 const emptyPostForm = (): PostForm => ({
   title: '', staff: '', staffImage: null, review: '', locName: '',
   locationIds: [], date: today(), tags: '', images: [],
-  extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [], airplanes: [] },
+  extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
   salesNote: '', riseUrl: '', folder: null,
 })
 
@@ -284,7 +284,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       date: r.date,
       tags: '',
       images: r.images,
-      extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [], airplanes: [] },
+      extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
       salesNote: '',
       riseUrl: '',
       folder: null,

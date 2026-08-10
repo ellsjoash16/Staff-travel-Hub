@@ -23,7 +23,6 @@ export interface PostExtras {
   cruises: ReviewItem[]
   activities: ReviewItem[]
   dmcs: ReviewItem[]
-  airplanes: ReviewItem[]
 }
 
 export interface Post {

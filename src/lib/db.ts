@@ -38,7 +38,7 @@ async function adminWrite(
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [], airplanes: [] }
+const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
 
 export const DEFAULT_SETTINGS: Settings = {
   title: 'DAF Adventures',

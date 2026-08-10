@@ -13,7 +13,6 @@ function wordCount(s: string) {
 
 const SECTIONS = [
   { key: 'airlines'   as const, label: 'Airlines',   singular: 'Airline',  img: '/airlines.jpg'    },
-  { key: 'airplanes'  as const, label: 'Airplanes',  singular: 'Airplane', img: '/airlines.jpg'    },
   { key: 'hotels'     as const, label: 'Hotels',     singular: 'Hotel',    img: '/hotels.webp'     },
   { key: 'cruises'    as const, label: 'Cruises',    singular: 'Cruise',   img: '/cruises.webp'    },
   { key: 'activities' as const, label: 'Activities', singular: 'Activity', img: '/activities.webp' },

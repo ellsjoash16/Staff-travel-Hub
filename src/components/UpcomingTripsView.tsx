@@ -337,26 +337,26 @@ export function UpcomingTripsView() {
           <h2 className="font-gilbert text-2xl sm:text-3xl xl:text-4xl text-white leading-tight drop-shadow">
             {tab === 'trips' ? 'Upcoming Trips' : 'Events'}
           </h2>
-          <div className="flex gap-1 bg-white/10 backdrop-blur-sm rounded-xl p-1 flex-shrink-0">
+          <div className="flex gap-0.5 bg-white/10 backdrop-blur-sm rounded-lg p-0.5 flex-shrink-0">
             <button
               onClick={() => setTab('trips')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-150 ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] sm:text-xs font-medium transition-all duration-150 ${
                 tab === 'trips'
                   ? 'bg-white text-gray-900 shadow'
                   : 'text-white/70 hover:text-white'
               }`}
             >
-              <Airplane className="h-3.5 w-3.5" /> Trips
+              <Airplane className="h-3 w-3" /> Trips
             </button>
             <button
               onClick={() => setTab('events')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-150 ${
+              className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] sm:text-xs font-medium transition-all duration-150 ${
                 tab === 'events'
                   ? 'bg-white text-gray-900 shadow'
                   : 'text-white/70 hover:text-white'
               }`}
             >
-              <Star className="h-3.5 w-3.5" /> Events
+              <Star className="h-3 w-3" /> Events
             </button>
           </div>
         </div>

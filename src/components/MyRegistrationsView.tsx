@@ -85,13 +85,13 @@ export function MyRegistrationsView() {
           <p className="text-sm text-center max-w-xs">Head to Upcoming Trips and register your interest to see your status here</p>
         </div>
       ) : (
-        <div className="relative flex flex-col px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 sm:py-5 lg:py-6 xl:py-8" style={{ zIndex: 1 }}>
+        <div className="relative flex flex-col min-h-full px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pt-3 pb-24 sm:py-5 lg:py-6 xl:py-8" style={{ zIndex: 1 }}>
           <div className="w-full mb-3 sm:mb-6">
             <h2 className="font-gilbert text-2xl sm:text-3xl xl:text-4xl text-white leading-tight drop-shadow">My Registrations</h2>
             <p className="text-xs sm:text-sm text-white/70 mt-1">Track the status of your trip registrations</p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {myRegistrations.map(reg => (
               <RegistrationCard key={reg.id} reg={reg} trip={getTripInfo(reg)} />
             ))}

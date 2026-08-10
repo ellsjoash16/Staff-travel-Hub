@@ -17,6 +17,7 @@ import { ImageUpload } from './ImageUpload'
 import { DatePicker } from './DatePicker'
 import { useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
 import { today, fmtDate } from '@/lib/utils'
+import { REGIONS, getPostRegions } from '@/lib/regions'
 import { seedDemoData, clearDemoData } from '@/lib/seed'
 import { tripImage } from '@/lib/destinationImages'
 import type { Post, Trip, Location, PostExtras } from '@/lib/types'
@@ -1449,13 +1450,19 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               {(() => {
                 const adminFolders = settings.adminFolders ?? []
                 const q = manageSearch.toLowerCase()
+                // Each continent acts as an auto folder, derived from post locations.
+                const availableContinents = REGIONS
+                  .filter(r => posts.some(p => getPostRegions(p, locations).includes(r.label)))
+                  .map(r => r.label)
                 const filteredPosts = posts.filter(p => {
                   const pFolders = p.folders ?? (p.folder ? [p.folder] : [])
                   const matchFolder = manageFolder === null
                     ? true
                     : manageFolder === '__none__'
                       ? pFolders.length === 0
-                      : pFolders.includes(manageFolder)
+                      : manageFolder.startsWith('continent:')
+                        ? getPostRegions(p, locations).includes(manageFolder.slice(10))
+                        : pFolders.includes(manageFolder)
                   const matchSearch = !q || p.title.toLowerCase().includes(q) || p.staff.toLowerCase().includes(q) || p.location.name.toLowerCase().includes(q)
                   return matchFolder && matchSearch
                 })
@@ -1504,43 +1511,69 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       />
                     </div>
 
-                    {/* Folder filter chips */}
-                    {adminFolders.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        <button
-                          onClick={() => setManageFolder(null)}
-                          className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
-                            manageFolder === null
-                              ? 'btn-gradient text-white'
-                              : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
-                          }`}
-                        >
-                          All
-                        </button>
-                        {adminFolders.map(f => (
+                    {/* Folder + continent filter chips */}
+                    {(adminFolders.length > 0 || availableContinents.length > 0) && (
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-1.5">
                           <button
-                            key={f}
-                            onClick={() => setManageFolder(manageFolder === f ? null : f)}
+                            onClick={() => setManageFolder(null)}
                             className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
-                              manageFolder === f
+                              manageFolder === null
                                 ? 'btn-gradient text-white'
                                 : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
                             }`}
                           >
-                            <FolderOpen className="h-3 w-3" />
-                            {f}
+                            All
                           </button>
-                        ))}
-                        <button
-                          onClick={() => setManageFolder(manageFolder === '__none__' ? null : '__none__')}
-                          className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
-                            manageFolder === '__none__'
-                              ? 'btn-gradient text-white'
-                              : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
-                          }`}
-                        >
-                          Unassigned
-                        </button>
+                          {adminFolders.map(f => (
+                            <button
+                              key={f}
+                              onClick={() => setManageFolder(manageFolder === f ? null : f)}
+                              className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                                manageFolder === f
+                                  ? 'btn-gradient text-white'
+                                  : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
+                              }`}
+                            >
+                              <FolderOpen className="h-3 w-3" />
+                              {f}
+                            </button>
+                          ))}
+                          {adminFolders.length > 0 && (
+                            <button
+                              onClick={() => setManageFolder(manageFolder === '__none__' ? null : '__none__')}
+                              className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                                manageFolder === '__none__'
+                                  ? 'btn-gradient text-white'
+                                  : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
+                              }`}
+                            >
+                              Unassigned
+                            </button>
+                          )}
+                        </div>
+                        {availableContinents.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground/60 mr-0.5">Continents</span>
+                            {availableContinents.map(region => {
+                              const val = `continent:${region}`
+                              return (
+                                <button
+                                  key={val}
+                                  onClick={() => setManageFolder(manageFolder === val ? null : val)}
+                                  className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                                    manageFolder === val
+                                      ? 'btn-gradient text-white'
+                                      : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
+                                  }`}
+                                >
+                                  <Globe className="h-3 w-3" />
+                                  {region}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
 

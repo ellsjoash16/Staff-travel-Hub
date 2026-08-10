@@ -68,10 +68,10 @@ function FeaturedTripCard({ trip, locations }: { trip: Trip; locations: Location
     <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
     <div className="relative rounded-2xl overflow-hidden bg-background/80 backdrop-blur-xl border border-white/10 shadow-lg mb-4 sm:mb-6">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-      <div className="flex flex-col md:flex-row min-h-[220px] sm:min-h-[280px] lg:min-h-[340px] xl:min-h-[380px] 2xl:min-h-[420px]">
+      <div className="flex flex-col md:flex-row min-h-0 sm:min-h-[280px] lg:min-h-[340px] xl:min-h-[380px] 2xl:min-h-[420px]">
 
         {/* Image */}
-        <div className="relative md:w-2/5 flex-shrink-0 h-36 sm:h-48 md:h-auto">
+        <div className="relative md:w-2/5 flex-shrink-0 h-28 sm:h-48 md:h-auto">
           {trip.image ? (
             <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
           ) : (
@@ -86,8 +86,8 @@ function FeaturedTripCard({ trip, locations }: { trip: Trip; locations: Location
         </div>
 
         {/* Details */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col justify-between gap-3 sm:gap-5">
-          <div className="space-y-1.5 sm:space-y-2">
+        <div className="flex-1 p-3.5 sm:p-6 lg:p-8 flex flex-col justify-between gap-2.5 sm:gap-5">
+          <div className="space-y-1 sm:space-y-2">
             <p className="text-xs font-semibold uppercase tracking-widest text-primary">Departing in</p>
             <CountdownTimer dateStr={trip.date} />
           </div>

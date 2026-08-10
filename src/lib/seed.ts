@@ -27,6 +27,7 @@ const POSTS: Post[] = [
     ],
     pinned: true,
     extras: {
+      airplanes: [],
       airlines: [{ name: 'Emirates', rating: 5, description: 'Impeccable service, A380 upper deck. Champagne on departure. Highly recommend upselling business class.' }],
       hotels: [{ name: 'Atlantis The Palm', rating: 5, description: 'Iconic resort, enormous rooms, the Aquaventure waterpark is included. Book the Royal Bridge Suite for VIP clients.' }],
       cruises: [],
@@ -55,6 +56,7 @@ const POSTS: Post[] = [
     ],
     pinned: false,
     extras: {
+      airplanes: [],
       airlines: [{ name: 'Singapore Airlines', rating: 5, description: 'Via Singapore. Excellent service and the transit through Changi Airport is a pleasure.' }],
       hotels: [{ name: 'Alaya Resort Ubud', rating: 5, description: 'Private pool villas surrounded by jungle. Exceptional breakfast and staff.' }],
       cruises: [],
@@ -83,6 +85,7 @@ const POSTS: Post[] = [
     ],
     pinned: false,
     extras: {
+      airplanes: [],
       airlines: [{ name: 'Qatar Airways', rating: 5, description: 'Via Doha. Business class is exceptional. Worth every penny for a honeymoon.' }],
       hotels: [{ name: 'Gili Lankanfushi', rating: 5, description: 'No news, no shoes philosophy. The crusoe residences are extraordinary. Butler service 24/7.' }],
       cruises: [],
@@ -111,6 +114,7 @@ const POSTS: Post[] = [
     ],
     pinned: false,
     extras: {
+      airplanes: [],
       airlines: [{ name: 'Royal Air Maroc', rating: 3, description: 'Direct from LHR, reliable but basic. EasyJet from Gatwick is a cheaper alternative for budget clients.' }],
       hotels: [{ name: 'Riad Yasmine', rating: 5, description: 'Stunning riad with rooftop pool. The location inside the medina is perfect. Book well in advance.' }],
       cruises: [],
@@ -139,6 +143,7 @@ const POSTS: Post[] = [
     ],
     pinned: false,
     extras: {
+      airplanes: [],
       airlines: [{ name: 'Thai Airways', rating: 4, description: 'Good product via Bangkok. The upgrade to business is very reasonable and worth pitching.' }],
       hotels: [{ name: 'Kata Rocks Resort', rating: 5, description: 'Clifftop infinity pool villas with incredible Andaman Sea views. Adults only — excellent for couples.' }],
       cruises: [],

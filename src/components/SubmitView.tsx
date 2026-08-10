@@ -17,7 +17,7 @@ import { useApp } from '@/context/AppContext'
 import { today } from '@/lib/utils'
 import type { PostExtras } from '@/lib/types'
 
-const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
+const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [], airplanes: [] }
 
 const STEP_TIPS: Record<number, { heading: string; bullets: string[] }> = {
   1: { heading: 'Getting started', bullets: ['Your name will appear on the published post', 'Make sure it matches how you would like to be credited', 'Both first and last name are required'] },
@@ -120,7 +120,7 @@ export function SubmitView() {
   const stepInfo = STEPS[step - 1]
 
   // Ratings are now required — at least one entry across any category.
-  const hasRating = [extras.airlines, extras.hotels, extras.cruises, extras.activities, extras.dmcs]
+  const hasRating = [extras.airlines, extras.airplanes, extras.hotels, extras.cruises, extras.activities, extras.dmcs]
     .some(list => list.length > 0)
 
   // Live word count for the review (ignoring the "---" photo separators).

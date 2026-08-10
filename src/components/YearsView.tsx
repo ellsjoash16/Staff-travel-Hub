@@ -43,6 +43,7 @@ export function YearsView() {
   const { state } = useApp()
   const { trips, locations } = state
   const [selectedYear, setSelectedYear] = useState<string | null>(null)
+  const [mobileTab, setMobileTab] = useState<'fam' | 'ext'>('fam')
 
   const completedTrips = trips.filter(t => t.completed && !t.isEvent)
   const famTrips = completedTrips.filter(t => !t.external)
@@ -201,16 +202,43 @@ export function YearsView() {
 
           {/* ── Right: FAM | External cards ── */}
           <div className="flex-1 min-w-0 lg:min-h-0 lg:flex lg:flex-col">
-            {activeYear && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:flex-1 lg:min-h-0">
-                <CardSection key={`fam-${activeYear}`} title={`FAM · ${activeYear}`}>
-                  {renderColumn(famYearTrips, allMonthKeys, 'No FAM trips this year')}
-                </CardSection>
-                <CardSection key={`ext-${activeYear}`} title={`External · ${activeYear}`}>
-                  {renderColumn(extYearTrips, allMonthKeys, 'No external trips this year')}
-                </CardSection>
-              </div>
-            )}
+            {activeYear && (() => {
+              const famCount = [...famYearTrips.values()].reduce((n, arr) => n + arr.length, 0)
+              const extCount = [...extYearTrips.values()].reduce((n, arr) => n + arr.length, 0)
+              return (
+                <>
+                  {/* Mobile / tablet: FAM ⇄ External toggle (desktop shows both columns) */}
+                  <div className="lg:hidden flex gap-1.5 mb-3">
+                    {([['fam', 'FAM', famCount], ['ext', 'External', extCount]] as const).map(([key, label, count]) => (
+                      <button
+                        key={key}
+                        onClick={() => setMobileTab(key)}
+                        className={`flex-1 rounded-xl px-3 py-2 text-sm font-medium transition-all ${
+                          mobileTab === key
+                            ? 'bg-background/90 backdrop-blur-xl border border-primary/30 text-primary shadow-lg'
+                            : 'bg-background/50 backdrop-blur-md border border-white/10 text-white/70'
+                        }`}
+                      >
+                        {label} <span className="text-xs opacity-70">({count})</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:flex-1 lg:min-h-0">
+                    <div className={`flex-col min-h-0 ${mobileTab === 'fam' ? 'flex' : 'hidden'} lg:flex`}>
+                      <CardSection key={`fam-${activeYear}`} title={`FAM · ${activeYear}`}>
+                        {renderColumn(famYearTrips, allMonthKeys, 'No FAM trips this year')}
+                      </CardSection>
+                    </div>
+                    <div className={`flex-col min-h-0 ${mobileTab === 'ext' ? 'flex' : 'hidden'} lg:flex`}>
+                      <CardSection key={`ext-${activeYear}`} title={`External · ${activeYear}`}>
+                        {renderColumn(extYearTrips, allMonthKeys, 'No external trips this year')}
+                      </CardSection>
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
           </div>
 
         </div>

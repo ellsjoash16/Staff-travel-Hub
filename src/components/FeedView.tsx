@@ -115,12 +115,15 @@ export function FeedView() {
     return [...regions]
   }
 
-  // Region tabs reflect the native feed only
+  // Region tabs reflect every post that has a location — native AND Rise 360
+  // courses — so a continent shows up even if it only has Rise reviews.
   const regionSet = new Set<string>()
-  for (const post of nativePosts) postRegions(post).forEach((r) => regionSet.add(r))
+  for (const post of posts) postRegions(post).forEach((r) => regionSet.add(r))
   const availableRegions = REGIONS.filter((r) => regionSet.has(r.label)).map((r) => r.label)
 
-  const base = isRiseArchive ? risePosts : nativePosts
+  // Continent tabs show native + Rise courses for that region; "Latest" stays
+  // native-only; the Rise archive tab shows every Rise course.
+  const base = isRiseArchive ? risePosts : (activeRegion ? posts : nativePosts)
   const filtered = (activeRegion && !isRiseArchive)
     ? base.filter((p) => postRegions(p).includes(activeRegion))
     : [...base]

@@ -159,7 +159,8 @@ function AppShell() {
         } ${
           state.activeView === 'home'   ? 'px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 lg:py-4 2xl:py-5 pb-16 lg:pb-5'
           : state.activeView === 'map' || state.activeView === 'upcoming' ? 'p-0 overflow-hidden'
-          : state.activeView === 'submit' || state.activeView === 'years' || state.activeView === 'interest' ? 'pb-16 lg:pb-0'
+          : state.activeView === 'submit' ? 'pb-0'
+          : state.activeView === 'years' || state.activeView === 'interest' ? 'pb-16 lg:pb-0'
           : 'py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pb-16 lg:pb-8'
         }`}
       >

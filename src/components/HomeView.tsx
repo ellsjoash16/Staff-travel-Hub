@@ -112,7 +112,7 @@ export function HomeView() {
       {/* ── Hero ── */}
       <div
         className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-md transition-shadow duration-200
-          h-40 sm:h-auto sm:flex-[2] flex-shrink-0"
+          h-52 sm:h-auto sm:flex-[2] flex-shrink-0"
         onClick={() => navigate('feed')}
       >
         <img
@@ -147,7 +147,7 @@ export function HomeView() {
           )}
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="font-bold text-white text-lg sm:text-4xl 2xl:text-5xl leading-tight sm:leading-none tracking-tight drop-shadow-lg">
+              <h1 className="font-bold text-white text-2xl sm:text-4xl 2xl:text-5xl leading-tight sm:leading-none tracking-tight drop-shadow-lg">
                 {settings.heading || 'Staff Adventures'}
               </h1>
               <p className="hidden sm:block text-white/60 text-sm 2xl:text-base mt-2 tracking-wide">
@@ -165,15 +165,12 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* ── Cards: 2 then 3 on mobile, full grid on sm+ ── */}
-      <div className="sm:hidden grid grid-cols-6 gap-2 flex-shrink-0">
-        {SMALL_PANELS.slice(0, 2).map(p => (
+      {/* ── Cards: uniform 2-column grid on mobile (last spans full width), full grid on sm+ ── */}
+      <div className="sm:hidden grid grid-cols-2 gap-2 flex-shrink-0">
+        {SMALL_PANELS.map((p, i) => (
           <MobileCard key={p.key} Icon={p.Icon} label={p.label}
-            onClick={() => navigate(p.key)} className="col-span-3" />
-        ))}
-        {SMALL_PANELS.slice(2, 5).map(p => (
-          <MobileCard key={p.key} Icon={p.Icon} label={p.label}
-            onClick={() => navigate(p.key)} className="col-span-2" />
+            onClick={() => navigate(p.key)}
+            className={i === SMALL_PANELS.length - 1 && SMALL_PANELS.length % 2 === 1 ? 'col-span-2' : ''} />
         ))}
       </div>
 

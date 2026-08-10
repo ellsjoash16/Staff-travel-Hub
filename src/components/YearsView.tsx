@@ -168,7 +168,7 @@ export function YearsView() {
         }} />
       </div>
 
-      <div className="relative h-auto lg:h-full lg:flex lg:flex-col py-3 sm:py-5 lg:py-6 xl:py-8 px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <div className="relative h-auto lg:h-full lg:flex lg:flex-col pt-3 pb-24 sm:py-5 lg:py-6 xl:py-8 px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
         <div className="lg:flex-1 lg:min-h-0 lg:flex lg:gap-6 xl:gap-8">
 
           {/* ── Left sidebar: header + year nav ── */}

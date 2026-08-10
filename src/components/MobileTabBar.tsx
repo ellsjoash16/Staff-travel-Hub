@@ -22,7 +22,7 @@ const ADMIN_ITEMS: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'settings', label: 'Settings', Icon: Settings },
 ]
 
-const ISLAND_WIDTH = 'w-[280px]'
+const ISLAND_WIDTH = 'w-[248px]'
 
 const TAB_GLASS_STYLE: React.CSSProperties = {
   '--liquid-glass-rim-width': '1px',

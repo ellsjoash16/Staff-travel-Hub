@@ -30,7 +30,7 @@ const QUOTES = [
 function SplashScreen() {
   const quote = QUOTES[Math.floor(Date.now() / 5000) % QUOTES.length]
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-dvh flex flex-col items-center justify-center relative overflow-hidden">
       <div className="absolute inset-0" style={{
         backgroundImage: `url(${LOADING_BG})`,
         backgroundSize: 'cover', backgroundPosition: 'center',

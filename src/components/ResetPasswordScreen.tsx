@@ -45,7 +45,7 @@ export function ResetPasswordScreen({ oobCode }: { oobCode: string }) {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-6 py-10 overflow-hidden">
+    <div className="min-h-dvh relative flex items-center justify-center px-6 py-10 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 -z-10">
         <img src={BG} alt="" className="absolute inset-0 w-full h-full object-cover object-center" />

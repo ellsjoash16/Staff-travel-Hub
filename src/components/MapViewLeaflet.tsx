@@ -201,7 +201,7 @@ export function MapViewLeaflet({ onSelectPost, dark = true }: Props) {
   }, [posts])
 
   return (
-    <div className="relative rounded-2xl overflow-hidden shadow-md" style={{ height: 'calc(100vh - 140px)' }}>
+    <div className="relative rounded-2xl overflow-hidden shadow-md" style={{ height: 'calc(100dvh - 140px)' }}>
       <MapContainer
         center={[20, 0]}
         zoom={2}

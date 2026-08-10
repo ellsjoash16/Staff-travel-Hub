@@ -131,7 +131,7 @@ export function LoginScreen() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row lg:bg-background">
+    <div className="min-h-dvh flex flex-col lg:flex-row lg:bg-background">
 
       {/* ── Left: hero panel ── */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
@@ -195,7 +195,7 @@ export function LoginScreen() {
       </div>
 
       {/* ── Right: form panel ── */}
-      <div className="flex-1 relative flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto lg:bg-background px-6 py-10 lg:px-8 xl:px-10 min-h-screen lg:min-h-0">
+      <div className="flex-1 relative flex flex-col items-center justify-center overflow-x-hidden overflow-y-auto lg:bg-background px-6 py-10 lg:px-8 xl:px-10 min-h-dvh lg:min-h-0">
 
         {/* Mobile: blurred background */}
         <div className="lg:hidden absolute inset-0 -z-0" style={{
@@ -206,15 +206,15 @@ export function LoginScreen() {
         }} />
 
         {/* Mobile: logo above card */}
-        <div className="lg:hidden relative z-10 text-center mb-8 flex-shrink-0">
-          <img src="/daf-logo.png" alt="DAF logo" className="h-28 w-28 object-contain mx-auto mb-4" style={{ transform: 'translateX(8px)' }} />
-          <h1 className="font-gilbert text-5xl text-white drop-shadow">DAFAGRAM</h1>
-          <p className="text-white/60 text-sm mt-1">Staff Travel Hub</p>
+        <div className="lg:hidden relative z-10 text-center mb-5 flex-shrink-0">
+          <img src="/daf-logo.png" alt="DAF logo" className="h-16 w-16 object-contain mx-auto mb-2.5" style={{ transform: 'translateX(6px)' }} />
+          <h1 className="font-gilbert text-3xl text-white drop-shadow">DAFAGRAM</h1>
+          <p className="text-white/60 text-xs mt-1">Staff Travel Hub</p>
         </div>
 
         <div className="relative z-10 w-full max-w-2xl">
 
-          <div className="bg-card/90 backdrop-blur-md lg:bg-card lg:backdrop-blur-none rounded-2xl shadow-2xl lg:shadow-sm p-8 lg:p-12 border border-white/10 lg:border-border">
+          <div className="bg-card/90 backdrop-blur-md lg:bg-card lg:backdrop-blur-none rounded-2xl shadow-2xl lg:shadow-sm p-5 sm:p-6 lg:p-12 border border-white/10 lg:border-border">
           {/* Desktop heading (inside the card) */}
           <div className="hidden lg:block mb-6">
             <h2 className="text-3xl font-bold text-foreground tracking-tight">
@@ -288,14 +288,14 @@ export function LoginScreen() {
 
             <div className="space-y-1.5">
               <Label>Email Address</Label>
-              <Input type="email" className={mode === 'signin' ? 'h-16 text-base' : ''} placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+              <Input type="email" className={mode === 'signin' ? 'h-12 sm:h-14 lg:h-16 text-base' : ''} placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
               <Label>Password</Label>
               <Input
                 type={showPassword ? 'text' : 'password'}
-                className={mode === 'signin' ? 'h-16 text-base' : ''}
+                className={mode === 'signin' ? 'h-12 sm:h-14 lg:h-16 text-base' : ''}
                 placeholder={mode === 'signup' ? 'Min. 6 characters' : 'Your password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}

@@ -90,7 +90,7 @@ export function MobileTabBar() {
           onClick={() => setMoreOpen(false)}
         >
           <LiquidGlass
-            className={`absolute bottom-[90px] left-1/2 -translate-x-1/2 ${ISLAND_WIDTH} rounded-2xl bg-white/[0.06]`}
+            className={`absolute bottom-[72px] left-1/2 -translate-x-1/2 ${ISLAND_WIDTH} rounded-2xl bg-white/[0.06]`}
             blur={12}
             refraction={12}
             bezel={0.2}
@@ -151,7 +151,7 @@ export function MobileTabBar() {
       )}
 
       {/* ── Island tab bar ── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex justify-center items-end pb-8 pointer-events-none">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex justify-center items-end pb-3 pointer-events-none">
         <LiquidGlass
           className={`pointer-events-auto ${ISLAND_WIDTH} rounded-[28px]`}
           blur={4}

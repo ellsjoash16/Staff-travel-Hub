@@ -28,13 +28,13 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames }: Props) {
           : 'rotate(0deg) translateY(0px)',
         transition: 'transform 0.25s ease-out, box-shadow 0.25s ease-out',
       }}
-      className={`group cursor-pointer w-full rounded-2xl ${
+      className={`group cursor-pointer w-full h-full rounded-2xl ${
         hovered ? 'shadow-2xl' : 'shadow-md'
       }`}
     >
-    <article className="bg-card rounded-2xl overflow-hidden border border-border/40 w-full">
+    <article className="bg-card rounded-2xl overflow-hidden border border-border/40 w-full h-full flex flex-col">
       {/* Image with overlaid author */}
-      <div className="relative overflow-hidden rounded-t-2xl">
+      <div className="relative overflow-hidden rounded-t-2xl flex-shrink-0">
         {post.images.length > 0 ? (
           <img
             src={post.images[0]}
@@ -94,7 +94,7 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames }: Props) {
       </div>
 
       {/* Body with destination watermark */}
-      <div className="relative px-4 xl:px-5 pt-3 xl:pt-4 pb-2 xl:pb-3 overflow-hidden">
+      <div className="relative flex-1 px-4 xl:px-5 pt-3 xl:pt-4 pb-2 xl:pb-3 overflow-hidden">
         {watermark && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
             <span className="text-[3.5rem] xl:text-[4.5rem] font-black text-foreground/[0.04] whitespace-nowrap -rotate-12 leading-none tracking-widest uppercase">

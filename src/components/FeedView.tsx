@@ -113,7 +113,7 @@ export function FeedView() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5 2xl:gap-6 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 sm:auto-rows-fr gap-4 lg:gap-5 2xl:gap-6 w-full">
             {sorted.slice(0, visible).map((post, i) => (
               <PostCard
                 key={post.id}

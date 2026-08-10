@@ -108,6 +108,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     return () => document.removeEventListener('mousedown', handleOutside)
   }, [buildingOpen, rolesOpen, tripLocOpen, postLocOpen])
   const [manageFolder, setManageFolder] = useState<string | null>(null)
+  const [yearFilter, setYearFilter] = useState<'all' | 'fam' | 'external'>('all')
   const [newFolderName, setNewFolderName] = useState('')
   const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set())
   const [movingPosts, setMovingPosts] = useState(false)
@@ -1143,8 +1144,39 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   <Plus className="h-3.5 w-3.5" /> Add Past Trip
                 </Button>
               </div>
+              {/* FAM / External filter */}
               {(() => {
-                const completedTrips = [...trips].filter(t => t.completed).sort((a, b) => b.date.localeCompare(a.date))
+                const allCompleted = [...trips].filter(t => t.completed)
+                const famCount = allCompleted.filter(t => !t.external).length
+                const extCount = allCompleted.filter(t => t.external).length
+                const chips: { key: 'all' | 'fam' | 'external'; label: string }[] = [
+                  { key: 'all', label: `All (${allCompleted.length})` },
+                  { key: 'fam', label: `FAM (${famCount})` },
+                  { key: 'external', label: `External (${extCount})` },
+                ]
+                return (
+                  <div className="flex flex-wrap gap-1.5">
+                    {chips.map(c => (
+                      <button
+                        key={c.key}
+                        onClick={() => setYearFilter(c.key)}
+                        className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                          yearFilter === c.key
+                            ? 'btn-gradient text-white'
+                            : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                )
+              })()}
+              {(() => {
+                const completedTrips = [...trips]
+                  .filter(t => t.completed)
+                  .filter(t => yearFilter === 'all' ? true : yearFilter === 'external' ? t.external : !t.external)
+                  .sort((a, b) => b.date.localeCompare(a.date))
                 if (completedTrips.length === 0) {
                   return (
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">

@@ -44,6 +44,7 @@ export interface Post {
   userId: string | null
   status: 'pending' | 'approved'
   folder?: string | null
+  isAirline?: boolean            // post is about an airline → shows in the Airlines feed section
 }
 
 export interface Course {

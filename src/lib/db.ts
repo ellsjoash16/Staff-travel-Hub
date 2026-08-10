@@ -77,6 +77,7 @@ function docToPost(id: string, d: any): Post {
     userId: d.userId ?? null,
     status: d.status ?? 'approved',
     folder: d.folder ?? null,
+    isAirline: d.isAirline ?? false,
   }
 }
 
@@ -121,6 +122,7 @@ export async function submitPendingPost(post: Post, imagePaths: string[]): Promi
     userId: post.userId ?? null,
     status: 'pending',
     folder: post.folder ?? null,
+    isAirline: post.isAirline ?? false,
   })
 }
 
@@ -151,6 +153,7 @@ export async function insertPost(
     userId: post.userId ?? null,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
+    isAirline: post.isAirline ?? false,
   })
 }
 
@@ -203,6 +206,7 @@ export async function updatePost(
     riseUrl: post.riseUrl ?? null,
     status: post.status ?? 'approved',
     folder: post.folder ?? null,
+    isAirline: post.isAirline ?? false,
   }
   if (newImagePaths !== undefined) data.imagePaths = newImagePaths
   if (newStaffImagePath !== undefined) data.staffImagePath = newStaffImagePath

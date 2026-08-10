@@ -100,9 +100,11 @@ export function FeedView() {
 
   // Legacy trip reviews live on Articulate Rise 360 (have a riseUrl); new
   // reviews are written natively in DAFAGRAM. Keep the two separate.
-  const nativePosts = posts.filter((p) => !p.riseUrl)
-  const risePosts = posts.filter((p) => !!p.riseUrl)
+  const airlinePosts = posts.filter((p) => p.isAirline)
+  const nativePosts = posts.filter((p) => !p.riseUrl && !p.isAirline)
+  const risePosts = posts.filter((p) => !!p.riseUrl && !p.isAirline)
   const isRiseArchive = activeRegion === '__rise__'
+  const isAirlineTab = activeRegion === '__airlines__'
 
   // A post can belong to several locations → several regions.
   function postRegions(p: Post): string[] {
@@ -115,16 +117,19 @@ export function FeedView() {
     return [...regions]
   }
 
-  // Region tabs reflect every post that has a location — native AND Rise 360
-  // courses — so a continent shows up even if it only has Rise reviews.
+  // Region tabs reflect native + Rise 360 courses (not airline posts — those
+  // live in their own Airlines section), so a continent shows up even if it
+  // only has Rise reviews.
   const regionSet = new Set<string>()
-  for (const post of posts) postRegions(post).forEach((r) => regionSet.add(r))
+  for (const post of [...nativePosts, ...risePosts]) postRegions(post).forEach((r) => regionSet.add(r))
   const availableRegions = REGIONS.filter((r) => regionSet.has(r.label)).map((r) => r.label)
 
-  // Continent tabs show native + Rise courses for that region; "Latest" stays
-  // native-only; the Rise archive tab shows every Rise course.
-  const base = isRiseArchive ? risePosts : (activeRegion ? posts : nativePosts)
-  const filtered = (activeRegion && !isRiseArchive)
+  // Airlines tab → airline posts; Rise archive → Rise courses; continent tabs →
+  // native + Rise for that region; "Latest" → native only.
+  const base = isAirlineTab ? airlinePosts
+    : isRiseArchive ? risePosts
+    : (activeRegion ? [...nativePosts, ...risePosts] : nativePosts)
+  const filtered = (activeRegion && !isRiseArchive && !isAirlineTab)
     ? base.filter((p) => postRegions(p).includes(activeRegion))
     : [...base]
 
@@ -150,6 +155,7 @@ export function FeedView() {
           {availableRegions.map((region) => (
             <TabsTrigger key={region} value={region}>{region}</TabsTrigger>
           ))}
+          {airlinePosts.length > 0 && <TabsTrigger value="__airlines__">Airlines</TabsTrigger>}
           {risePosts.length > 0 && <TabsTrigger value="__rise__">Rise 360 Archive</TabsTrigger>}
         </TabsList>
       </Tabs>

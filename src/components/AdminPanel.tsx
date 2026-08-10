@@ -28,7 +28,7 @@ interface PostForm {
   title: string; staff: string; staffImage: string | null
   review: string; locName: string; locationIds: string[]
   date: string; tags: string; images: string[]
-  extras: PostExtras; salesNote: string; riseUrl: string; folder: string | null
+  extras: PostExtras; salesNote: string; riseUrl: string; folder: string | null; isAirline: boolean
 }
 
 
@@ -55,7 +55,7 @@ const emptyPostForm = (): PostForm => ({
   title: '', staff: '', staffImage: null, review: '', locName: '',
   locationIds: [], date: today(), tags: '', images: [],
   extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
-  salesNote: '', riseUrl: '', folder: null,
+  salesNote: '', riseUrl: '', folder: null, isAirline: false,
 })
 
 const emptyTripForm = (): TripForm => ({
@@ -213,6 +213,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       userId: null,
       status: 'approved',
       folder: postForm.folder ?? null,
+      isAirline: postForm.isAirline,
     }
     setPostSaving(true)
     try {
@@ -240,6 +241,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       salesNote: post.salesNote ?? '',
       riseUrl: post.riseUrl ?? '',
       folder: post.folder ?? null,
+      isAirline: post.isAirline ?? false,
     })
     setEditingPostId(post.id); setTab('post')
   }
@@ -288,6 +290,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       salesNote: '',
       riseUrl: '',
       folder: null,
+      isAirline: false,
     })
     setEditingPostId(null)
     setPdfReviews([])
@@ -694,6 +697,19 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   />
                 </div>
               )}
+
+              <label className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/30 px-3 py-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={postForm.isAirline}
+                  onChange={e => setPost('isAirline', e.target.checked)}
+                  className="h-4 w-4 rounded border-border accent-primary cursor-pointer flex-shrink-0"
+                />
+                <span className="text-sm">
+                  This post is about an <span className="font-semibold">airline</span>
+                  <span className="block text-xs text-muted-foreground">Shows in the “Airlines” section of the feed</span>
+                </span>
+              </label>
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="secondary" onClick={() => { setPostForm(emptyPostForm()); setEditingPostId(null) }} disabled={postSaving}>Clear</Button>

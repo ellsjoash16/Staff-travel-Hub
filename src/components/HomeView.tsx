@@ -60,12 +60,12 @@ function MobileCard({
   return (
     <button
       onClick={onClick}
-      className={`w-full h-20 flex flex-col items-center justify-center gap-2
+      className={`w-full h-24 flex flex-col items-center justify-center gap-2
         rounded-2xl border border-border bg-card cursor-pointer
         transition-all duration-200 active:scale-95 ${className ?? ''}`}
     >
-      <Icon className="h-5 w-5 text-muted-foreground" />
-      <span className="text-[10px] font-semibold text-foreground leading-tight text-center px-1">{label}</span>
+      <Icon className="h-6 w-6 text-muted-foreground" />
+      <span className="text-sm font-semibold text-foreground leading-tight text-center px-1">{label}</span>
     </button>
   )
 }

@@ -77,6 +77,7 @@ function docToPost(id: string, d: any): Post {
     userId: d.userId ?? null,
     status: d.status ?? 'approved',
     folder: d.folder ?? null,
+    folders: Array.isArray(d.folders) ? d.folders : (d.folder ? [d.folder] : []),
     isAirline: d.isAirline ?? false,
   }
 }
@@ -121,7 +122,8 @@ export async function submitPendingPost(post: Post, imagePaths: string[]): Promi
     riseUrl: post.riseUrl ?? null,
     userId: post.userId ?? null,
     status: 'pending',
-    folder: post.folder ?? null,
+    folders: post.folders ?? (post.folder ? [post.folder] : []),
+    folder: post.folders?.[0] ?? post.folder ?? null,
     isAirline: post.isAirline ?? false,
   })
 }
@@ -152,7 +154,8 @@ export async function insertPost(
     riseUrl: post.riseUrl ?? null,
     userId: post.userId ?? null,
     status: post.status ?? 'approved',
-    folder: post.folder ?? null,
+    folders: post.folders ?? (post.folder ? [post.folder] : []),
+    folder: post.folders?.[0] ?? post.folder ?? null,
     isAirline: post.isAirline ?? false,
   })
 }
@@ -161,8 +164,8 @@ export async function togglePinPost(id: string, pinned: boolean): Promise<void> 
   await adminWrite('posts', id, 'update', { pinned }, ['pinned'])
 }
 
-export async function setPostFolder(id: string, folder: string | null): Promise<void> {
-  await adminWrite('posts', id, 'update', { folder: folder ?? null }, ['folder'])
+export async function setPostFolders(id: string, folders: string[]): Promise<void> {
+  await adminWrite('posts', id, 'update', { folders, folder: folders[0] ?? null }, ['folders', 'folder'])
 }
 
 export async function updatePost(
@@ -205,7 +208,8 @@ export async function updatePost(
     salesNote: post.salesNote ?? null,
     riseUrl: post.riseUrl ?? null,
     status: post.status ?? 'approved',
-    folder: post.folder ?? null,
+    folders: post.folders ?? (post.folder ? [post.folder] : []),
+    folder: post.folders?.[0] ?? post.folder ?? null,
     isAirline: post.isAirline ?? false,
   }
   if (newImagePaths !== undefined) data.imagePaths = newImagePaths

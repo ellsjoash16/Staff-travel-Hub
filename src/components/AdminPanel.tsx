@@ -28,7 +28,7 @@ interface PostForm {
   title: string; staff: string; staffImage: string | null
   review: string; locName: string; locationIds: string[]
   date: string; tags: string; images: string[]
-  extras: PostExtras; salesNote: string; riseUrl: string; folder: string | null; isAirline: boolean
+  extras: PostExtras; salesNote: string; riseUrl: string; folders: string[]; isAirline: boolean
 }
 
 
@@ -55,7 +55,7 @@ const emptyPostForm = (): PostForm => ({
   title: '', staff: '', staffImage: null, review: '', locName: '',
   locationIds: [], date: today(), tags: '', images: [],
   extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
-  salesNote: '', riseUrl: '', folder: null, isAirline: false,
+  salesNote: '', riseUrl: '', folders: [], isAirline: false,
 })
 
 const emptyTripForm = (): TripForm => ({
@@ -212,7 +212,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       riseUrl: postForm.riseUrl.trim() || null,
       userId: null,
       status: 'approved',
-      folder: postForm.folder ?? null,
+      folders: postForm.folders,
+      folder: postForm.folders[0] ?? null,
       isAirline: postForm.isAirline,
     }
     setPostSaving(true)
@@ -240,7 +241,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       extras: post.extras ?? EMPTY_EXTRAS,
       salesNote: post.salesNote ?? '',
       riseUrl: post.riseUrl ?? '',
-      folder: post.folder ?? null,
+      folders: post.folders ?? (post.folder ? [post.folder] : []),
       isAirline: post.isAirline ?? false,
     })
     setEditingPostId(post.id); setTab('post')
@@ -289,7 +290,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       extras: { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] },
       salesNote: '',
       riseUrl: '',
-      folder: null,
+      folders: [],
       isAirline: false,
     })
     setEditingPostId(null)
@@ -476,7 +477,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     try {
       await movePostsToFolder(ids, folder)
       setSelectedPosts(new Set())
-      toast.success(`Moved ${ids.length} post${ids.length !== 1 ? 's' : ''} to ${folder ?? 'Unassigned'}`)
+      toast.success(folder ? `Added ${ids.length} post${ids.length !== 1 ? 's' : ''} to ${folder}` : `Cleared folders on ${ids.length} post${ids.length !== 1 ? 's' : ''}`)
     } catch {
       toast.error('Failed to move posts')
     } finally {
@@ -688,13 +689,24 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
               {settings.adminFolders.length > 0 && (
                 <div className="space-y-1.5">
-                  <Label>Admin Folder <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <AppSelect
-                    value={postForm.folder ?? ''}
-                    onChange={val => setPost('folder', val || null)}
-                    placeholder="— no folder —"
-                    options={[{ value: '', label: '— no folder —' }, ...settings.adminFolders.map(f => ({ value: f, label: f }))]}
-                  />
+                  <Label>Admin Folders <span className="text-muted-foreground font-normal">(optional — tap to add to any)</span></Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {settings.adminFolders.map(f => {
+                      const on = postForm.folders.includes(f)
+                      return (
+                        <button
+                          key={f}
+                          type="button"
+                          onClick={() => setPost('folders', on ? postForm.folders.filter(x => x !== f) : [...postForm.folders, f])}
+                          className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                            on ? 'btn-gradient text-white' : 'bg-muted border border-border text-muted-foreground hover:border-primary hover:text-primary'
+                          }`}
+                        >
+                          <FolderOpen className="h-3 w-3" />{f}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
 
@@ -1438,11 +1450,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                 const adminFolders = settings.adminFolders ?? []
                 const q = manageSearch.toLowerCase()
                 const filteredPosts = posts.filter(p => {
+                  const pFolders = p.folders ?? (p.folder ? [p.folder] : [])
                   const matchFolder = manageFolder === null
                     ? true
                     : manageFolder === '__none__'
-                      ? !p.folder
-                      : p.folder === manageFolder
+                      ? pFolders.length === 0
+                      : pFolders.includes(manageFolder)
                   const matchSearch = !q || p.title.toLowerCase().includes(q) || p.staff.toLowerCase().includes(q) || p.location.name.toLowerCase().includes(q)
                   return matchFolder && matchSearch
                 })
@@ -1565,15 +1578,15 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                             {selectedPosts.size} selected
                           </span>
                           <div className="flex items-center gap-2 ml-auto">
-                            <span className="text-xs text-muted-foreground hidden sm:inline">Move to</span>
+                            <span className="text-xs text-muted-foreground hidden sm:inline">Add to</span>
                             <div className="w-40">
                               <AppSelect
                                 value=""
                                 onChange={(val) => moveSelectedToFolder(val === '__none__' ? null : val)}
-                                placeholder={movingPosts ? 'Moving…' : 'Choose folder…'}
+                                placeholder={movingPosts ? 'Saving…' : 'Choose folder…'}
                                 options={[
                                   ...adminFolders.map(f => ({ value: f, label: f })),
-                                  { value: '__none__', label: 'Unassigned' },
+                                  { value: '__none__', label: 'Clear folders' },
                                 ]}
                               />
                             </div>
@@ -1631,9 +1644,14 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                   <td className="py-2 px-3 font-medium max-w-[140px] truncate">{p.title}</td>
                                   <td className="py-2 px-3 hidden sm:table-cell text-muted-foreground">{p.staff}</td>
                                   <td className="py-2 px-3 hidden lg:table-cell text-muted-foreground">
-                                    {p.folder
-                                      ? <span className="inline-flex items-center gap-1 rounded-full bg-muted border border-border px-2 py-0.5 text-xs"><FolderOpen className="h-3 w-3" />{p.folder}</span>
-                                      : <span className="text-xs text-muted-foreground/50">—</span>}
+                                    {(() => {
+                                      const pFolders = p.folders ?? (p.folder ? [p.folder] : [])
+                                      return pFolders.length > 0
+                                        ? <span className="inline-flex flex-wrap gap-1">{pFolders.map(f => (
+                                            <span key={f} className="inline-flex items-center gap-1 rounded-full bg-muted border border-border px-2 py-0.5 text-xs"><FolderOpen className="h-3 w-3" />{f}</span>
+                                          ))}</span>
+                                        : <span className="text-xs text-muted-foreground/50">—</span>
+                                    })()}
                                   </td>
                                   <td className="py-2 px-3 hidden md:table-cell text-muted-foreground">{p.date || '—'}</td>
                                   <td className="py-2 px-3">

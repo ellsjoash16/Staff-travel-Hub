@@ -43,7 +43,8 @@ export interface Post {
   riseUrl: string | null
   userId: string | null
   status: 'pending' | 'approved'
-  folder?: string | null
+  folder?: string | null         // legacy primary folder (first of folders)
+  folders?: string[]             // all admin folders this post belongs to
   isAirline?: boolean            // post is about an airline → shows in the Airlines feed section
 }
 

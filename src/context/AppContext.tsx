@@ -8,7 +8,7 @@ import {
 import type { Post, Course, Submission, Settings, View, PanelImages, Trip, Location, Registration, RegistrationStatus, UserProfile } from '@/lib/types'
 import {
   fetchPosts, fetchSettings, fetchTrips, fetchLocations,
-  insertPost, updatePost, removePost, togglePinPost, setPostFolder,
+  insertPost, updatePost, removePost, togglePinPost, setPostFolders,
   updateSubmission, removeSubmission,
   insertTrip, updateTrip, removeTrip, markTripComplete,
   insertLocation, updateLocation, removeLocation,
@@ -417,11 +417,20 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
     if (post) dispatch({ type: 'UPDATE_POST', post: { ...post, pinned } })
   }
 
+  // folder=null clears all folders; otherwise the folder is ADDED to each post
+  // (posts can be in several folders at once).
   async function movePostsToFolder(ids: string[], folder: string | null): Promise<void> {
-    await Promise.all(ids.map(id => setPostFolder(id, folder)))
+    const nextFor = (post: Post | undefined): string[] => {
+      const current = post?.folders ?? (post?.folder ? [post.folder] : [])
+      return folder === null ? [] : [...new Set([...current, folder])]
+    }
+    await Promise.all(ids.map(id => setPostFolders(id, nextFor(state.posts.find(p => p.id === id)))))
     for (const id of ids) {
       const post = state.posts.find(p => p.id === id)
-      if (post) dispatch({ type: 'UPDATE_POST', post: { ...post, folder } })
+      if (post) {
+        const folders = nextFor(post)
+        dispatch({ type: 'UPDATE_POST', post: { ...post, folders, folder: folders[0] ?? null } })
+      }
     }
   }
 

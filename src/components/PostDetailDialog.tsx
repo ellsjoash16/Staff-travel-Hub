@@ -79,7 +79,7 @@ export function PostDetailDialog({ post, onOpenChange }: Props) {
         </DialogClose>
 
         {/* Scrollable content */}
-        <div className="overflow-y-auto max-h-[95vh]">
+        <div className="overflow-y-auto max-h-[95dvh]">
 
           {/* Hero image with title overlay */}
           {heroImage ? (

@@ -165,7 +165,7 @@ function AppShell() {
       >
         <ErrorBoundary key={state.activeView}>
         <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground"><CircleNotch className="h-6 w-6 animate-spin" /></div>}>
-          <div className={`view-enter ${['home', 'map', 'submit', 'years', 'upcoming', 'interest'].includes(state.activeView) ? 'h-full min-h-0' : ''}`}>
+          <div className={`view-enter ${state.activeView === 'home' ? 'sm:h-full sm:min-h-0' : ['map', 'submit', 'years', 'upcoming', 'interest'].includes(state.activeView) ? 'h-full min-h-0' : ''}`}>
             {state.activeView === 'home' && <HomeView />}
             {state.activeView === 'feed' && <FeedView />}
             {state.activeView === 'map' && (

@@ -107,7 +107,7 @@ export function HomeView() {
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:gap-3 2xl:gap-4 h-full min-h-0">
+    <div className="flex flex-col gap-2 sm:gap-3 2xl:gap-4 sm:h-full sm:min-h-0">
 
       {/* ── Hero ── */}
       <div

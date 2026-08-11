@@ -330,7 +330,7 @@ export function UpcomingTripsView() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
       </div>
-      <div className="relative flex flex-col min-h-full px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pt-3 pb-24 sm:py-5 lg:py-6 xl:py-8" style={{ zIndex: 1 }}>
+      <div className="relative flex flex-col min-h-full px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pt-3 pb-6 sm:py-5 lg:py-6 xl:py-8" style={{ zIndex: 1 }}>
 
         {/* Header + tabs */}
         <div className="w-full mb-3 sm:mb-6 flex items-center justify-between gap-3">

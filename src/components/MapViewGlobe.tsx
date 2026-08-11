@@ -210,7 +210,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
       </div>
 
       {/* ── Mobile: toggle between list and map ── */}
-      <div className="md:hidden flex flex-col h-full px-4 pb-[calc(4.5rem_+_env(safe-area-inset-bottom))] pt-3">
+      <div className="md:hidden flex flex-col h-full px-4 pb-4 pt-3">
         <div className="flex rounded-xl overflow-hidden border border-border mb-3 flex-shrink-0">
           <button
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${mobileView === 'list' ? 'btn-gradient text-white' : 'bg-card text-muted-foreground'}`}

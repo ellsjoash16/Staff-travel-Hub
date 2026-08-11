@@ -151,16 +151,15 @@ function AppShell() {
     <div className="h-dvh flex flex-col overflow-hidden bg-background">
       <Header />
       <Sidebar onExpandedChange={setSidebarExpanded} />
-      <MobileTabBar />
 
       <main
         className={`flex-1 min-h-0 overflow-auto transition-all duration-200 ${
           sidebarExpanded ? 'lg:ml-60 xl:ml-72' : 'lg:ml-16 xl:ml-20'
         } ${
-          state.activeView === 'home'   ? 'px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 lg:py-4 2xl:py-5 pb-[calc(4.5rem_+_env(safe-area-inset-bottom))] lg:pb-5'
+          state.activeView === 'home'   ? 'px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-3 lg:py-4 2xl:py-5 pb-3 lg:pb-5'
           : state.activeView === 'map' || state.activeView === 'upcoming' ? 'p-0 overflow-hidden'
           : state.activeView === 'submit' || state.activeView === 'interest' || state.activeView === 'years' ? 'pb-0'
-          : 'py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pb-[calc(4.5rem_+_env(safe-area-inset-bottom))] lg:pb-8'
+          : 'py-5 lg:py-6 xl:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 pb-6 lg:pb-8'
         }`}
       >
         <ErrorBoundary key={state.activeView}>
@@ -187,6 +186,8 @@ function AppShell() {
         </Suspense>
         </ErrorBoundary>
       </main>
+
+      <MobileTabBar />
 
       {showWalkthrough && (
         <Walkthrough

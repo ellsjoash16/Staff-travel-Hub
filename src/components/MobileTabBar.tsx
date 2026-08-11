@@ -103,7 +103,7 @@ export function MobileTabBar() {
       )}
 
       {/* ── Bottom bar ── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border">
+      <nav className="lg:hidden shrink-0 z-40 bg-card border-t border-border">
         <div className="flex items-stretch" style={SAFE_BOTTOM}>
           {PRIMARY.map(item => {
             const active = activeView === item.id

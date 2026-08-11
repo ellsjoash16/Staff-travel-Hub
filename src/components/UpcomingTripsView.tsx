@@ -66,7 +66,7 @@ function FeaturedTripCard({ trip, locations }: { trip: Trip; locations: Location
   return (
     <>
     <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
-    <div className="relative rounded-2xl overflow-hidden [clip-path:inset(0_round_16px)] bg-background/80 backdrop-blur-xl border border-white/10 shadow-lg mb-4 sm:mb-6">
+    <div className="relative rounded-2xl overflow-hidden bg-background/80 backdrop-blur-xl border border-white/10 shadow-lg mb-4 sm:mb-6">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
       <div className="flex flex-col md:flex-row min-h-0 sm:min-h-[280px] lg:min-h-[340px] xl:min-h-[380px] 2xl:min-h-[420px]">
 
@@ -135,7 +135,7 @@ function TripCard({ trip, locations, showRegisterInterest }: { trip: Trip; locat
   return (
     <>
     <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
-    <div className="flex flex-col rounded-2xl overflow-hidden [clip-path:inset(0_round_16px)] bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
+    <div className="flex flex-col rounded-2xl overflow-hidden bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
 
       {/* Image */}
       <div className="relative w-full h-32 sm:h-40 lg:h-44 2xl:h-52 flex-shrink-0">
@@ -199,7 +199,7 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
     <>
       <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
       {/* Mobile: horizontal list row */}
-      <div className="sm:hidden flex rounded-2xl overflow-hidden [clip-path:inset(0_round_16px)] bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm min-h-[112px]">
+      <div className="sm:hidden flex rounded-2xl overflow-hidden bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm min-h-[112px]">
         <div className="relative w-28 flex-shrink-0 self-stretch">
           {trip.image ? (
             <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
@@ -241,7 +241,7 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
       </div>
 
       {/* Tablet+: vertical card */}
-      <div className="hidden sm:flex flex-col rounded-2xl overflow-hidden [clip-path:inset(0_round_16px)] bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
+      <div className="hidden sm:flex flex-col rounded-2xl overflow-hidden bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
         <div className="relative w-full h-40 lg:h-44 2xl:h-52 flex-shrink-0">
           {trip.image ? (
             <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />

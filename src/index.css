@@ -74,6 +74,12 @@
   * {
     @apply border-border;
   }
+  html, body {
+    /* No sideways page scroll / swipe-nav — pages must fit the viewport width */
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+    max-width: 100%;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;

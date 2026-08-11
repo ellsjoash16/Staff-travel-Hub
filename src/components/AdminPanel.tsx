@@ -16,7 +16,7 @@ import { MultiImageUpload } from './MultiImageUpload'
 import { ImageUpload } from './ImageUpload'
 import { DatePicker } from './DatePicker'
 import { useApp, SUPERADMIN_UIDS } from '@/context/AppContext'
-import { today, fmtDate } from '@/lib/utils'
+import { today, fmtDate, titleCase } from '@/lib/utils'
 import { REGIONS, getPostRegions } from '@/lib/regions'
 import { seedDemoData, clearDemoData } from '@/lib/seed'
 import { tripImage } from '@/lib/destinationImages'
@@ -546,7 +546,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                       >
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">{r.title || '(no title)'}</p>
-                          <p className="text-xs lg:text-sm text-muted-foreground">{r.staff} · {r.location}</p>
+                          <p className="text-xs lg:text-sm text-muted-foreground">{titleCase(r.staff)} · {r.location}</p>
                         </div>
                         <CaretRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                       </button>
@@ -1707,7 +1707,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                       : <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center"><Globe className="h-5 w-5 text-muted-foreground/50" /></div>}
                                   </td>
                                   <td className="py-2 px-3 font-medium max-w-[140px] truncate">{p.title}</td>
-                                  <td className="py-2 px-3 hidden sm:table-cell text-muted-foreground">{p.staff}</td>
+                                  <td className="py-2 px-3 hidden sm:table-cell text-muted-foreground">{titleCase(p.staff)}</td>
                                   <td className="py-2 px-3 hidden lg:table-cell text-muted-foreground">
                                     {(() => {
                                       const pFolders = p.folders ?? (p.folder ? [p.folder] : [])
@@ -1886,7 +1886,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-sm lg:text-base">
-                                {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : (u.authDisplayName || 'No name yet')}
+                                {u.firstName && u.lastName ? titleCase(`${u.firstName} ${u.lastName}`) : (titleCase(u.authDisplayName || '') || 'No name yet')}
                               </p>
                               <p className="text-xs lg:text-sm text-muted-foreground truncate">
                                 {u.authEmail ?? registrations.find(r => r.uid === u.uid)?.email ?? ''}

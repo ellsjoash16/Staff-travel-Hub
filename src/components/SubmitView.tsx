@@ -15,7 +15,7 @@ import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
 import { useApp } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
-import { today } from '@/lib/utils'
+import { today, titleCase } from '@/lib/utils'
 import type { PostExtras } from '@/lib/types'
 
 const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
@@ -102,7 +102,7 @@ const BG = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=fo
 export function SubmitView() {
   const { submitReview } = useApp()
 
-  const staffName = auth.currentUser?.displayName?.trim() || auth.currentUser?.email || 'Unknown'
+  const staffName = titleCase(auth.currentUser?.displayName?.trim() || '') || auth.currentUser?.email || 'Unknown'
 
   const [step,       setStep]       = useState(1)
   const [title,      setTitle]      = useState('')

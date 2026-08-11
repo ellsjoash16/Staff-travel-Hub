@@ -3,6 +3,7 @@ import { CircleNotch, SignIn, UserPlus, Camera, Globe, Airplane } from '@phospho
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile, sendPasswordResetEmail } from 'firebase/auth'
 import { auth, microsoftProvider } from '@/lib/firebase'
 import { saveSignupProfile } from '@/lib/db'
+import { titleCase } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -98,10 +99,10 @@ export function LoginScreen() {
     setBusy(true)
     try {
       const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
-      await updateProfile(cred.user, { displayName: `${firstName.trim()} ${lastName.trim()}` })
+      await updateProfile(cred.user, { displayName: titleCase(`${firstName.trim()} ${lastName.trim()}`) })
       await saveSignupProfile(cred.user.uid, {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
+        firstName: titleCase(firstName.trim()),
+        lastName: titleCase(lastName.trim()),
         jobRole,
         salesDivision: salesDivision || null,
         building: building || null,

@@ -28,6 +28,14 @@ export function today(): string {
   return new Date().toISOString().split('T')[0]
 }
 
+// Capitalise the first letter of every word in a name (after start, spaces,
+// hyphens and apostrophes), leaving the rest of each word untouched so
+// "sarah o'brien" → "Sarah O'Brien" without breaking "McBride"/"ALICE".
+export function titleCase(name: string | null | undefined): string {
+  if (!name) return ''
+  return name.replace(/(^|[\s'’-])(\p{L})/gu, (_m, sep, ch) => sep + ch.toUpperCase())
+}
+
 export function initials(name: string): string {
   return name
     .split(' ')

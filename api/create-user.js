@@ -31,7 +31,13 @@ export default async function handler(req, res) {
       ?.map(v => v.stringValue).filter(Boolean) ?? []
     if (!adminUids.includes(callerUid)) return res.status(403).json({ error: 'Forbidden' })
 
-    const { email, password, displayName, jobRole, salesDivision, building, firstNameEnc, lastNameEnc } = req.body ?? {}
+    const { email, password, displayName: rawDisplayName, jobRole, salesDivision, building, firstNameEnc, lastNameEnc } = req.body ?? {}
+
+    // Capitalise the first letter of every word so names are consistent
+    // regardless of how the admin typed them.
+    const displayName = rawDisplayName
+      ? String(rawDisplayName).replace(/(^|[\s'’-])(\p{L})/gu, (_m, sep, ch) => sep + ch.toUpperCase())
+      : rawDisplayName
 
     // Validation
     const cleanEmail = String(email ?? '').trim().toLowerCase()

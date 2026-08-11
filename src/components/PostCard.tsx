@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { MapPin, Images, PushPin, Globe, PlayCircle } from '@phosphor-icons/react'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { fmtDate, initials } from '@/lib/utils'
+import { fmtDate, initials, titleCase } from '@/lib/utils'
 import type { Post } from '@/lib/types'
 
 interface Props {
@@ -80,7 +80,7 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames }: Props) {
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="font-semibold text-sm 2xl:text-base text-white leading-tight truncate drop-shadow">{post.staff}</p>
+              <p className="font-semibold text-sm 2xl:text-base text-white leading-tight truncate drop-shadow">{titleCase(post.staff)}</p>
               <p className="text-xs 2xl:text-sm text-white/80 flex items-center gap-0.5 truncate drop-shadow">
                 <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
                 {locLabel}

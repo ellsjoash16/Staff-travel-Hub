@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { signOut } from 'firebase/auth'
 import { useApp } from '@/context/AppContext'
 import { auth } from '@/lib/firebase'
+import { titleCase } from '@/lib/utils'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog'
 import type { View } from '@/lib/types'
@@ -96,7 +97,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
 
   const user = auth.currentUser
   const initials = (user?.displayName?.[0] ?? user?.email?.[0] ?? '?').toUpperCase()
-  const displayName = user?.displayName || user?.email || ''
+  const displayName = titleCase(user?.displayName || '') || user?.email || ''
 
   const expanded = hovered
 

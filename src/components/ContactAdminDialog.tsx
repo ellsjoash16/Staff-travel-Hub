@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { auth } from '@/lib/firebase'
+import { titleCase } from '@/lib/utils'
 
 const ADMIN_EMAIL = 'famadmin@dialaflight.co.uk'
 
@@ -32,7 +33,7 @@ export function ContactAdminDialog({ open, onOpenChange, prefillMessage = '' }: 
   function handleSend() {
     if (!message.trim()) { toast.error('Please enter a message'); return }
     const user = auth.currentUser
-    const name = user?.displayName || user?.email || 'Staff member'
+    const name = titleCase(user?.displayName || '') || user?.email || 'Staff member'
     const subject = `Message from ${name} — DAFAGRAM`
     window.location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`
     setSent(true)

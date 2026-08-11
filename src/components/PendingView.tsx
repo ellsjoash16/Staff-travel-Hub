@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { AdminPanel } from './AdminPanel'
 import { removePost } from '@/lib/db'
-import { fmtDate } from '@/lib/utils'
+import { fmtDate, titleCase } from '@/lib/utils'
 import type { Post } from '@/lib/types'
 
 export function PendingView() {
@@ -113,7 +113,7 @@ export function PendingView() {
               {/* Details */}
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{post.title || 'Untitled'}</p>
-                <p className="text-sm text-muted-foreground">Submitted by {post.staff || 'Unknown'}</p>
+                <p className="text-sm text-muted-foreground">Submitted by {titleCase(post.staff) || 'Unknown'}</p>
                 {post.location.name && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                     <MapPin className="h-3 w-3" />

@@ -2,7 +2,7 @@ import { MapPin, Calendar, Airplane, Boat, Lightning, Buildings, X, PlayCircle }
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { fmtDateLong, initials } from '@/lib/utils'
+import { fmtDateLong, initials, titleCase } from '@/lib/utils'
 import type { Post, PostExtras } from '@/lib/types'
 
 const EXTRA_SECTIONS: {
@@ -119,7 +119,7 @@ export function PostDetailDialog({ post, onOpenChange }: Props) {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-semibold text-sm leading-tight">{post.staff}</p>
+                <p className="font-semibold text-sm leading-tight">{titleCase(post.staff)}</p>
                 <div className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground mt-0.5">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3 text-primary/70" />

@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
 import {
   PaperPlaneTilt, CircleNotch, CheckCircle, Airplane, CaretRight, CaretLeft,
-  User, MapPin, Camera, PencilLine as PenLine, Star, Notebook as NotebookPen,
+  MapPin, Camera, PencilLine as PenLine, Star, Notebook as NotebookPen,
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,27 +14,26 @@ import { DatePicker } from './DatePicker'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
 import { useApp } from '@/context/AppContext'
+import { auth } from '@/lib/firebase'
 import { today } from '@/lib/utils'
 import type { PostExtras } from '@/lib/types'
 
 const EMPTY_EXTRAS: PostExtras = { airlines: [], hotels: [], cruises: [], activities: [], dmcs: [] }
 
 const STEP_TIPS: Record<number, { heading: string; bullets: string[] }> = {
-  1: { heading: 'Getting started', bullets: ['Your name will appear on the published post', 'Make sure it matches how you would like to be credited', 'Both first and last name are required'] },
-  2: { heading: 'Trip details', bullets: ['Use a descriptive title e.g. Bali 2026', 'Set the date you travelled, not today', 'The destination helps us pin it on the world map'] },
-  3: { heading: 'Photo tips', bullets: ['Minimum 4 photos, up to 10', 'Landscape photos work best for the hero image', 'Your first photo becomes the cover of your post', 'High quality images make a big difference'] },
-  4: { heading: 'Ratings are required', bullets: ['Add at least one rating to continue', 'Only rate what is relevant to your trip', 'Be honest — these help the sales team', 'You can rate airlines, hotels, cruises, DMCs and activities'] },
-  5: { heading: 'Sales note required', bullets: ['This is for the sales team, not published publicly', 'Include anything useful for selling this destination', 'Price points, unique experiences, best time to go'] },
-  6: { heading: 'Writing your review', bullets: ['This step is optional — but if you write one, make it count', 'Aim for at least 100 words', 'Write in first person — share your personal experience', 'Use Insert photo to break up the text with images'] },
+  1: { heading: 'Trip details', bullets: ['Use a descriptive title e.g. Bali 2026', 'Set the date you travelled, not today', 'The destination helps us pin it on the world map'] },
+  2: { heading: 'Photo tips', bullets: ['Minimum 4 photos, up to 10', 'Landscape photos work best for the hero image', 'Your first photo becomes the cover of your post', 'High quality images make a big difference'] },
+  3: { heading: 'Ratings are required', bullets: ['Add at least one rating to continue', 'Only rate what is relevant to your trip', 'Be honest — these help the sales team', 'You can rate airlines, hotels, cruises, DMCs and activities'] },
+  4: { heading: 'Sales note required', bullets: ['This is for the sales team, not published publicly', 'Include anything useful for selling this destination', 'Price points, unique experiences, best time to go'] },
+  5: { heading: 'Writing your review', bullets: ['This step is optional — but if you write one, make it count', 'Aim for at least 100 words', 'Write in first person — share your personal experience', 'Use Insert photo to break up the text with images'] },
 }
 
 const STEPS = [
-  { id: 1, label: 'You',        icon: User,         title: "Who's submitting?",    subtitle: 'Just your name so we know who to credit' },
-  { id: 2, label: 'Trip',       icon: MapPin,        title: 'Where did you go?',    subtitle: 'Tell us about your trip' },
-  { id: 3, label: 'Photos',     icon: Camera,        title: 'Add some photos',      subtitle: 'Between 4 and 10 photos of your trip' },
-  { id: 4, label: 'Ratings',    icon: Star,          title: 'Rate your experience', subtitle: 'Rate at least one — hotels, airlines & more' },
-  { id: 5, label: 'Sales Note', icon: NotebookPen,   title: 'Sales note',           subtitle: 'Required tips or highlights for the sales team' },
-  { id: 6, label: 'Review',     icon: PenLine,       title: 'Your overall review',  subtitle: 'Optional — but 100+ words if you write one' },
+  { id: 1, label: 'Trip',       icon: MapPin,        title: 'Where did you go?',    subtitle: 'Tell us about your trip' },
+  { id: 2, label: 'Photos',     icon: Camera,        title: 'Add some photos',      subtitle: 'Between 4 and 10 photos of your trip' },
+  { id: 3, label: 'Ratings',    icon: Star,          title: 'Rate your experience', subtitle: 'Rate at least one — hotels, airlines & more' },
+  { id: 4, label: 'Sales Note', icon: NotebookPen,   title: 'Sales note',           subtitle: 'Required tips or highlights for the sales team' },
+  { id: 5, label: 'Review',     icon: PenLine,       title: 'Your overall review',  subtitle: 'Optional — but 100+ words if you write one' },
 ]
 
 // ── Progress indicator ───────────────────────────────────────────────────────
@@ -103,9 +102,9 @@ const BG = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=fo
 export function SubmitView() {
   const { submitReview } = useApp()
 
+  const staffName = auth.currentUser?.displayName?.trim() || auth.currentUser?.email || 'Unknown'
+
   const [step,       setStep]       = useState(1)
-  const [firstName,  setFirstName]  = useState('')
-  const [lastName,   setLastName]   = useState('')
   const [title,      setTitle]      = useState('')
   const [location,   setLocation]   = useState('')
   const [date,       setDate]       = useState(today())
@@ -127,23 +126,19 @@ export function SubmitView() {
   const reviewWordCount = review.replace(/---/g, ' ').split(/\s+/).filter(Boolean).length
 
   function next() {
-    if (step === 1 && (!firstName.trim() || !lastName.trim())) {
-      toast.error('Please enter both your first and last name')
-      return
-    }
-    if (step === 2 && (!title.trim() || !location.trim())) {
+    if (step === 1 && (!title.trim() || !location.trim())) {
       toast.error('Please enter a trip title and destination')
       return
     }
-    if (step === 3 && images.length < 4) {
+    if (step === 2 && images.length < 4) {
       toast.error(`Please add at least 4 photos (${images.length} added so far)`)
       return
     }
-    if (step === 4 && !hasRating) {
+    if (step === 3 && !hasRating) {
       toast.error('Please add at least one rating')
       return
     }
-    if (step === 5 && !salesNote.trim()) {
+    if (step === 4 && !salesNote.trim()) {
       toast.error('Please add a sales note')
       return
     }
@@ -167,7 +162,7 @@ export function SubmitView() {
         {
           id: crypto.randomUUID(),
           name: title.trim(),
-          staff: `${firstName.trim()} ${lastName.trim()}`,
+          staff: staffName,
           location: { name: location.trim(), lat: null, lng: null },
           date,
           review: review.trim(),
@@ -208,7 +203,6 @@ export function SubmitView() {
           variant="secondary"
           onClick={() => {
             setStep(1)
-            setFirstName(''); setLastName('')
             setTitle(''); setLocation(''); setDate(today())
             setReview(''); setImages([]); setExtras(EMPTY_EXTRAS); setSalesNote('')
             setSubmitted(false)
@@ -276,37 +270,6 @@ export function SubmitView() {
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-                <Input
-                  id="firstName"
-                  placeholder="e.g. Sarah"
-                  value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && next()}
-                  autoFocus
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-                <Input
-                  id="lastName"
-                  placeholder="e.g. Johnson"
-                  value={lastName}
-                  onChange={e => setLastName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && next()}
-                />
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Your name will appear on the post once it's approved.
-            </p>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
                 <Label>Trip Title <span className="text-destructive">*</span></Label>
                 <Input
                   placeholder="e.g. Bali 2026"
@@ -331,13 +294,13 @@ export function SubmitView() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <div className="space-y-1.5">
             <MultiImageUpload values={images} onChange={setImages} />
           </div>
         )}
 
-        {step === 4 && (
+        {step === 3 && (
           <div className="space-y-1.5">
             <ReviewExtras value={extras} onChange={setExtras} />
             <p className="text-xs text-muted-foreground pt-1">
@@ -346,7 +309,7 @@ export function SubmitView() {
           </div>
         )}
 
-        {step === 5 && (
+        {step === 4 && (
           <div className="space-y-1.5">
             <Label>Sales Note <span className="text-destructive">*</span></Label>
             <Textarea
@@ -359,7 +322,7 @@ export function SubmitView() {
           </div>
         )}
 
-        {step === 6 && (
+        {step === 5 && (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <Label>Your Review <span className="text-muted-foreground font-normal">(optional)</span></Label>
@@ -391,13 +354,13 @@ export function SubmitView() {
             </Button>
           )}
 
-          {step < 6 && (
+          {step < 5 && (
             <Button onClick={next} className="gap-1.5">
               Next <CaretRight className="h-4 w-4" />
             </Button>
           )}
 
-          {step === 6 && (
+          {step === 5 && (
             <Button onClick={handleSubmit} disabled={submitting} className="gap-2">
               {submitting
                 ? <><CircleNotch className="h-4 w-4 animate-spin" /> {uploadProgress && uploadProgress.done < uploadProgress.total ? `Uploading ${uploadProgress.done}/${uploadProgress.total} photos…` : 'Submitting…'}</>
@@ -413,7 +376,7 @@ export function SubmitView() {
       <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0 pt-2">
         <div className="sticky top-6 rounded-2xl p-5 space-y-4 bg-zinc-950/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Step {step} of 6</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Step {step} of {STEPS.length}</p>
             <h3 className="font-gilbert text-base text-foreground">{tips.heading}</h3>
           </div>
           <ul className="space-y-2.5">

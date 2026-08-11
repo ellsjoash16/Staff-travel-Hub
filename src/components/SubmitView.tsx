@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
 import {
   PaperPlaneTilt, CircleNotch, CheckCircle, Airplane, CaretRight, CaretLeft,
-  MapPin, Camera, PencilLine as PenLine, Star, Notebook as NotebookPen,
+  User, MapPin, Camera, PencilLine as PenLine, Star, Notebook as NotebookPen,
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -257,6 +257,13 @@ export function SubmitView() {
         </div>
 
         <StepProgress current={step} />
+
+        {/* Who it will be credited to — pulled from the account */}
+        <div className="flex justify-center mb-3 sm:mb-4">
+          <span className="inline-flex items-center gap-1.5 text-xs text-white/70 bg-white/5 border border-white/15 rounded-full px-3 py-1">
+            <User className="h-3 w-3" /> Submitting as <span className="text-white font-medium">{staffName}</span>
+          </span>
+        </div>
 
         {/* Step heading */}
         <div className="mb-3 sm:mb-5">

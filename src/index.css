@@ -79,6 +79,8 @@
     overflow-x: hidden;
     overscroll-behavior-x: none;
     max-width: 100%;
+    /* App-like: no double-tap zoom */
+    touch-action: manipulation;
   }
   body {
     @apply bg-background text-foreground;

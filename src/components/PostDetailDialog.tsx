@@ -69,7 +69,7 @@ export function PostDetailDialog({ post, onOpenChange }: Props) {
 
   return (
     <Dialog open={!!post} onOpenChange={onOpenChange}>
-      <DialogContent size="blog" className="p-0 gap-0 overflow-hidden">
+      <DialogContent size="blog" mobileSheet className="p-0 gap-0 overflow-hidden sm:max-h-[92dvh]">
         <DialogTitle className="sr-only">{post.title}</DialogTitle>
 
         {/* Custom close button */}
@@ -79,7 +79,7 @@ export function PostDetailDialog({ post, onOpenChange }: Props) {
         </DialogClose>
 
         {/* Scrollable content */}
-        <div className="overflow-y-auto max-h-[95dvh]">
+        <div className="overflow-y-auto max-h-[85dvh] sm:max-h-[92dvh]">
 
           {/* Hero image with title overlay */}
           {heroImage ? (

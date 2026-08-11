@@ -199,8 +199,8 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
     <>
       <RegisterInterestDialog trip={trip} open={dialogOpen} onOpenChange={setDialogOpen} />
       {/* Mobile: horizontal list row */}
-      <div className="sm:hidden flex rounded-2xl overflow-hidden bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm h-[104px]">
-        <div className="relative w-28 flex-shrink-0">
+      <div className="sm:hidden flex rounded-2xl overflow-hidden bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm min-h-[112px]">
+        <div className="relative w-28 flex-shrink-0 self-stretch">
           {trip.image ? (
             <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
           ) : (

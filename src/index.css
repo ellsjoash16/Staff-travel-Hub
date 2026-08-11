@@ -85,6 +85,10 @@
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  /* Slightly larger base text on phones for readability */
+  @media (max-width: 639px) {
+    html { font-size: 17px; }
+  }
 }
 
 .font-outfit {

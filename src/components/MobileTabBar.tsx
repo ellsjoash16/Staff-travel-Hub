@@ -1,4 +1,4 @@
-import { Clock, GearSix as Settings, ChatCircle as MessageCircle, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, House as Home, CaretUp } from '@phosphor-icons/react'
+import { Clock, GearSix as Settings, ChatCircle as MessageCircle, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, House as Home } from '@phosphor-icons/react'
 import { useState, useRef, useLayoutEffect } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
@@ -126,7 +126,6 @@ export function MobileTabBar() {
             >
               <span className="w-10 h-1.5 rounded-full bg-black/25 dark:bg-white/35" />
               <span className="flex items-center gap-1.5 text-xs font-semibold text-black/55 dark:text-white/60">
-                <CaretUp className="h-3 w-3" style={{ transform: `rotate(${progress * 180}deg)`, transition: dragY === null ? 'transform 0.3s ease' : 'none' }} />
                 Menu
                 {isAdmin && pendingPosts.length > 0 && (
                   <span className="ml-0.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">

@@ -53,6 +53,21 @@ export function MobileTabBar() {
     closeMenu()
   }
 
+  // Swipe up on the launcher to open the menu.
+  const launchStart = useRef<number | null>(null)
+  function onLaunchDown(e: React.PointerEvent) {
+    launchStart.current = e.clientY
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+  function onLaunchMove(e: React.PointerEvent) {
+    if (launchStart.current === null || moreOpen) return
+    if (launchStart.current - e.clientY > 36) {
+      launchStart.current = null
+      setMoreOpen(true)
+    }
+  }
+  function onLaunchEnd() { launchStart.current = null }
+
   // Swipe the sheet down to dismiss.
   function onDragStart(e: React.PointerEvent) {
     dragStart.current = e.clientY
@@ -156,27 +171,35 @@ export function MobileTabBar() {
         </div>
       )}
 
-      {/* ── Floating liquid-glass Menu launcher ── */}
+      {/* ── Floating liquid-glass launcher: swipe up (or tap) to open ── */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pt-3 pointer-events-none" style={BAR_SAFE_BOTTOM}>
         <button
           onClick={() => setMoreOpen(true)}
-          className="pointer-events-auto w-full block active:scale-[0.98] transition-transform"
+          onPointerDown={onLaunchDown}
+          onPointerMove={onLaunchMove}
+          onPointerUp={onLaunchEnd}
+          onPointerCancel={onLaunchEnd}
+          className="pointer-events-auto w-full block touch-none active:scale-[0.98] transition-transform"
         >
           <LiquidGlass
-            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl text-black dark:text-white font-semibold text-sm"
+            className="w-full flex flex-col items-center gap-1.5 pt-2 pb-3 rounded-2xl text-black dark:text-white font-semibold text-sm"
             blur={4}
             refraction={12}
             bezel={0.65}
             saturation={1.4}
             style={GLASS_STYLE}
           >
-            <SquaresFour className="h-5 w-5" weight="fill" />
-            Menu
-            {isAdmin && pendingPosts.length > 0 && (
-              <span className="ml-0.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">
-                {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
-              </span>
-            )}
+            {/* grabber — hints swipe up */}
+            <span className="w-9 h-1 rounded-full bg-black/25 dark:bg-white/35" />
+            <span className="flex items-center gap-2.5">
+              <SquaresFour className="h-5 w-5" weight="fill" />
+              Menu
+              {isAdmin && pendingPosts.length > 0 && (
+                <span className="ml-0.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">
+                  {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
+                </span>
+              )}
+            </span>
           </LiquidGlass>
         </button>
       </nav>

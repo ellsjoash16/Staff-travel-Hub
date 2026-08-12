@@ -52,24 +52,6 @@ function SmallCard({
   )
 }
 
-function MobileCard({
-  Icon, label, onClick, className,
-}: {
-  Icon: React.ElementType; label: string; onClick: () => void; className?: string
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full h-24 flex items-center gap-2.5 px-4
-        rounded-2xl border border-border bg-card cursor-pointer
-        transition-all duration-200 active:scale-95 ${className ?? ''}`}
-    >
-      <Icon className="h-6 w-6 text-muted-foreground flex-shrink-0" />
-      <span className="text-sm font-semibold text-foreground leading-tight">{label}</span>
-    </button>
-  )
-}
-
 export function HomeView() {
   const { state, dispatch } = useApp()
   const { settings, posts, trips, locations, myRegistrations } = state
@@ -107,12 +89,12 @@ export function HomeView() {
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:gap-3 2xl:gap-4 sm:h-full sm:min-h-0">
+    <div className="flex flex-col gap-2 sm:gap-3 2xl:gap-4 h-full min-h-0">
 
       {/* ── Hero ── */}
       <div
         className="relative rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-md transition-shadow duration-200
-          h-60 sm:h-auto sm:flex-[2] flex-shrink-0"
+          flex-1 sm:flex-[2] min-h-0"
         onClick={() => navigate('feed')}
       >
         <img
@@ -164,15 +146,7 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* ── Cards: uniform 2-column grid on mobile (last spans full width), full grid on sm+ ── */}
-      <div className="sm:hidden grid grid-cols-2 gap-2 flex-shrink-0">
-        {SMALL_PANELS.map((p, i) => (
-          <MobileCard key={p.key} Icon={p.Icon} label={p.label}
-            onClick={() => navigate(p.key)}
-            className={i === SMALL_PANELS.length - 1 && SMALL_PANELS.length % 2 === 1 ? 'col-span-2' : ''} />
-        ))}
-      </div>
-
+      {/* Nav cards — desktop only; on mobile the footer Menu handles navigation */}
       <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-5 gap-3 2xl:gap-4 flex-1 min-h-0">
         {SMALL_PANELS.map(p => (
           <SmallCard

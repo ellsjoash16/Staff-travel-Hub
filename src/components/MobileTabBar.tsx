@@ -1,17 +1,10 @@
-import { Clock, GearSix as Settings, ChatCircle as MessageCircle, DotsThree as MoreHorizontal, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, House as Home, X } from '@phosphor-icons/react'
+import { Clock, GearSix as Settings, ChatCircle as MessageCircle, SquaresFour, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, House as Home, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
 import type { View } from '@/lib/types'
 
-const PRIMARY: { id: View; label: string; Icon: React.ElementType }[] = [
-  { id: 'feed',     label: 'Feed',     Icon: Camera },
-  { id: 'upcoming', label: 'Upcoming', Icon: Plane },
-  { id: 'submit',   label: 'Share',    Icon: Send },
-  { id: 'map',      label: 'Map',      Icon: Globe2 },
-]
-
-// Full menu shown in the More sheet — every destination, one tap away.
+// Full menu shown in the sheet — every destination, one tap away.
 const MENU_ITEMS: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'home',     label: 'Home',            Icon: Home },
   { id: 'feed',     label: 'Feed',            Icon: Camera },
@@ -39,9 +32,6 @@ export function MobileTabBar() {
     dispatch({ type: 'SET_VIEW', view })
     setMoreOpen(false)
   }
-
-  const activeIdx = PRIMARY.findIndex(p => p.id === activeView)
-  const moreActive = activeIdx < 0
 
   return (
     <>
@@ -112,32 +102,20 @@ export function MobileTabBar() {
         </div>
       )}
 
-      {/* ── Bottom bar ── */}
+      {/* ── Bottom bar: one obvious Menu launcher ── */}
       <nav className="lg:hidden shrink-0 z-40 bg-card border-t border-border">
-        <div className="flex items-stretch" style={SAFE_BOTTOM}>
-          {PRIMARY.map(item => {
-            const active = activeView === item.id
-            return (
-              <button
-                key={item.id}
-                onClick={() => go(item.id)}
-                className={`relative flex-1 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 transition-colors
-                  ${active ? 'text-primary' : 'text-muted-foreground'}`}
-              >
-                {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />}
-                <item.Icon className="h-[1.35rem] w-[1.35rem]" weight={active ? 'fill' : 'regular'} />
-                <span className={`text-[10px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</span>
-              </button>
-            )
-          })}
+        <div className="px-4 py-2.5" style={SAFE_BOTTOM}>
           <button
-            onClick={() => setMoreOpen(v => !v)}
-            className={`relative flex-1 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 transition-colors
-              ${moreActive || moreOpen ? 'text-primary' : 'text-muted-foreground'}`}
+            onClick={() => setMoreOpen(true)}
+            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm shadow-md active:scale-[0.98] transition-transform"
           >
-            {(moreActive || moreOpen) && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />}
-            <MoreHorizontal className="h-[1.35rem] w-[1.35rem]" weight={moreActive || moreOpen ? 'fill' : 'regular'} />
-            <span className="text-[10px] leading-none font-medium">More</span>
+            <SquaresFour className="h-5 w-5" weight="fill" />
+            Menu
+            {isAdmin && pendingPosts.length > 0 && (
+              <span className="ml-0.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">
+                {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
+              </span>
+            )}
           </button>
         </div>
       </nav>

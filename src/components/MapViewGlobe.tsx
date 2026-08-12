@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import Map, { Source, Layer, MapMouseEvent } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { X, BookOpen, CaretLeft as ChevronLeft, List, MapTrifold as MapIcon, Globe, MapPin, Airplane } from '@phosphor-icons/react'
+import { X, BookOpen, CaretLeft as ChevronLeft, Globe, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
 import { tripImage, destinationImage } from '@/lib/destinationImages'
@@ -19,21 +19,11 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
   const { posts, courses, locations, trips, settings } = state
   const pinColor = settings.color || '#05979a'
   const [modal, setModal] = useState<ModalState>(null)
-  const [mobileView, setMobileView] = useState<'list' | 'map'>('list')
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
   const [cursor, setCursor] = useState<string>('grab')
 
   const activeCountries = useMemo(() => {
     return locations.map(l => l.country)
-  }, [locations])
-
-  const locationsByCountry = useMemo(() => {
-    const countryMap: Record<string, Location[]> = {}
-    locations.forEach(l => {
-      if (!countryMap[l.country]) countryMap[l.country] = []
-      countryMap[l.country].push(l)
-    })
-    return Object.entries(countryMap).sort(([a], [b]) => a.localeCompare(b))
   }, [locations])
 
   function openLocation(location: Location, backCountry: string) {
@@ -158,50 +148,6 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
     </div>
   )
 
-  const listEl = (
-    <div className="h-full overflow-y-auto p-4 space-y-3 bg-background">
-      {locationsByCountry.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-full text-center py-16">
-          <MapIcon className="h-10 w-10 text-muted-foreground/30 mb-3" />
-          <p className="text-muted-foreground text-sm">No locations yet</p>
-          <p className="text-muted-foreground/60 text-xs mt-1">Add locations in Admin → Locations</p>
-        </div>
-      )}
-      {locationsByCountry.map(([country, locs]) => (
-        <div key={country} className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-          <div className="px-4 py-2.5 bg-primary/5 border-b border-border flex items-center gap-2">
-            <Globe className="h-4 w-4 text-primary flex-shrink-0" />
-            <div>
-              <p className="font-semibold text-sm text-foreground">{country}</p>
-              <p className="text-[11px] text-muted-foreground">{locs.length} location{locs.length !== 1 ? 's' : ''}</p>
-            </div>
-          </div>
-          <div className="divide-y divide-border">
-            {locs.map(loc => {
-              const pCount = posts.filter(p => (p.locationIds?.length ? p.locationIds.includes(loc.id) : p.locationId === loc.id)).length
-              const cCount = courses.filter(c => c.locationId === loc.id).length
-              return (
-                <button
-                  key={loc.id}
-                  className="w-full text-left flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors group"
-                  onClick={() => openLocation(loc, country)}
-                >
-                  <div>
-                    <p className="font-medium text-sm text-foreground">{loc.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {[pCount > 0 && `${pCount} post${pCount !== 1 ? 's' : ''}`, cCount > 0 && `${cCount} course${cCount !== 1 ? 's' : ''}`].filter(Boolean).join(' · ') || 'No content yet'}
-                    </p>
-                  </div>
-                  <ChevronLeft className="h-4 w-4 text-muted-foreground group-hover:text-primary rotate-180 flex-shrink-0 transition-colors" />
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-
   return (
     <>
       {/* ── Desktop: full map ── */}
@@ -209,24 +155,10 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
         {mapEl}
       </div>
 
-      {/* ── Mobile: toggle between list and map ── */}
+      {/* ── Mobile: map only ── */}
       <div className="md:hidden flex flex-col h-full px-4 pb-24 pt-3">
-        <div className="flex rounded-xl overflow-hidden border border-border mb-3 flex-shrink-0">
-          <button
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${mobileView === 'list' ? 'btn-gradient text-white' : 'bg-card text-muted-foreground'}`}
-            onClick={() => setMobileView('list')}
-          >
-            <List className="h-4 w-4" /> Locations
-          </button>
-          <button
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${mobileView === 'map' ? 'btn-gradient text-white' : 'bg-card text-muted-foreground'}`}
-            onClick={() => setMobileView('map')}
-          >
-            <MapIcon className="h-4 w-4" /> Map
-          </button>
-        </div>
         <div className="flex-1 min-h-0 rounded-2xl overflow-hidden">
-          {mobileView === 'map' ? mapEl : listEl}
+          {mapEl}
         </div>
       </div>
 

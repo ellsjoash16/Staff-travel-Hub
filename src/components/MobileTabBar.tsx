@@ -53,18 +53,22 @@ export function MobileTabBar() {
           className="lg:hidden fixed inset-0 z-50 bg-black/40"
           onClick={() => setMoreOpen(false)}
         >
-          <div
-            className="absolute left-0 right-0 bottom-0 bg-card border-t border-border rounded-t-2xl shadow-2xl animate-in slide-in-from-bottom duration-200"
-            style={SAFE_BOTTOM}
+          <LiquidGlass
+            className="absolute left-0 right-0 bottom-0 rounded-t-2xl animate-in slide-in-from-bottom duration-200 text-black dark:text-white"
+            blur={12}
+            refraction={12}
+            bezel={0.25}
+            saturation={1.5}
+            style={{ ...GLASS_STYLE, ...SAFE_BOTTOM }}
             onClick={e => e.stopPropagation()}
           >
             {/* Drag handle */}
             <div className="flex justify-center pt-2.5 pb-1">
-              <span className="w-10 h-1 rounded-full bg-border" />
+              <span className="w-10 h-1 rounded-full bg-black/20 dark:bg-white/25" />
             </div>
             <div className="flex items-center justify-between px-5 pt-1 pb-2">
-              <span className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">Go to</span>
-              <button onClick={() => setMoreOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+              <span className="text-black/55 dark:text-white/55 text-xs font-semibold uppercase tracking-widest">Go to</span>
+              <button onClick={() => setMoreOpen(false)} className="text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -75,8 +79,8 @@ export function MobileTabBar() {
                   onClick={() => go(item.id)}
                   className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl transition-colors
                     ${activeView === item.id
-                      ? 'bg-primary/10 text-primary ring-1 ring-primary/20'
-                      : 'bg-muted/40 text-foreground/80 hover:bg-muted active:scale-95'}`}
+                      ? 'bg-black/[0.12] dark:bg-white/[0.16] text-black dark:text-white ring-1 ring-white/20'
+                      : 'bg-black/[0.04] dark:bg-white/[0.07] text-black/70 dark:text-white/80 hover:bg-black/[0.08] dark:hover:bg-white/[0.12] active:scale-95'}`}
                 >
                   <item.Icon className="h-6 w-6" weight={activeView === item.id ? 'fill' : 'regular'} />
                   <span className="text-[11px] font-medium leading-tight text-center">{item.label}</span>
@@ -88,8 +92,8 @@ export function MobileTabBar() {
                   onClick={() => go(item.id)}
                   className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl transition-colors relative
                     ${activeView === item.id
-                      ? 'bg-primary/10 text-primary ring-1 ring-primary/20'
-                      : 'bg-muted/40 text-foreground/80 hover:bg-muted active:scale-95'}`}
+                      ? 'bg-black/[0.12] dark:bg-white/[0.16] text-black dark:text-white ring-1 ring-white/20'
+                      : 'bg-black/[0.04] dark:bg-white/[0.07] text-black/70 dark:text-white/80 hover:bg-black/[0.08] dark:hover:bg-white/[0.12] active:scale-95'}`}
                 >
                   <div className="relative">
                     <item.Icon className="h-6 w-6" weight={activeView === item.id ? 'fill' : 'regular'} />
@@ -104,13 +108,13 @@ export function MobileTabBar() {
               ))}
               <button
                 onClick={() => { setContactOpen(true); setMoreOpen(false) }}
-                className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-muted/40 text-foreground/80 hover:bg-muted active:scale-95 transition-colors"
+                className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-black/[0.04] dark:bg-white/[0.07] text-black/70 dark:text-white/80 hover:bg-black/[0.08] dark:hover:bg-white/[0.12] active:scale-95 transition-colors"
               >
                 <MessageCircle className="h-6 w-6" />
                 <span className="text-[11px] font-medium leading-tight text-center">Contact</span>
               </button>
             </div>
-          </div>
+          </LiquidGlass>
         </div>
       )}
 

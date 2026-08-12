@@ -2,6 +2,7 @@ import { Clock, GearSix as Settings, ChatCircle as MessageCircle, SquaresFour, G
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
+import { LiquidGlass } from '@/components/ui/liquid-glass'
 import type { View } from '@/lib/types'
 
 // Full menu shown in the sheet — every destination, one tap away.
@@ -102,20 +103,35 @@ export function MobileTabBar() {
         </div>
       )}
 
-      {/* ── Bottom bar: one obvious Menu launcher ── */}
+      {/* ── Bottom bar: one obvious liquid-glass Menu launcher ── */}
       <nav className="lg:hidden shrink-0 z-40 bg-card border-t border-border">
         <div className="px-4 py-2.5" style={SAFE_BOTTOM}>
           <button
             onClick={() => setMoreOpen(true)}
-            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm shadow-md active:scale-[0.98] transition-transform"
+            className="w-full block active:scale-[0.98] transition-transform"
           >
-            <SquaresFour className="h-5 w-5" weight="fill" />
-            Menu
-            {isAdmin && pendingPosts.length > 0 && (
-              <span className="ml-0.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">
-                {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
-              </span>
-            )}
+            <LiquidGlass
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-primary/25 text-foreground font-semibold text-sm"
+              blur={5}
+              refraction={12}
+              bezel={0.6}
+              saturation={1.5}
+              style={{
+                '--liquid-glass-rim-width': '1px',
+                '--liquid-glass-rim-light': 'rgba(255,255,255,0.5)',
+                '--liquid-glass-rim-dark': 'rgba(0,0,0,0.08)',
+                '--liquid-glass-rim-fade': '18%',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
+              } as React.CSSProperties}
+            >
+              <SquaresFour className="h-5 w-5 text-primary" weight="fill" />
+              Menu
+              {isAdmin && pendingPosts.length > 0 && (
+                <span className="ml-0.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">
+                  {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
+                </span>
+              )}
+            </LiquidGlass>
           </button>
         </div>
       </nav>

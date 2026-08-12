@@ -1,4 +1,4 @@
-import { Clock, GearSix as Settings, ChatCircle as MessageCircle, DotsThree as MoreHorizontal, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, X } from '@phosphor-icons/react'
+import { Clock, GearSix as Settings, ChatCircle as MessageCircle, DotsThree as MoreHorizontal, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, House as Home, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
@@ -11,9 +11,15 @@ const PRIMARY: { id: View; label: string; Icon: React.ElementType }[] = [
   { id: 'map',      label: 'Map',      Icon: Globe2 },
 ]
 
-const SECONDARY: { id: View; label: string; Icon: React.ElementType }[] = [
+// Full menu shown in the More sheet — every destination, one tap away.
+const MENU_ITEMS: { id: View; label: string; Icon: React.ElementType }[] = [
+  { id: 'home',     label: 'Home',            Icon: Home },
+  { id: 'feed',     label: 'Feed',            Icon: Camera },
+  { id: 'upcoming', label: 'Upcoming',        Icon: Plane },
+  { id: 'submit',   label: 'Share',           Icon: Send },
+  { id: 'map',      label: 'Map',             Icon: Globe2 },
   { id: 'interest', label: 'My Registrations', Icon: ClipboardCheck },
-  { id: 'years',    label: 'DAF Adventures',   Icon: CalendarDays },
+  { id: 'years',    label: 'DAF Adventures',  Icon: CalendarDays },
 ]
 
 const ADMIN_ITEMS: { id: View; label: string; Icon: React.ElementType }[] = [
@@ -50,52 +56,56 @@ export function MobileTabBar() {
             style={SAFE_BOTTOM}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 pt-4 pb-2">
-              <span className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">More</span>
+            {/* Drag handle */}
+            <div className="flex justify-center pt-2.5 pb-1">
+              <span className="w-10 h-1 rounded-full bg-border" />
+            </div>
+            <div className="flex items-center justify-between px-5 pt-1 pb-2">
+              <span className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">Go to</span>
               <button onClick={() => setMoreOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div className="grid grid-cols-3 gap-2 px-4 pb-5">
-              {SECONDARY.map(item => (
+              {MENU_ITEMS.map(item => (
                 <button
                   key={item.id}
                   onClick={() => go(item.id)}
-                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors
+                  className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl transition-colors
                     ${activeView === item.id
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted'}`}
+                      ? 'bg-primary/10 text-primary ring-1 ring-primary/20'
+                      : 'bg-muted/40 text-foreground/80 hover:bg-muted active:scale-95'}`}
                 >
-                  <item.Icon className="h-5 w-5" />
-                  <span className="text-[10px] font-medium leading-tight text-center">{item.label}</span>
+                  <item.Icon className="h-6 w-6" weight={activeView === item.id ? 'fill' : 'regular'} />
+                  <span className="text-[11px] font-medium leading-tight text-center">{item.label}</span>
                 </button>
               ))}
               {isAdmin && ADMIN_ITEMS.map(item => (
                 <button
                   key={item.id}
                   onClick={() => go(item.id)}
-                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors relative
+                  className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl transition-colors relative
                     ${activeView === item.id
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted'}`}
+                      ? 'bg-primary/10 text-primary ring-1 ring-primary/20'
+                      : 'bg-muted/40 text-foreground/80 hover:bg-muted active:scale-95'}`}
                 >
                   <div className="relative">
-                    <item.Icon className="h-5 w-5" />
+                    <item.Icon className="h-6 w-6" weight={activeView === item.id ? 'fill' : 'regular'} />
                     {item.id === 'pending' && pendingPosts.length > 0 && (
-                      <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 rounded-full bg-amber-400 text-[#064e5a] text-[7px] flex items-center justify-center font-bold">
+                      <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-amber-400 text-[#064e5a] text-[8px] flex items-center justify-center font-bold">
                         {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] font-medium leading-tight text-center">{item.label}</span>
+                  <span className="text-[11px] font-medium leading-tight text-center">{item.label}</span>
                 </button>
               ))}
               <button
                 onClick={() => { setContactOpen(true); setMoreOpen(false) }}
-                className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-muted-foreground hover:bg-muted transition-colors"
+                className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-muted/40 text-foreground/80 hover:bg-muted active:scale-95 transition-colors"
               >
-                <MessageCircle className="h-5 w-5" />
-                <span className="text-[10px] font-medium leading-tight text-center">Contact</span>
+                <MessageCircle className="h-6 w-6" />
+                <span className="text-[11px] font-medium leading-tight text-center">Contact</span>
               </button>
             </div>
           </div>

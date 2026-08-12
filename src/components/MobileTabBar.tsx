@@ -23,6 +23,17 @@ const ADMIN_ITEMS: { id: View; label: string; Icon: React.ElementType }[] = [
 
 const SAFE_BOTTOM: React.CSSProperties = { paddingBottom: 'env(safe-area-inset-bottom)' }
 
+// Floating bar sits 0.75rem above the home indicator / screen edge.
+const BAR_SAFE_BOTTOM: React.CSSProperties = { paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }
+
+const GLASS_STYLE: React.CSSProperties = {
+  '--liquid-glass-rim-width': '1px',
+  '--liquid-glass-rim-light': 'rgba(255,255,255,0.45)',
+  '--liquid-glass-rim-dark': 'rgba(0,0,0,0.08)',
+  '--liquid-glass-rim-fade': '16%',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.14)',
+} as React.CSSProperties
+
 export function MobileTabBar() {
   const { state, dispatch } = useApp()
   const { activeView, isAdmin, pendingPosts } = state
@@ -103,37 +114,29 @@ export function MobileTabBar() {
         </div>
       )}
 
-      {/* ── Bottom bar: one obvious liquid-glass Menu launcher ── */}
-      <nav className="lg:hidden shrink-0 z-40 bg-card border-t border-border">
-        <div className="px-4 py-2.5" style={SAFE_BOTTOM}>
-          <button
-            onClick={() => setMoreOpen(true)}
-            className="w-full block active:scale-[0.98] transition-transform"
+      {/* ── Floating liquid-glass Menu launcher ── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pt-3 pointer-events-none" style={BAR_SAFE_BOTTOM}>
+        <button
+          onClick={() => setMoreOpen(true)}
+          className="pointer-events-auto w-full block active:scale-[0.98] transition-transform"
+        >
+          <LiquidGlass
+            className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl text-black dark:text-white font-semibold text-sm"
+            blur={4}
+            refraction={12}
+            bezel={0.65}
+            saturation={1.4}
+            style={GLASS_STYLE}
           >
-            <LiquidGlass
-              className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-primary/25 text-foreground font-semibold text-sm"
-              blur={5}
-              refraction={12}
-              bezel={0.6}
-              saturation={1.5}
-              style={{
-                '--liquid-glass-rim-width': '1px',
-                '--liquid-glass-rim-light': 'rgba(255,255,255,0.5)',
-                '--liquid-glass-rim-dark': 'rgba(0,0,0,0.08)',
-                '--liquid-glass-rim-fade': '18%',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
-              } as React.CSSProperties}
-            >
-              <SquaresFour className="h-5 w-5 text-primary" weight="fill" />
-              Menu
-              {isAdmin && pendingPosts.length > 0 && (
-                <span className="ml-0.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">
-                  {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
-                </span>
-              )}
-            </LiquidGlass>
-          </button>
-        </div>
+            <SquaresFour className="h-5 w-5" weight="fill" />
+            Menu
+            {isAdmin && pendingPosts.length > 0 && (
+              <span className="ml-0.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">
+                {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
+              </span>
+            )}
+          </LiquidGlass>
+        </button>
       </nav>
 
       <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />

@@ -1,4 +1,4 @@
-import { Clock, GearSix as Settings, ChatCircle as MessageCircle, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, House as Home } from '@phosphor-icons/react'
+import { Clock, GearSix as Settings, ChatCircle as MessageCircle, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, House as Home, List as MenuIcon } from '@phosphor-icons/react'
 import { useState, useRef, useLayoutEffect } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
@@ -32,7 +32,7 @@ const GLASS_STYLE: React.CSSProperties = {
 } as React.CSSProperties
 
 // How much of the sheet peeks above the screen edge when closed (the grabber).
-const PEEK = 52
+const PEEK = 62
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
 
@@ -118,17 +118,18 @@ export function MobileTabBar() {
           >
             {/* Grabber — the only bit visible when closed; drag it up/down */}
             <div
-              className="touch-none cursor-grab active:cursor-grabbing flex flex-col items-center gap-1 pt-3 pb-2.5"
+              className="touch-none cursor-grab active:cursor-grabbing flex flex-col items-center gap-1.5 pt-2.5 pb-3"
               onPointerDown={onDown}
               onPointerMove={onMove}
               onPointerUp={onUp}
               onPointerCancel={onUp}
             >
               <span className="w-10 h-1.5 rounded-full bg-black/25 dark:bg-white/35" />
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-black/55 dark:text-white/60">
+              <span className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
+                <MenuIcon className="h-5 w-5" weight="bold" />
                 Menu
                 {isAdmin && pendingPosts.length > 0 && (
-                  <span className="ml-0.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">
+                  <span className="ml-0.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-400 text-[#064e5a] text-[10px] flex items-center justify-center font-bold">
                     {pendingPosts.length > 9 ? '9+' : pendingPosts.length}
                   </span>
                 )}

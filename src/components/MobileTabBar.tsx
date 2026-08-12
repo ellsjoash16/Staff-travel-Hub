@@ -1,5 +1,5 @@
 import { Clock, GearSix as Settings, ChatCircle as MessageCircle, SquaresFour, Globe as Globe2, Airplane as Plane, PaperPlaneTilt as Send, Camera, CalendarDots as CalendarDays, CheckSquare as ClipboardCheck, House as Home, X } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useApp } from '@/context/AppContext'
 import { ContactAdminDialog } from '@/components/ContactAdminDialog'
 import { LiquidGlass } from '@/components/ui/liquid-glass'
@@ -39,10 +39,35 @@ export function MobileTabBar() {
   const { activeView, isAdmin, pendingPosts } = state
   const [moreOpen, setMoreOpen] = useState(false)
   const [contactOpen, setContactOpen] = useState(false)
+  const [dragY, setDragY] = useState(0)
+  const dragStart = useRef<number | null>(null)
+
+  function closeMenu() {
+    setMoreOpen(false)
+    setDragY(0)
+    dragStart.current = null
+  }
 
   function go(view: View) {
     dispatch({ type: 'SET_VIEW', view })
-    setMoreOpen(false)
+    closeMenu()
+  }
+
+  // Swipe the sheet down to dismiss.
+  function onDragStart(e: React.PointerEvent) {
+    dragStart.current = e.clientY
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+  function onDragMove(e: React.PointerEvent) {
+    if (dragStart.current === null) return
+    setDragY(Math.max(0, e.clientY - dragStart.current))
+  }
+  function onDragEnd(e: React.PointerEvent) {
+    if (dragStart.current === null) return
+    const dy = e.clientY - dragStart.current
+    dragStart.current = null
+    if (dy > 90) closeMenu()
+    else setDragY(0)
   }
 
   return (
@@ -51,26 +76,38 @@ export function MobileTabBar() {
       {moreOpen && (
         <div
           className="lg:hidden fixed inset-0 z-50 bg-black/40"
-          onClick={() => setMoreOpen(false)}
+          onClick={closeMenu}
         >
+          <div
+            className="absolute left-0 right-0 bottom-0 animate-in slide-in-from-bottom duration-200"
+            style={{ transform: `translateY(${dragY}px)`, transition: dragStart.current === null ? 'transform 0.28s cubic-bezier(0.16,1,0.3,1)' : 'none' }}
+            onClick={e => e.stopPropagation()}
+          >
           <LiquidGlass
-            className="absolute left-0 right-0 bottom-0 rounded-t-2xl animate-in slide-in-from-bottom duration-200 text-black dark:text-white"
+            className="rounded-t-2xl text-black dark:text-white"
             blur={12}
             refraction={12}
             bezel={0.25}
             saturation={1.5}
             style={{ ...GLASS_STYLE, ...SAFE_BOTTOM }}
-            onClick={e => e.stopPropagation()}
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-2.5 pb-1">
-              <span className="w-10 h-1 rounded-full bg-black/20 dark:bg-white/25" />
-            </div>
-            <div className="flex items-center justify-between px-5 pt-1 pb-2">
-              <span className="text-black/55 dark:text-white/55 text-xs font-semibold uppercase tracking-widest">Go to</span>
-              <button onClick={() => setMoreOpen(false)} className="text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors">
-                <X className="h-4 w-4" />
-              </button>
+            {/* Draggable header — swipe down to dismiss */}
+            <div
+              className="touch-none cursor-grab active:cursor-grabbing"
+              onPointerDown={onDragStart}
+              onPointerMove={onDragMove}
+              onPointerUp={onDragEnd}
+              onPointerCancel={onDragEnd}
+            >
+              <div className="flex justify-center pt-2.5 pb-1">
+                <span className="w-10 h-1 rounded-full bg-black/20 dark:bg-white/25" />
+              </div>
+              <div className="flex items-center justify-between px-5 pt-1 pb-2">
+                <span className="text-black/55 dark:text-white/55 text-xs font-semibold uppercase tracking-widest">Go to</span>
+                <button onClick={closeMenu} className="text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-2 px-4 pb-5">
               {MENU_ITEMS.map(item => (
@@ -107,7 +144,7 @@ export function MobileTabBar() {
                 </button>
               ))}
               <button
-                onClick={() => { setContactOpen(true); setMoreOpen(false) }}
+                onClick={() => { setContactOpen(true); closeMenu() }}
                 className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-black/[0.04] dark:bg-white/[0.07] text-black/70 dark:text-white/80 hover:bg-black/[0.08] dark:hover:bg-white/[0.12] active:scale-95 transition-colors"
               >
                 <MessageCircle className="h-6 w-6" />
@@ -115,6 +152,7 @@ export function MobileTabBar() {
               </button>
             </div>
           </LiquidGlass>
+          </div>
         </div>
       )}
 

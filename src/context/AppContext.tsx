@@ -215,7 +215,9 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     posts: [], courses: [], submissions: [], trips: [], locations: [],
     settings: DEFAULT_SETTINGS,
     isAdmin: uid0 != null && SUPERADMIN_UIDS.includes(uid0),
-    activeView: 'home', activeFilter: null, openPost: null, openLocationId: null, loading: true,
+    // Phones land on the Feed (Home is a full dashboard only on tablet/desktop).
+    activeView: typeof window !== 'undefined' && window.innerWidth < 640 ? 'feed' : 'home',
+    activeFilter: null, openPost: null, openLocationId: null, loading: true,
     postsLoaded: false, pendingPosts: [], registrations: [], userProfiles: [], myRegistrations: [],
     currentUserProfile: null,
   })

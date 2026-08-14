@@ -28,7 +28,10 @@ export function Header() {
               onClick={() => dispatch({ type: 'SET_VIEW', view: 'home' })}
               className="hover:opacity-85 transition-opacity lg:hidden"
             >
-              <span className="font-gilbert text-white text-lg sm:text-2xl 2xl:text-3xl leading-none drop-shadow-sm whitespace-nowrap">
+              <span
+                className="font-gilbert text-white text-lg sm:text-2xl 2xl:text-3xl leading-none drop-shadow-sm whitespace-nowrap"
+                style={{ transform: `translateY(${logoOffset.y}px)` }}
+              >
                 DAFAGRAM
               </span>
             </button>

@@ -161,7 +161,10 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
               style={{ transform: `translate(${logoOffset.x}px, ${logoOffset.y}px)` }}
             />
             {expanded && (
-              <span className="font-gilbert text-white text-xl 2xl:text-2xl leading-none drop-shadow-sm whitespace-nowrap">
+              <span
+                className="font-gilbert text-white text-xl 2xl:text-2xl leading-none drop-shadow-sm whitespace-nowrap"
+                style={{ transform: `translateY(${logoOffset.y}px)` }}
+              >
                 DAFAGRAM
               </span>
             )}

@@ -94,28 +94,41 @@ export function YearsView() {
     // Destination photo for located trips; own usable upload otherwise. Dead
     // legacy Firebase uploads are ignored.
     const photo = tripImage(trip, locations, variantByTrip.get(trip.id) ?? 0)
+    // External trips with no picture skip the image block entirely (no empty
+    // placeholder); FAM trips keep the neutral fill + icon.
+    const showPhoto = !!photo || !trip.external
+    const dateLabel = trip.date
+      ? new Date(trip.date + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+      : ''
     return (
       <div key={trip.id} className="rounded-xl overflow-hidden border border-border/30 bg-background/50">
         {/* Photo sits on a neutral fill; no photo just shows the fill + icon. */}
-        <div
-          className="relative w-full h-28 sm:h-32 flex-shrink-0 bg-muted"
-          style={photo ? { backgroundImage: `url("${photo}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
-        >
-          {!photo && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Airplane className="h-8 w-8 text-muted-foreground/30" />
-            </div>
-          )}
-          {/* Date badge */}
-          {trip.date && (
-            <span className="absolute top-2 right-2 text-[10px] font-medium bg-black/50 text-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full">
-              {new Date(trip.date + 'T12:00:00').toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-            </span>
-          )}
-        </div>
+        {showPhoto && (
+          <div
+            className="relative w-full h-28 sm:h-32 flex-shrink-0 bg-muted"
+            style={photo ? { backgroundImage: `url("${photo}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+          >
+            {!photo && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Airplane className="h-8 w-8 text-muted-foreground/30" />
+              </div>
+            )}
+            {/* Date badge */}
+            {dateLabel && (
+              <span className="absolute top-2 right-2 text-[10px] font-medium bg-black/50 text-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                {dateLabel}
+              </span>
+            )}
+          </div>
+        )}
         {/* Details */}
         <div className="px-3 py-2.5">
-          <p className="font-semibold text-xs sm:text-sm text-foreground leading-snug">{trip.name}</p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-semibold text-xs sm:text-sm text-foreground leading-snug">{trip.name}</p>
+            {!showPhoto && dateLabel && (
+              <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap flex-shrink-0 mt-0.5">{dateLabel}</span>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-1">
             {tripLocs.length > 0 && (
               <span className="text-[10px] sm:text-xs text-primary flex items-center gap-1">

@@ -30,7 +30,7 @@ export function Header() {
             >
               <span
                 className="font-gilbert text-white text-lg sm:text-2xl 2xl:text-3xl leading-none drop-shadow-sm whitespace-nowrap"
-                style={{ transform: `translateY(calc(${logoOffset.y}px + 0.13em))` }}
+                style={{ transform: `translateY(calc(${logoOffset.y}px + 0.10em))` }}
               >
                 DAFAGRAM
               </span>

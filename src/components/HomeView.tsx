@@ -278,7 +278,7 @@ export function HomeView() {
     <div className="h-full min-h-0 mx-auto w-full max-w-[2200px] flex flex-col md:grid md:grid-cols-[repeat(3,minmax(0,1fr))_1.4fr] md:grid-rows-[1.15fr_1fr] gap-2 md:gap-3 2xl:gap-4">
 
       {/* ── Latest staff adventures — compact feed in the top-left three columns ── */}
-      <div className="flex flex-col gap-2.5 flex-1 md:flex-none md:col-span-3 min-h-0">
+      <div className="group/latest flex flex-col gap-2.5 flex-1 md:flex-none md:col-span-3 min-h-0">
         {notice && !noticeDismissed && (
           <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-2.5 flex-shrink-0">
             <Megaphone className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
@@ -302,10 +302,10 @@ export function HomeView() {
           </div>
           <button
             onClick={() => navigate('feed')}
-            className="group flex items-center gap-1.5 text-muted-foreground/60 hover:text-foreground transition-colors flex-shrink-0"
+            className="flex items-center gap-1.5 text-muted-foreground/60 group-hover/latest:text-foreground hover:text-foreground transition-colors flex-shrink-0"
           >
             <span className="text-base lg:text-lg xl:text-xl font-semibold">Go</span>
-            <ArrowRight className="h-5 w-5 lg:h-6 lg:w-6 group-hover:translate-x-0.5 transition-transform duration-200" />
+            <ArrowRight className="h-5 w-5 lg:h-6 lg:w-6 group-hover/latest:translate-x-0.5 transition-transform duration-200" />
           </button>
         </div>
 

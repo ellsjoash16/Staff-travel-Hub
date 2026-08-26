@@ -275,7 +275,7 @@ export function SubmitView({ embedded = false }: { embedded?: boolean } = {}) {
 
         {step === 1 && (
           <div className="space-y-3">
-            <div className={`grid gap-3 ${embedded ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            <div className={`grid gap-3 ${embedded ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
               <div className="space-y-1.5">
                 <Label>Trip Title <span className="text-destructive">*</span></Label>
                 <Input

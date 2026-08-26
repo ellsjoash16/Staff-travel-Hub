@@ -20,7 +20,7 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames, compact = 
 
   return (
     <div
-      onClick={onClick}
+      onClick={(e) => { e.stopPropagation(); onClick() }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{

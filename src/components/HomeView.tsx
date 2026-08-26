@@ -278,13 +278,16 @@ export function HomeView() {
     <div className="h-full min-h-0 mx-auto w-full max-w-[2200px] flex flex-col md:grid md:grid-cols-[repeat(3,minmax(0,1fr))_1.4fr] md:grid-rows-[1.15fr_1fr] gap-2 md:gap-3 2xl:gap-4">
 
       {/* ── Latest staff adventures — compact feed in the top-left three columns ── */}
-      <div className="group/latest flex flex-col gap-2.5 flex-1 md:flex-none md:col-span-3 min-h-0">
+      <div
+        onClick={() => navigate('feed')}
+        className="group/latest flex flex-col gap-2.5 flex-1 md:flex-none md:col-span-3 min-h-0 cursor-pointer"
+      >
         {notice && !noticeDismissed && (
           <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-2.5 flex-shrink-0">
             <Megaphone className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
             <p className="flex-1 text-xs text-muted-foreground leading-relaxed">{notice}</p>
             <button
-              onClick={dismissNotice}
+              onClick={e => { e.stopPropagation(); dismissNotice() }}
               className="flex-shrink-0 text-muted-foreground/50 hover:text-foreground transition-colors mt-0.5"
             >
               <X className="h-3.5 w-3.5" />

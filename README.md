@@ -4,22 +4,25 @@ An internal web app for DAF staff to share travel experiences, discover destinat
 
 ## Features
 
+- **Home** — A dashboard with a live feed preview, an embedded interactive globe, and quick panels for upcoming trips, your registrations, the trip archive, and sharing a trip
 - **Feed** — Browse approved staff travel posts with photos, reviews, and destination info
 - **Map** — Interactive globe and map view of all destinations visited by staff
-- **Years** — Browse posts filtered by year
-- **Upcoming Trips** — View and register interest in upcoming group trips
-- **Submit** — Staff can submit their own travel stories for admin review
+- **DAF Adventures** — Browse the archive of completed trips, split into FAM and External
+- **Upcoming Trips** — See countdowns and register interest in upcoming group trips and events
+- **My Registrations** — Track the status of your trip registrations (Requested → Pending → Confirmed)
+- **Search** — Global search across destinations, trip reviews, trips & events, and courses
+- **Submit** — Staff can share their own travel stories through a guided multi-step form
 - **Admin Panel** — Manage posts, trips, locations, users, and settings
 
 ## Tech Stack
 
 - **Frontend:** React + TypeScript + Vite
 - **Styling:** Tailwind CSS + shadcn/ui
-- **Auth:** Firebase Authentication (Google Sign-In)
+- **Auth:** Firebase Authentication (email/password + Microsoft SSO)
 - **Database:** Firestore
 - **Storage:** Firebase Storage
 - **Serverless:** Vercel (API functions in `api/`)
-- **Map:** Mapbox GL JS + react-globe.gl
+- **Map:** Mapbox GL JS via react-map-gl (globe projection)
 
 ## Getting Started
 
@@ -76,7 +79,7 @@ firestore.rules   # Firestore security rules
 
 ## Admin Setup
 
-1. Sign in with your Google account
+1. Sign in with your work email or Microsoft account
 2. In Firestore, create `settings/main` with `adminUids: ["your-uid"]`
 3. The Admin Panel will now be accessible from the header
 

@@ -18,16 +18,16 @@ export function Header() {
 
         {/* Left: Logo + Title (mobile only) */}
         {!searchOpen && (
-          <div className="flex items-center gap-2 flex-shrink-0 px-4 sm:px-3 lg:w-16 xl:w-20 lg:justify-center lg:px-0">
+          <div className="flex items-center gap-2 flex-shrink-0 px-4 sm:px-3 md:w-16 xl:w-20 md:justify-center md:px-0">
             <img
               src="/daf-logo.png"
               alt="DAF"
-              className="h-[1.125rem] sm:h-6 2xl:h-[1.875rem] w-auto flex-shrink-0 drop-shadow-sm select-none lg:hidden"
+              className="h-[1.125rem] sm:h-6 2xl:h-[1.875rem] w-auto flex-shrink-0 drop-shadow-sm select-none md:hidden"
             />
             <button
               type="button"
               onClick={() => dispatch({ type: 'SET_VIEW', view: 'feed' })}
-              className="hover:opacity-85 transition-opacity lg:hidden"
+              className="hover:opacity-85 transition-opacity md:hidden"
             >
               <span
                 className="inline-block font-gilbert text-white text-lg sm:text-2xl 2xl:text-3xl leading-none drop-shadow-sm whitespace-nowrap"
@@ -82,7 +82,7 @@ export function Header() {
           {!searchOpen && (
             <button
               onClick={() => setContactOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              className="md:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Contact admin"
             >
               <ChatCircle className="h-5 w-5" />

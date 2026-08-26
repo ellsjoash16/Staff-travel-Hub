@@ -138,7 +138,7 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         className={`
-          hidden lg:flex flex-col
+          hidden md:flex flex-col
           fixed top-0 bottom-0 left-0 z-50
           bg-background dark:bg-[#0a0a0a]
           transition-all duration-200 ease-out overflow-hidden

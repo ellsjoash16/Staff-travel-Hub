@@ -27,7 +27,7 @@ export function MobileTabBar() {
   const { activeView } = state
 
   return (
-    <div className="lg:hidden fixed left-0 right-0 bottom-0 z-50">
+    <div className="md:hidden fixed left-0 right-0 bottom-0 z-50">
       <LiquidGlass
         className="rounded-t-3xl text-black dark:text-white"
         blur={12}

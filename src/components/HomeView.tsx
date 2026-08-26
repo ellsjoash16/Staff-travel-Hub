@@ -3,6 +3,7 @@ import { ArrowRight, X, Megaphone, Airplane, ArrowsOut } from '@phosphor-icons/r
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { tripImage } from '@/lib/destinationImages'
+import { countryFlagUrl } from '@/lib/flags'
 import { fmtDate } from '@/lib/utils'
 import type { View } from '@/lib/types'
 
@@ -251,6 +252,24 @@ function SharePanel({ onOpen }: { onOpen: () => void }) {
   )
 }
 
+function StatRing({ pct }: { pct: number }) {
+  const p = Math.max(0, Math.min(100, Math.round(pct)))
+  const r = 15
+  const c = 2 * Math.PI * r
+  const dash = (p / 100) * c
+  return (
+    <svg viewBox="0 0 40 40" className="h-10 w-10">
+      <circle cx="20" cy="20" r={r} fill="none" strokeWidth="4" className="text-muted stroke-current" />
+      <circle
+        cx="20" cy="20" r={r} fill="none" strokeWidth="4" strokeLinecap="round"
+        strokeDasharray={`${dash} ${c}`} transform="rotate(-90 20 20)"
+        className="text-primary stroke-current"
+      />
+      <text x="20" y="20" textAnchor="middle" dominantBaseline="central" fontSize="12" className="fill-foreground font-bold">{p}%</text>
+    </svg>
+  )
+}
+
 export function HomeView() {
   const { state, dispatch } = useApp()
   const { settings, posts, locations, trips } = state
@@ -268,16 +287,18 @@ export function HomeView() {
     ids.forEach(id => destCounts.set(id, (destCounts.get(id) ?? 0) + 1))
   })
   const topDestId = [...destCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
-  const topDest = topDestId ? (locations.find(l => l.id === topDestId)?.name ?? '—') : '—'
+  const topLoc = topDestId ? locations.find(l => l.id === topDestId) : null
+  const topDest = topLoc?.name ?? '—'
+  const topFlagUrl = topLoc ? countryFlagUrl(topLoc.country, 80) : null
 
   const countriesVisited = new Set(locations.map(l => l.country)).size
   const worldPct = Math.round((countriesVisited / 195) * 100) // 195 countries in the world
 
-  const feedStats: { value: string | number; label: string }[] = [
-    { value: topDest, label: 'Most visited' },
+  const feedStats: { top?: React.ReactNode; value?: string | number; label: string }[] = [
+    { top: topFlagUrl ? <img src={topFlagUrl} alt="" className="h-6 w-auto rounded-sm shadow-sm" /> : null, value: topDest, label: 'Most visited' },
     { value: tripsThisYear, label: `Trips in ${year}` },
     { value: locations.length, label: 'Destinations' },
-    { value: `${worldPct}%`, label: 'Of the world' },
+    { top: <StatRing pct={worldPct} />, label: 'Of the world' },
   ]
 
   const notice = settings.notice?.trim() ?? ''
@@ -368,9 +389,12 @@ export function HomeView() {
           className="hidden [@media(min-height:900px)]:grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
         >
           {feedStats.map(s => (
-            <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-2.5 text-center">
-              <p className="text-lg xl:text-xl font-bold text-foreground leading-tight tracking-tight truncate">{s.value}</p>
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1 truncate">{s.label}</p>
+            <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-2.5 flex flex-col items-center justify-center gap-1 text-center min-w-0">
+              {s.top}
+              {s.value !== undefined && (
+                <p className="w-full text-lg xl:text-xl font-bold text-foreground leading-tight tracking-tight truncate">{s.value}</p>
+              )}
+              <p className="w-full text-[10px] uppercase tracking-wide text-muted-foreground truncate">{s.label}</p>
             </div>
           ))}
         </div>

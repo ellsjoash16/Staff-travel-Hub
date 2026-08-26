@@ -253,13 +253,15 @@ function SharePanel({ onOpen }: { onOpen: () => void }) {
 
 export function HomeView() {
   const { state, dispatch } = useApp()
-  const { settings, posts, locations } = state
+  const { settings, posts, locations, trips } = state
 
   const feedPosts = [...posts]
     .filter(p => !p.isAirline)
     .sort((a, b) => (a.pinned !== b.pinned ? (a.pinned ? -1 : 1) : ((b.date || '') < (a.date || '') ? -1 : 1)))
 
   const year = new Date().getFullYear()
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const tripsThisYear = trips.filter(t => !t.isEvent && (t.date || '').startsWith(String(year)) && (t.date || '') <= todayStr).length
   const destCounts = new Map<string, number>()
   posts.forEach(p => {
     const ids = p.locationIds?.length ? p.locationIds : (p.locationId ? [p.locationId] : [])
@@ -273,7 +275,7 @@ export function HomeView() {
 
   const feedStats: { value: string | number; label: string }[] = [
     { value: topDest, label: 'Most visited' },
-    { value: posts.filter(p => (p.date || '').startsWith(String(year))).length, label: `Trips in ${year}` },
+    { value: tripsThisYear, label: `Trips in ${year}` },
     { value: locations.length, label: 'Destinations' },
     { value: `${worldPct}%`, label: 'Of the world' },
   ]

@@ -38,11 +38,11 @@ const STEPS = [
 
 // ── Progress indicator ───────────────────────────────────────────────────────
 
-function StepProgress({ current }: { current: number }) {
+function StepProgress({ current, compact = false }: { current: number; compact?: boolean }) {
   return (
     <>
-      {/* Mobile: compact dots + label */}
-      <div className="sm:hidden mb-3">
+      {/* Mobile / embedded: compact dots + label */}
+      <div className={`mb-3 ${compact ? '' : 'sm:hidden'}`}>
         <div className="flex items-center justify-center gap-1 mb-1.5">
           {STEPS.map((step, i) => {
             const done   = current > step.id
@@ -61,7 +61,7 @@ function StepProgress({ current }: { current: number }) {
       </div>
 
       {/* Desktop: full icon + label row */}
-      <div className="hidden sm:flex items-center justify-center gap-0 mb-6 select-none">
+      <div className={`${compact ? 'hidden' : 'hidden sm:flex'} items-center justify-center gap-0 mb-6 select-none`}>
         {STEPS.map((step, i) => {
           const done   = current > step.id
           const active = current === step.id
@@ -99,7 +99,7 @@ function StepProgress({ current }: { current: number }) {
 
 const BG = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=400&q=40'
 
-export function SubmitView() {
+export function SubmitView({ embedded = false }: { embedded?: boolean } = {}) {
   const { submitReview } = useApp()
 
   const staffName = titleCase(auth.currentUser?.displayName?.trim() || '') || auth.currentUser?.email || 'Unknown'
@@ -217,7 +217,7 @@ export function SubmitView() {
   const tips = STEP_TIPS[step]
 
   return (
-    <div className="dark relative min-h-full overflow-hidden text-foreground">
+    <div className={`dark relative text-foreground ${embedded ? 'h-full overflow-y-auto' : 'min-h-full overflow-hidden'}`}>
       {/* Background — absolute inset-0 stretches to full content height once overflow-auto is on main */}
       <div className="absolute inset-0 pointer-events-none">
         <div
@@ -232,11 +232,11 @@ export function SubmitView() {
           }}
         />
       </div>
-      <div className="relative flex justify-center gap-8 xl:gap-12 pt-3 pb-24 sm:py-5 lg:py-6 xl:py-8 px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
-      <div className="w-full max-w-[620px] submit-glass rounded-2xl bg-zinc-950/50 backdrop-blur-2xl border border-white/15 shadow-2xl px-4 py-4 sm:px-6 sm:py-6">
+      <div className={`relative flex ${embedded ? 'p-3' : 'justify-center gap-8 xl:gap-12 pt-3 pb-24 sm:py-5 lg:py-6 xl:py-8 px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12'}`}>
+      <div className={`w-full max-w-[620px] submit-glass rounded-2xl bg-zinc-950/50 backdrop-blur-2xl border border-white/15 shadow-2xl ${embedded ? 'px-3 py-3' : 'px-4 py-4 sm:px-6 sm:py-6'}`}>
 
-        {/* Header card — desktop only */}
-        <div className="hidden sm:block rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 mb-6 text-center">
+        {/* Header card — desktop only (hidden when embedded to save space) */}
+        <div className={`${embedded ? 'hidden' : 'hidden sm:block'} rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/15 p-5 mb-6 text-center`}>
           <div className="flex justify-center mb-2">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Airplane className="h-6 w-6 text-primary" />
@@ -248,15 +248,15 @@ export function SubmitView() {
           </p>
         </div>
 
-        {/* Mobile mini header */}
-        <div className="sm:hidden flex items-center gap-2 mb-3">
+        {/* Mobile / embedded mini header */}
+        <div className={`items-center gap-2 mb-3 ${embedded ? 'flex' : 'sm:hidden flex'}`}>
           <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Airplane className="h-3.5 w-3.5 text-primary" />
           </div>
           <h2 className="font-gilbert text-base">Share My Trip</h2>
         </div>
 
-        <StepProgress current={step} />
+        <StepProgress current={step} compact={embedded} />
 
         {/* Who it will be credited to — pulled from the account */}
         <div className="flex justify-center mb-3 sm:mb-4">
@@ -275,7 +275,7 @@ export function SubmitView() {
 
         {step === 1 && (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className={`grid gap-3 ${embedded ? 'grid-cols-1' : 'grid-cols-2'}`}>
               <div className="space-y-1.5">
                 <Label>Trip Title <span className="text-destructive">*</span></Label>
                 <Input
@@ -380,7 +380,7 @@ export function SubmitView() {
       </div>
 
       {/* ── Desktop tips panel ── */}
-      <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0 pt-2">
+      <div className={`${embedded ? 'hidden' : 'hidden lg:block'} w-64 xl:w-72 flex-shrink-0 pt-2`}>
         <div className="sticky top-6 rounded-2xl p-5 space-y-4 bg-zinc-950/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Step {step} of {STEPS.length}</p>

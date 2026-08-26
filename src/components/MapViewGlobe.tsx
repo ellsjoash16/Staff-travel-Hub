@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
-import Map, { Source, Layer, MapMouseEvent } from 'react-map-gl/mapbox'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import Map, { Source, Layer, MapMouseEvent, MapRef } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { X, BookOpen, CaretLeft as ChevronLeft, Globe, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
@@ -14,13 +14,25 @@ type ModalState =
   | { view: 'country'; country: string; locations: Location[] }
   | { view: 'location'; location: Location; posts: Post[]; courses: Course[]; trips: Trip[]; backCountry: string }
 
-export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => void }) {
+export function MapViewGlobe({ onSelectPost, compact = false }: { onSelectPost: (post: Post) => void; compact?: boolean }) {
   const { state, dispatch } = useApp()
   const { posts, courses, locations, trips, settings } = state
   const pinColor = settings.color || '#05979a'
   const [modal, setModal] = useState<ModalState>(null)
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
   const [cursor, setCursor] = useState<string>('grab')
+  const mapRef = useRef<MapRef | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
+  // The map can initialise before its container reaches full size (lazy load /
+  // grid sizing), leaving the canvas smaller than the panel. Resize it to fit.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => mapRef.current?.resize())
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const activeCountries = useMemo(() => {
     return locations.map(l => l.country)
@@ -80,10 +92,12 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
   ), [activeCountries])
 
   const mapEl = (
-    <div className="relative w-full h-full">
+    <div ref={containerRef} className="relative w-full h-full">
       <Map
+        ref={mapRef}
         mapboxAccessToken={MAPBOX_TOKEN}
-        initialViewState={{ longitude: 10, latitude: 20, zoom: 1.4 }}
+        initialViewState={compact ? { longitude: 10, latitude: 20, zoom: 0.5 } : { longitude: 10, latitude: 20, zoom: 1.4 }}
+        projection={compact ? { name: 'globe' } : undefined}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/standard"
         interactiveLayerIds={['active-country-fill', 'inactive-country-fill']}
@@ -138,7 +152,7 @@ export function MapViewGlobe({ onSelectPost }: { onSelectPost: (post: Post) => v
       )}
 
       {/* Hint */}
-      {locations.length === 0 && (
+      {!compact && locations.length === 0 && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
           <div className="bg-black/50 text-white/70 text-xs px-4 py-2 rounded-full backdrop-blur-sm whitespace-nowrap">
             Add locations in Admin → Locations, then link posts and courses to them

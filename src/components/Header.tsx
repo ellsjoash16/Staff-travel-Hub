@@ -1,14 +1,18 @@
 import { useState } from 'react'
-import { Shield, MagnifyingGlass, X } from '@phosphor-icons/react'
+import { Shield, MagnifyingGlass, X, ChatCircle } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { DestinationSearch } from './DestinationSearch'
+import { ContactAdminDialog } from './ContactAdminDialog'
 
 export function Header() {
   const { state, dispatch } = useApp()
   const { isAdmin } = state
   const [searchOpen, setSearchOpen] = useState(false)
+  const [contactOpen, setContactOpen] = useState(false)
 
   return (
+    <>
+
     <header className="sticky top-0 z-40 bg-gradient-to-b from-zinc-950 to-black">
       <div className="flex h-14 sm:h-16 2xl:h-20 items-center pr-4 sm:pr-6 2xl:pr-10 gap-3 2xl:gap-4">
 
@@ -73,8 +77,22 @@ export function Header() {
               <Shield className="h-5 w-5" />
             </button>
           )}
+
+          {/* Mobile-only Contact admin — desktop uses the sidebar */}
+          {!searchOpen && (
+            <button
+              onClick={() => setContactOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Contact admin"
+            >
+              <ChatCircle className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </div>
     </header>
+
+    <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />
+    </>
   )
 }

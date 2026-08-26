@@ -291,7 +291,7 @@ export function HomeView() {
   const worldPct = Math.round((countriesVisited / 195) * 100) // 195 countries in the world
 
   const feedStats: { top?: React.ReactNode; value?: string | number; label: string }[] = [
-    { top: topFlagUrl ? <img src={topFlagUrl} alt="" className="h-10 w-10 rounded-md shadow-sm" /> : null, value: topDest, label: 'Most visited' },
+    { top: topFlagUrl ? <img src={topFlagUrl} alt="" className="h-12 w-12 rounded-md shadow-sm" /> : null, value: topDest, label: 'Most visited' },
     { value: tripsThisYear, label: `Trips in ${year}` },
     { value: locations.length, label: 'Destinations' },
     { top: <Suspense fallback={<div className="h-12 w-12" />}><StatRing pct={worldPct} /></Suspense>, label: 'Of the world' },
@@ -386,10 +386,10 @@ export function HomeView() {
           className="grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
         >
           {feedStats.map(s => (
-            <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-4 flex flex-col items-center justify-center gap-1.5 text-center min-w-0 min-h-[7rem]">
+            <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-4 flex flex-col items-center justify-center gap-2 text-center min-w-0 min-h-[9rem]">
               {s.top}
               {s.value !== undefined && (
-                <p className="w-full text-lg xl:text-xl font-bold text-foreground leading-tight tracking-tight truncate">{s.value}</p>
+                <p className="w-full text-2xl xl:text-3xl font-bold text-foreground leading-tight tracking-tight truncate">{s.value}</p>
               )}
               <p className="w-full text-[10px] uppercase tracking-wide text-muted-foreground truncate">{s.label}</p>
             </div>

@@ -8,12 +8,6 @@ export function Header() {
   const { isAdmin } = state
   const [searchOpen, setSearchOpen] = useState(false)
 
-  const logoOffset = (() => { try { const s = localStorage.getItem('logo-offset'); return s ? JSON.parse(s) : { x: 0, y: 0 } } catch { return { x: 0, y: 0 } } })()
-
-  // TEMP calibration: tap ◄/► to move DAFAGRAM horizontally; report the value.
-  const [dafX, setDafX] = useState(() => { const v = localStorage.getItem('daf-x'); return v ? parseFloat(v) : 0 })
-  const bumpX = (d: number) => setDafX(n => { const nv = Math.round(n + d); localStorage.setItem('daf-x', String(nv)); return nv })
-
   return (
     <header className="sticky top-0 z-40 bg-gradient-to-b from-zinc-950 to-black">
       <div className="flex h-14 sm:h-16 2xl:h-20 items-center pr-4 sm:pr-6 2xl:pr-10 gap-3 2xl:gap-4">
@@ -25,7 +19,6 @@ export function Header() {
               src="/daf-logo.png"
               alt="DAF"
               className="h-[1.125rem] sm:h-6 2xl:h-[1.875rem] w-auto flex-shrink-0 drop-shadow-sm select-none lg:hidden"
-              style={{ transform: `translate(${logoOffset.x}px, ${logoOffset.y}px)` }}
             />
             <button
               type="button"
@@ -34,17 +27,11 @@ export function Header() {
             >
               <span
                 className="inline-block font-gilbert text-white text-lg sm:text-2xl 2xl:text-3xl leading-none drop-shadow-sm whitespace-nowrap"
-                style={{ transform: `translate(${dafX}px, calc(${logoOffset.y}px + 3px))` }}
+                style={{ transform: 'translateY(3px)' }}
               >
                 DAFAGRAM
               </span>
             </button>
-            {/* TEMP horizontal calibration control */}
-            <div className="flex items-center gap-1 lg:hidden ml-1">
-              <button type="button" onClick={() => bumpX(-1)} className="text-white/60 hover:text-white text-xs leading-none px-1">◄</button>
-              <button type="button" onClick={() => bumpX(1)} className="text-white/60 hover:text-white text-xs leading-none px-1">►</button>
-              <span className="text-amber-300 text-[10px] font-mono tabular-nums">{dafX}px</span>
-            </div>
           </div>
         )}
 

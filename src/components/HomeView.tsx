@@ -253,11 +253,19 @@ function SharePanel({ onOpen }: { onOpen: () => void }) {
 
 export function HomeView() {
   const { state, dispatch } = useApp()
-  const { settings, posts, locations } = state
+  const { settings, posts, locations, trips } = state
 
   const feedPosts = [...posts]
     .filter(p => !p.isAirline)
     .sort((a, b) => (a.pinned !== b.pinned ? (a.pinned ? -1 : 1) : ((b.date || '') < (a.date || '') ? -1 : 1)))
+
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const feedStats = [
+    { value: feedPosts.length, label: 'Trips shared' },
+    { value: locations.length, label: 'Destinations' },
+    { value: new Set(locations.map(l => l.country)).size, label: 'Countries' },
+    { value: trips.filter(t => t.date >= todayStr && !t.completed && !t.isEvent).length, label: 'Upcoming' },
+  ]
 
   const notice = settings.notice?.trim() ?? ''
   const dismissKey = notice ? `notice-dismissed-${btoa(encodeURIComponent(notice)).slice(0, 20)}` : ''
@@ -339,6 +347,19 @@ export function HomeView() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Quick stats — only shown on taller screens to fill the space */}
+        <div
+          onClick={e => e.stopPropagation()}
+          className="hidden [@media(min-height:900px)]:grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
+        >
+          {feedStats.map(s => (
+            <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-2.5 text-center">
+              <p className="text-xl xl:text-2xl font-bold text-foreground leading-none tracking-tight">{s.value}</p>
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1 truncate">{s.label}</p>
+            </div>
+          ))}
         </div>
       </div>
 

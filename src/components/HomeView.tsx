@@ -289,13 +289,13 @@ export function HomeView() {
   const topDestId = [...destCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
   const topLoc = topDestId ? locations.find(l => l.id === topDestId) : null
   const topDest = topLoc?.name ?? '—'
-  const topFlagUrl = topLoc ? countryFlagUrl(topLoc.country, 80) : null
+  const topFlagUrl = topLoc ? countryFlagUrl(topLoc.country) : null
 
   const countriesVisited = new Set(locations.map(l => l.country)).size
   const worldPct = Math.round((countriesVisited / 195) * 100) // 195 countries in the world
 
   const feedStats: { top?: React.ReactNode; value?: string | number; label: string }[] = [
-    { top: topFlagUrl ? <img src={topFlagUrl} alt="" className="h-6 w-auto rounded-sm shadow-sm" /> : null, value: topDest, label: 'Most visited' },
+    { top: topFlagUrl ? <img src={topFlagUrl} alt="" className="h-7 w-auto rounded-[3px] ring-1 ring-black/10 shadow-sm" /> : null, value: topDest, label: 'Most visited' },
     { value: tripsThisYear, label: `Trips in ${year}` },
     { value: locations.length, label: 'Destinations' },
     { top: <StatRing pct={worldPct} />, label: 'Of the world' },

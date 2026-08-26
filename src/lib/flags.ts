@@ -48,8 +48,8 @@ export function countryIso(country?: string | null): string | null {
   return NAME_TO_ISO[country.trim().toLowerCase()] ?? null
 }
 
-/** Flag image URL (flagcdn) for a country name — renders everywhere, unlike emoji flags. */
-export function countryFlagUrl(country?: string | null, width = 80): string | null {
+/** Crisp SVG flag URL (flagpedia / flagcdn) for a country name — scales sharply at any size. */
+export function countryFlagUrl(country?: string | null): string | null {
   const iso = countryIso(country)
-  return iso ? `https://flagcdn.com/w${width}/${iso}.png` : null
+  return iso ? `https://flagcdn.com/${iso}.svg` : null
 }

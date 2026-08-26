@@ -268,11 +268,14 @@ export function HomeView() {
   const topDestId = [...destCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
   const topDest = topDestId ? (locations.find(l => l.id === topDestId)?.name ?? '—') : '—'
 
+  const countriesVisited = new Set(locations.map(l => l.country)).size
+  const worldPct = Math.round((countriesVisited / 195) * 100) // 195 countries in the world
+
   const feedStats: { value: string | number; label: string }[] = [
     { value: topDest, label: 'Most visited' },
     { value: posts.filter(p => (p.date || '').startsWith(String(year))).length, label: `Trips in ${year}` },
     { value: locations.length, label: 'Destinations' },
-    { value: feedPosts.length, label: 'Trips shared' },
+    { value: `${worldPct}%`, label: 'Of the world' },
   ]
 
   const notice = settings.notice?.trim() ?? ''

@@ -22,7 +22,7 @@ export function Header() {
             />
             <button
               type="button"
-              onClick={() => dispatch({ type: 'SET_VIEW', view: 'home' })}
+              onClick={() => dispatch({ type: 'SET_VIEW', view: 'feed' })}
               className="hover:opacity-85 transition-opacity lg:hidden"
             >
               <span

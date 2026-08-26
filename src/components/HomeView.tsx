@@ -260,7 +260,8 @@ export function HomeView() {
     .sort((a, b) => (a.pinned !== b.pinned ? (a.pinned ? -1 : 1) : ((b.date || '') < (a.date || '') ? -1 : 1)))
 
   const year = new Date().getFullYear()
-  const tripsThisYear = trips.filter(t => !t.isEvent && (t.date || '').startsWith(String(year))).length
+  // Match the DAF Adventures archive: completed (FAM + External) trips this year
+  const tripsThisYear = trips.filter(t => t.completed && !t.isEvent && (t.date || '').startsWith(String(year))).length
   const destCounts = new Map<string, number>()
   posts.forEach(p => {
     const ids = p.locationIds?.length ? p.locationIds : (p.locationId ? [p.locationId] : [])

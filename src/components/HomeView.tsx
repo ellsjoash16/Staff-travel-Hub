@@ -3,7 +3,7 @@ import { ArrowRight, X, Megaphone, Airplane, ArrowsOut } from '@phosphor-icons/r
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { tripImage } from '@/lib/destinationImages'
-import { countryIso } from '@/lib/flags'
+import { countryFlagUrl } from '@/lib/flags'
 import { fmtDate } from '@/lib/utils'
 import type { View } from '@/lib/types'
 
@@ -285,13 +285,13 @@ export function HomeView() {
   const topDestId = [...destCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
   const topLoc = topDestId ? locations.find(l => l.id === topDestId) : null
   const topDest = topLoc?.name ?? '—'
-  const topIso = topLoc ? countryIso(topLoc.country) : null
+  const topFlagUrl = topLoc ? countryFlagUrl(topLoc.country) : null
 
   const countriesVisited = new Set(locations.map(l => l.country)).size
   const worldPct = Math.round((countriesVisited / 195) * 100) // 195 countries in the world
 
   const feedStats: { top?: React.ReactNode; value?: string | number; label: string }[] = [
-    { top: topIso ? <span className={`fi fi-${topIso} rounded-[3px] ring-1 ring-black/10 shadow-sm`} style={{ fontSize: '1.6rem' }} /> : null, value: topDest, label: 'Most visited' },
+    { top: topFlagUrl ? <img src={topFlagUrl} alt="" className="h-10 w-10 rounded-md shadow-sm" /> : null, value: topDest, label: 'Most visited' },
     { value: tripsThisYear, label: `Trips in ${year}` },
     { value: locations.length, label: 'Destinations' },
     { top: <Suspense fallback={<div className="h-12 w-12" />}><StatRing pct={worldPct} /></Suspense>, label: 'Of the world' },
@@ -386,7 +386,7 @@ export function HomeView() {
           className="grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
         >
           {feedStats.map(s => (
-            <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-2.5 flex flex-col items-center justify-center gap-1 text-center min-w-0">
+            <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-4 flex flex-col items-center justify-center gap-1.5 text-center min-w-0 min-h-[7rem]">
               {s.top}
               {s.value !== undefined && (
                 <p className="w-full text-lg xl:text-xl font-bold text-foreground leading-tight tracking-tight truncate">{s.value}</p>

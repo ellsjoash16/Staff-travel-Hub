@@ -38,6 +38,7 @@ Internal web app for DAF/DialAFlight staff to share travel experiences, browse d
 - Find files with Glob/Grep before editing — never guess file locations
 - Implement ALL parts of a multi-part request in one pass — don't drop sub-features
 - Don't add comments, docstrings, or type annotations to code you didn't change
+- When I say "push" (or "push it"), it means BOTH: commit & push to git AND deploy to production (`vercel --prod`). Do both, don't ask.
 
 ## UI & Layout
 - Use existing Tailwind classes and the established spacing scale

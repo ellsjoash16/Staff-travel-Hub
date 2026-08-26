@@ -1,13 +1,26 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { ArrowRight, X, Megaphone, Airplane, ArrowsOut } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { tripImage } from '@/lib/destinationImages'
-import { countryFlagUrl } from '@/lib/flags'
+import { countryIso } from '@/lib/flags'
 import { fmtDate } from '@/lib/utils'
 import type { View } from '@/lib/types'
 
 const MapView = lazy(() => import('./MapView').then(m => ({ default: m.MapView })))
+const StatRing = lazy(() => import('./StatRing'))
+
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const handler = () => setMatches(mq.matches)
+    handler()
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [query])
+  return matches
+}
 
 const SHARE_STEPS = [
   { label: 'Trip details', sub: 'Title, date & destination' },
@@ -252,27 +265,10 @@ function SharePanel({ onOpen }: { onOpen: () => void }) {
   )
 }
 
-function StatRing({ pct }: { pct: number }) {
-  const p = Math.max(0, Math.min(100, Math.round(pct)))
-  const r = 15
-  const c = 2 * Math.PI * r
-  const dash = (p / 100) * c
-  return (
-    <svg viewBox="0 0 40 40" className="h-10 w-10">
-      <circle cx="20" cy="20" r={r} fill="none" strokeWidth="4" className="text-muted stroke-current" />
-      <circle
-        cx="20" cy="20" r={r} fill="none" strokeWidth="4" strokeLinecap="round"
-        strokeDasharray={`${dash} ${c}`} transform="rotate(-90 20 20)"
-        className="text-primary stroke-current"
-      />
-      <text x="20" y="20" textAnchor="middle" dominantBaseline="central" fontSize="12" className="fill-foreground font-bold">{p}%</text>
-    </svg>
-  )
-}
-
 export function HomeView() {
   const { state, dispatch } = useApp()
   const { settings, posts, locations, trips } = state
+  const tallScreen = useMediaQuery('(min-height: 900px)')
 
   const feedPosts = [...posts]
     .filter(p => !p.isAirline)
@@ -289,16 +285,16 @@ export function HomeView() {
   const topDestId = [...destCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
   const topLoc = topDestId ? locations.find(l => l.id === topDestId) : null
   const topDest = topLoc?.name ?? '—'
-  const topFlagUrl = topLoc ? countryFlagUrl(topLoc.country) : null
+  const topIso = topLoc ? countryIso(topLoc.country) : null
 
   const countriesVisited = new Set(locations.map(l => l.country)).size
   const worldPct = Math.round((countriesVisited / 195) * 100) // 195 countries in the world
 
   const feedStats: { top?: React.ReactNode; value?: string | number; label: string }[] = [
-    { top: topFlagUrl ? <img src={topFlagUrl} alt="" className="h-7 w-auto rounded-[3px] ring-1 ring-black/10 shadow-sm" /> : null, value: topDest, label: 'Most visited' },
+    { top: topIso ? <span className={`fi fi-${topIso} rounded-[3px] ring-1 ring-black/10 shadow-sm`} style={{ fontSize: '1.6rem' }} /> : null, value: topDest, label: 'Most visited' },
     { value: tripsThisYear, label: `Trips in ${year}` },
     { value: locations.length, label: 'Destinations' },
-    { top: <StatRing pct={worldPct} />, label: 'Of the world' },
+    { top: <Suspense fallback={<div className="h-12 w-12" />}><StatRing pct={worldPct} /></Suspense>, label: 'Of the world' },
   ]
 
   const notice = settings.notice?.trim() ?? ''
@@ -384,9 +380,10 @@ export function HomeView() {
         </div>
 
         {/* Quick stats — only shown on taller screens to fill the space */}
+        {tallScreen && (
         <div
           onClick={e => e.stopPropagation()}
-          className="hidden [@media(min-height:900px)]:grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
+          className="grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
         >
           {feedStats.map(s => (
             <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-2.5 flex flex-col items-center justify-center gap-1 text-center min-w-0">
@@ -398,6 +395,7 @@ export function HomeView() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Live map — top-right, wider column. Desktop only. */}

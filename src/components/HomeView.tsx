@@ -260,8 +260,7 @@ export function HomeView() {
     .sort((a, b) => (a.pinned !== b.pinned ? (a.pinned ? -1 : 1) : ((b.date || '') < (a.date || '') ? -1 : 1)))
 
   const year = new Date().getFullYear()
-  const todayStr = new Date().toISOString().slice(0, 10)
-  const tripsThisYear = trips.filter(t => !t.isEvent && (t.date || '').startsWith(String(year)) && (t.date || '') <= todayStr).length
+  const tripsThisYear = trips.filter(t => !t.isEvent && (t.date || '').startsWith(String(year))).length
   const destCounts = new Map<string, number>()
   posts.forEach(p => {
     const ids = p.locationIds?.length ? p.locationIds : (p.locationId ? [p.locationId] : [])

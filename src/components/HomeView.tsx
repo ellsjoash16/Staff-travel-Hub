@@ -253,18 +253,26 @@ function SharePanel({ onOpen }: { onOpen: () => void }) {
 
 export function HomeView() {
   const { state, dispatch } = useApp()
-  const { settings, posts, locations, trips } = state
+  const { settings, posts, locations } = state
 
   const feedPosts = [...posts]
     .filter(p => !p.isAirline)
     .sort((a, b) => (a.pinned !== b.pinned ? (a.pinned ? -1 : 1) : ((b.date || '') < (a.date || '') ? -1 : 1)))
 
-  const todayStr = new Date().toISOString().slice(0, 10)
-  const feedStats = [
-    { value: feedPosts.length, label: 'Trips shared' },
+  const year = new Date().getFullYear()
+  const destCounts = new Map<string, number>()
+  posts.forEach(p => {
+    const ids = p.locationIds?.length ? p.locationIds : (p.locationId ? [p.locationId] : [])
+    ids.forEach(id => destCounts.set(id, (destCounts.get(id) ?? 0) + 1))
+  })
+  const topDestId = [...destCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
+  const topDest = topDestId ? (locations.find(l => l.id === topDestId)?.name ?? '—') : '—'
+
+  const feedStats: { value: string | number; label: string }[] = [
+    { value: topDest, label: 'Most visited' },
+    { value: posts.filter(p => (p.date || '').startsWith(String(year))).length, label: `Trips in ${year}` },
     { value: locations.length, label: 'Destinations' },
-    { value: new Set(locations.map(l => l.country)).size, label: 'Countries' },
-    { value: trips.filter(t => t.date >= todayStr && !t.completed && !t.isEvent).length, label: 'Upcoming' },
+    { value: feedPosts.length, label: 'Trips shared' },
   ]
 
   const notice = settings.notice?.trim() ?? ''
@@ -356,7 +364,7 @@ export function HomeView() {
         >
           {feedStats.map(s => (
             <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-2.5 text-center">
-              <p className="text-xl xl:text-2xl font-bold text-foreground leading-none tracking-tight">{s.value}</p>
+              <p className="text-lg xl:text-xl font-bold text-foreground leading-tight tracking-tight truncate">{s.value}</p>
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1 truncate">{s.label}</p>
             </div>
           ))}

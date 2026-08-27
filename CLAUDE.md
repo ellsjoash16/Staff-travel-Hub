@@ -39,6 +39,7 @@ Internal web app for DAF/DialAFlight staff to share travel experiences, browse d
 - Implement ALL parts of a multi-part request in one pass — don't drop sub-features
 - Don't add comments, docstrings, or type annotations to code you didn't change
 - When I say "push" (or "push it"), it means BOTH: commit & push to git AND deploy to production (`vercel --prod`). Do both, don't ask.
+- Do ONLY what I explicitly ask. Never add, remove, or change anything I didn't request, and never make product/UX/behaviour decisions on your own initiative (e.g. don't remove a gate, swap a threshold, or "helpfully" change scope). If you think something else is needed, ASK first — do not just do it.
 
 ## UI & Layout
 - Use existing Tailwind classes and the established spacing scale

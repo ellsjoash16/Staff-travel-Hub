@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { ArrowRight, X, Megaphone, Airplane, ArrowsOut } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
@@ -9,6 +9,18 @@ import type { View } from '@/lib/types'
 
 const MapView = lazy(() => import('./MapView').then(m => ({ default: m.MapView })))
 const StatRing = lazy(() => import('./StatRing'))
+
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const handler = () => setMatches(mq.matches)
+    handler()
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [query])
+  return matches
+}
 
 const SHARE_STEPS = [
   { label: 'Trip details', sub: 'Title, date & destination' },
@@ -256,6 +268,7 @@ function SharePanel({ onOpen }: { onOpen: () => void }) {
 export function HomeView() {
   const { state, dispatch } = useApp()
   const { settings, posts, locations, trips } = state
+  const tallScreen = useMediaQuery('(min-height: 900px)')
 
   const feedPosts = [...posts]
     .filter(p => !p.isAirline)
@@ -366,7 +379,8 @@ export function HomeView() {
           )}
         </div>
 
-        {/* Quick stats */}
+        {/* Quick stats — only shown on taller screens to fill the space */}
+        {tallScreen && (
         <div
           onClick={e => e.stopPropagation()}
           className="grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
@@ -381,6 +395,7 @@ export function HomeView() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Live map — top-right, wider column. Desktop only. */}

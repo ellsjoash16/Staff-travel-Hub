@@ -392,12 +392,14 @@ export function HomeView() {
           className="grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
         >
           {feedStats.map(s => (
-            <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-5 flex flex-col items-center justify-center gap-2 text-center min-w-0 min-h-[11rem]">
-              {s.top}
-              {s.value !== undefined && (
-                <p className="w-full text-2xl xl:text-3xl font-bold text-foreground leading-tight tracking-tight truncate">{s.value}</p>
-              )}
-              <p className="w-full text-[10px] uppercase tracking-wide text-muted-foreground truncate">{s.label}</p>
+            <div key={s.label} className="rounded-xl border border-border bg-card px-3 py-5 flex flex-col items-center text-center min-w-0 min-h-[11rem]">
+              <div className="flex-1 flex flex-col items-center justify-center gap-2 min-h-0">
+                {s.top}
+                {s.value !== undefined && (
+                  <p className={`w-full ${s.top ? 'text-2xl xl:text-3xl' : 'text-4xl xl:text-5xl'} font-bold text-foreground leading-tight tracking-tight truncate`}>{s.value}</p>
+                )}
+              </div>
+              <p className="w-full text-[10px] uppercase tracking-wide text-muted-foreground truncate mt-2">{s.label}</p>
             </div>
           ))}
         </div>

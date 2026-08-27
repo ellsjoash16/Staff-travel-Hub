@@ -28,6 +28,13 @@ export function today(): string {
   return new Date().toISOString().split('T')[0]
 }
 
+// A trip has "passed" once it's been marked completed or its date is in the
+// past (using endDate for multi-day trips/events when present).
+export function tripHasPassed(trip: { date: string; endDate?: string | null; completed?: boolean }): boolean {
+  if (trip.completed) return true
+  return (trip.endDate ?? trip.date) < today()
+}
+
 // Capitalise the first letter of every word in a name (after start, spaces,
 // hyphens and apostrophes), leaving the rest of each word untouched so
 // "sarah o'brien" → "Sarah O'Brien" without breaking "McBride"/"ALICE".

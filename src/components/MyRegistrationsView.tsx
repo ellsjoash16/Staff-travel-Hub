@@ -1,6 +1,6 @@
 import { Airplane, MapPin, Calendar, CheckCircle, Clock, XCircle, WarningCircle } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
-import { fmtDate } from '@/lib/utils'
+import { fmtDate, tripHasPassed } from '@/lib/utils'
 import type { Registration } from '@/lib/types'
 
 const BG = 'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?auto=format&fit=crop&w=400&q=40'
@@ -63,6 +63,12 @@ export function MyRegistrationsView() {
   const { state } = useApp()
   const { myRegistrations, trips, locations } = state
 
+  // Hide registrations for trips that have already passed.
+  const activeRegistrations = myRegistrations.filter(reg => {
+    const trip = trips.find(t => t.id === reg.tripId)
+    return !trip || !tripHasPassed(trip)
+  })
+
   function getTripInfo(reg: Registration) {
     const trip = trips.find(t => t.id === reg.tripId)
     if (!trip) return null
@@ -76,7 +82,7 @@ export function MyRegistrationsView() {
         <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
       </div>
 
-      {myRegistrations.length === 0 ? (
+      {activeRegistrations.length === 0 ? (
         <div className="relative flex flex-col items-center justify-center h-full text-white/70" style={{ zIndex: 1 }}>
           <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-5">
             <Airplane className="h-10 w-10 text-white/50" />
@@ -92,7 +98,7 @@ export function MyRegistrationsView() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-            {myRegistrations.map(reg => (
+            {activeRegistrations.map(reg => (
               <RegistrationCard key={reg.id} reg={reg} trip={getTripInfo(reg)} />
             ))}
           </div>

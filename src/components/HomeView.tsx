@@ -4,7 +4,7 @@ import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { tripImage } from '@/lib/destinationImages'
 import { countryFlagUrl } from '@/lib/flags'
-import { fmtDate } from '@/lib/utils'
+import { fmtDate, tripHasPassed } from '@/lib/utils'
 import type { View } from '@/lib/types'
 
 const MapView = lazy(() => import('./MapView').then(m => ({ default: m.MapView })))
@@ -189,13 +189,19 @@ function MyRegistrationsPanel({ onOpen }: { onOpen: () => void }) {
   const { state, dispatch } = useApp()
   const { myRegistrations, trips, locations } = state
 
+  // Hide registrations for trips that have already passed.
+  const activeRegistrations = myRegistrations.filter(reg => {
+    const trip = trips.find(t => t.id === reg.tripId)
+    return !trip || !tripHasPassed(trip)
+  })
+
   return (
     <PreviewPanel
       title="My Registrations"
-      subtitle={`${myRegistrations.length} registration${myRegistrations.length !== 1 ? 's' : ''}`}
+      subtitle={`${activeRegistrations.length} registration${activeRegistrations.length !== 1 ? 's' : ''}`}
       onOpen={onOpen}
     >
-      {myRegistrations.length === 0 ? (
+      {activeRegistrations.length === 0 ? (
         <div className="flex flex-col items-start gap-1.5 px-2 py-3">
           <p className="text-xs text-muted-foreground">No registrations yet</p>
           <button
@@ -205,7 +211,7 @@ function MyRegistrationsPanel({ onOpen }: { onOpen: () => void }) {
             Browse upcoming trips <ArrowRight className="h-3 w-3" />
           </button>
         </div>
-      ) : myRegistrations.map(reg => {
+      ) : activeRegistrations.map(reg => {
         const trip = trips.find(t => t.id === reg.tripId)
         const loc = trip?.locationId ? locations.find(l => l.id === trip.locationId) : null
         const cfg = REG_STATUS[reg.status] ?? REG_STATUS.requested

@@ -60,6 +60,7 @@ const SettingsView  = lazy(() => import('@/components/SettingsView').then(m => (
 const MyRegistrationsView = lazy(() => import('@/components/MyRegistrationsView').then(m => ({ default: m.MyRegistrationsView })))
 const MapView       = lazy(() => import('@/components/MapView').then(m => ({ default: m.MapView })))
 const PostDetailDialog = lazy(() => import('@/components/PostDetailDialog').then(m => ({ default: m.PostDetailDialog })))
+const PublicAdventures = lazy(() => import('@/components/PublicAdventures').then(m => ({ default: m.PublicAdventures })))
 
 function AppShell() {
   const { state, dispatch, loadMyRegistrations } = useApp()
@@ -222,6 +223,8 @@ export default function App() {
   // The in-app reset page is only reachable this way — no valid code, no access.
   const resetParams = new URLSearchParams(window.location.search)
   const resetCode = resetParams.get('mode') === 'resetPassword' ? resetParams.get('oobCode') : null
+  // Standalone, login-free DAF Adventures page — see PublicAdventures.
+  const publicView = resetParams.get('view')
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
@@ -245,6 +248,17 @@ export default function App() {
     return (
       <>
         <ResetPasswordScreen oobCode={resetCode} />
+        <Toaster position="bottom-right" richColors />
+      </>
+    )
+  }
+
+  if (publicView === 'adventures') {
+    return (
+      <>
+        <Suspense fallback={<SplashScreen />}>
+          <PublicAdventures />
+        </Suspense>
         <Toaster position="bottom-right" richColors />
       </>
     )

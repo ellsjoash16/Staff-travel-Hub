@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CalendarDots, MapPin, Airplane } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { tripImage } from '@/lib/destinationImages'
+import type { Trip, Location } from '@/lib/types'
 
 const BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=40'
 
@@ -9,8 +10,6 @@ const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
-
-type Trip = ReturnType<typeof useApp>['state']['trips'][number]
 
 function CardSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -39,9 +38,7 @@ function buildYearMap(ts: Trip[]) {
   return map
 }
 
-export function YearsView() {
-  const { state } = useApp()
-  const { trips, locations } = state
+export function YearsViewInner({ trips, locations }: { trips: Trip[]; locations: Location[] }) {
   const [selectedYear, setSelectedYear] = useState<string | null>(null)
   const [mobileTab, setMobileTab] = useState<'fam' | 'ext'>('fam')
 
@@ -258,4 +255,9 @@ export function YearsView() {
       </div>
     </div>
   )
+}
+
+export function YearsView() {
+  const { state } = useApp()
+  return <YearsViewInner trips={state.trips} locations={state.locations} />
 }

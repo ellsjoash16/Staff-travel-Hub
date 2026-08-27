@@ -71,6 +71,14 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const { state, dispatch, togglePin, movePostsToFolder, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile, createUser } = useApp()
   const { posts, courses, trips, locations, settings, registrations, userProfiles } = state
 
+  // Only count/show registrations for trips that are still upcoming — passed
+  // trips are hidden (and purged after 10 days), matching the trip list below.
+  const regTodayStr = new Date().toISOString().slice(0, 10)
+  const activeRegistrations = registrations.filter(r => {
+    const t = trips.find(tt => tt.id === r.tripId)
+    return !!t && t.date >= regTodayStr && !t.completed
+  })
+
   const [tab, setTab] = useState('post')
   const [postForm, setPostForm] = useState<PostForm>(emptyPostForm())
   const [editingPostId, setEditingPostId] = useState<string | null>(null)
@@ -500,8 +508,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               <TabsTrigger value="years" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">By Year</TabsTrigger>
               <TabsTrigger value="registrations" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">
                 Registrations
-                {registrations.length > 0 && (
-                  <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{registrations.length}</span>
+                {activeRegistrations.length > 0 && (
+                  <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] rounded-full px-1.5 py-0.5">{activeRegistrations.length}</span>
                 )}
               </TabsTrigger>
               <TabsTrigger value="manage" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">Manage</TabsTrigger>
@@ -1398,7 +1406,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     </div>
 
                     <div className="relative p-4 space-y-4" style={{ zIndex: 1 }}>
-                      <p className="text-white/70 text-xs">{registrations.length} registration{registrations.length !== 1 ? 's' : ''} across {upcomingTrips.length} upcoming trip{upcomingTrips.length !== 1 ? 's' : ''}</p>
+                      <p className="text-white/70 text-xs">{activeRegistrations.length} registration{activeRegistrations.length !== 1 ? 's' : ''} across {upcomingTrips.length} upcoming trip{upcomingTrips.length !== 1 ? 's' : ''}</p>
 
                       {upcomingTrips.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-16 text-white/60">

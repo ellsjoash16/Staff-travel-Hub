@@ -88,6 +88,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [pdfParsing, setPdfParsing] = useState(false)
   const [pdfReviews, setPdfReviews] = useState<ParsedReview[]>([])
   const pdfInputRef = useRef<HTMLInputElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
   const [buildingOpen, setBuildingOpen] = useState(false)
   const buildingRef = useRef<HTMLDivElement>(null)
   const [rolesOpen, setRolesOpen] = useState(false)
@@ -435,6 +436,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     setLocationForm({ name: loc.name, country: loc.country, imageUrl: loc.imageUrl ?? '' })
     setEditingLocationId(loc.id); setTab('locations')
     setPhotoResults([]); setPhotoIdx(0)
+    requestAnimationFrame(() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   async function handleDeleteLocation(id: string) {
@@ -488,6 +490,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   }
 
   const tabsContent = (
+        <>
+          <div ref={topRef} className="scroll-mt-4" />
           <Tabs value={tab} onValueChange={async (v) => { setTab(v); if (v === 'registrations') { setRegistrationsLoading(true); try { await loadRegistrations() } catch { toast.error('Failed to load registrations') } finally { setRegistrationsLoading(false) } } if (v === 'users' && !usersLoaded) { handleLoadUsers() } }}>
             <TabsList className="overflow-x-auto flex-nowrap">
               <TabsTrigger value="post" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
@@ -2231,6 +2235,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
             </TabsContent>
 
           </Tabs>
+        </>
   )
 
   const BAN_DURATIONS = [

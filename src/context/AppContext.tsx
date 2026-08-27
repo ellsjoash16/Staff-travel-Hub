@@ -14,7 +14,7 @@ import {
   insertLocation, updateLocation, removeLocation,
   uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
-  fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, deleteUserProfile,
+  fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, purgeExpiredRegistrations, deleteUserProfile,
   fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile, adminCreateUser, clearMustChangePassword,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
@@ -286,6 +286,9 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
             .then(() => dispatch({ type: 'UPDATE_TRIP', trip: { ...t, completed: true } }))
             .catch(() => {})
         }
+
+        // Permanently purge registrations for trips that passed >10 days ago.
+        purgeExpiredRegistrations(trips).catch(() => {})
       }
 
       if (profile) {

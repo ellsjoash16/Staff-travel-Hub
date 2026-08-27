@@ -626,6 +626,26 @@ export async function deleteRegistration(id: string): Promise<void> {
   await adminWrite('registrations', id, 'delete')
 }
 
+// Permanently delete registrations whose trip's date passed more than
+// `graceDays` days ago. Registrations are hidden from the user the moment
+// the trip passes, kept in Firebase for the grace window, then purged.
+// Admin-only (delete rules) — call on admin load. Returns the count deleted.
+export async function purgeExpiredRegistrations(trips: Trip[], graceDays = 10): Promise<number> {
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - graceDays)
+  const cutoffStr = cutoff.toISOString().slice(0, 10)
+  const tripById = new Map(trips.map(t => [t.id, t]))
+  const regs = await fetchRegistrations()
+  const expired = regs.filter(r => {
+    const trip = tripById.get(r.tripId)
+    if (!trip) return false
+    const passed = trip.endDate || trip.date
+    return !!passed && passed < cutoffStr
+  })
+  await Promise.all(expired.map(r => deleteRegistration(r.id).catch(() => {})))
+  return expired.length
+}
+
 export async function deleteUserProfile(uid: string): Promise<void> {
   await adminWrite('userProfiles', uid, 'delete')
 }

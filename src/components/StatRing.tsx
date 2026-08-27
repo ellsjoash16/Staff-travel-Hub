@@ -1,28 +1,27 @@
-import { Label, PolarGrid, PolarAngleAxis, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts'
+import { Label, PolarGrid, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts'
 import { ChartContainer, type ChartConfig } from '@/components/ui/chart'
 
-// shadcn chart-radial-shape adapted to a percentage gauge. Lazy-loaded so
-// recharts only ships when the tall-screen stats render.
+// shadcn "Radial Chart - Shape" (chart-radial-shape) adapted to the world %.
+// Lazy-loaded so recharts only ships when the tall-screen stats render.
 const chartConfig = {
   value: { label: 'World' },
-  world: { label: 'World', color: 'hsl(var(--primary))' },
+  world: { label: 'World', color: 'var(--chart-2)' },
 } satisfies ChartConfig
 
 export default function StatRing({ pct }: { pct: number }) {
   const p = Math.max(0, Math.min(100, Math.round(pct)))
-  const data = [{ browser: 'world', value: p, fill: 'var(--color-world)' }]
+  const chartData = [{ browser: 'world', value: p, fill: 'var(--color-world)' }]
   return (
-    <ChartContainer config={chartConfig} className="mx-auto aspect-square w-full max-w-[7.5rem]">
-      <RadialBarChart data={data} startAngle={90} endAngle={-270} innerRadius={44} outerRadius={66}>
-        <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+    <ChartContainer config={chartConfig} className="mx-auto aspect-square w-full max-w-[7rem]">
+      <RadialBarChart data={chartData} endAngle={100} innerRadius={30} outerRadius={45}>
         <PolarGrid
           gridType="circle"
           radialLines={false}
           stroke="none"
           className="first:fill-muted last:fill-background"
-          polarRadius={[60, 50]}
+          polarRadius={[40, 34]}
         />
-        <RadialBar dataKey="value" angleAxisId={0} cornerRadius={11} />
+        <RadialBar dataKey="value" background />
         <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
           <Label
             content={({ viewBox }) => {

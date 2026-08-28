@@ -12,7 +12,6 @@ export function PublicAdventures() {
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    document.documentElement.classList.add('dark')
     let alive = true
     fetch('/api/public-adventures')
       .then(r => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
@@ -22,7 +21,7 @@ export function PublicAdventures() {
   }, [])
 
   return (
-    <div className="dark h-dvh w-screen overflow-hidden bg-background text-foreground">
+    <div className="h-dvh w-screen overflow-hidden bg-background text-foreground">
       {error ? (
         <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground px-6 text-center">
           <WarningCircle className="h-10 w-10 text-destructive/70" />
@@ -35,7 +34,7 @@ export function PublicAdventures() {
           <p className="text-sm">Loading DAF Adventures…</p>
         </div>
       ) : (
-        <YearsViewInner trips={data.trips} locations={data.locations} />
+        <YearsViewInner trips={data.trips} locations={data.locations} matchTheme />
       )}
     </div>
   )

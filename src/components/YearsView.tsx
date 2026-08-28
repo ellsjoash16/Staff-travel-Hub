@@ -38,7 +38,10 @@ function buildYearMap(ts: Trip[]) {
   return map
 }
 
-export function YearsViewInner({ trips, locations }: { trips: Trip[]; locations: Location[] }) {
+export function YearsViewInner({ trips, locations, matchTheme = false }: { trips: Trip[]; locations: Location[]; matchTheme?: boolean }) {
+  // In-app this view is always dark; the standalone page passes matchTheme to
+  // follow the light/dark system preference instead.
+  const themeClass = matchTheme ? '' : 'dark'
   const [selectedYear, setSelectedYear] = useState<string | null>(null)
   const [mobileTab, setMobileTab] = useState<'fam' | 'ext'>('fam')
 
@@ -66,7 +69,7 @@ export function YearsViewInner({ trips, locations }: { trips: Trip[]; locations:
 
   if (completedTrips.length === 0) {
     return (
-      <div className="dark relative h-full overflow-auto text-foreground">
+      <div className={`${themeClass} relative h-full overflow-auto text-foreground`}>
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${BG})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(14px) brightness(0.45) saturate(1.2)', transform: 'scale(1.1)' }} />
         </div>
@@ -167,7 +170,7 @@ export function YearsViewInner({ trips, locations }: { trips: Trip[]; locations:
   return (
     /* On lg+: fill the viewport, no page scroll — cards scroll internally.
        On mobile: page scrolls naturally. */
-    <div className="dark relative h-full overflow-auto lg:overflow-hidden text-foreground">
+    <div className={`${themeClass} relative h-full overflow-auto lg:overflow-hidden text-foreground`}>
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div style={{
           position: 'absolute', inset: 0,

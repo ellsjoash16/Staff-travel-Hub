@@ -10,9 +10,10 @@ interface Props {
   onChange: (val: string) => void
   placeholder?: string
   className?: string
+  disableFuture?: boolean   // only allow dates strictly in the past
 }
 
-export function DatePicker({ value, onChange, placeholder = 'Pick a date', className }: Props) {
+export function DatePicker({ value, onChange, placeholder = 'Pick a date', className, disableFuture }: Props) {
   const [open, setOpen] = useState(false)
 
   const parsed = value ? parse(value, 'yyyy-MM-dd', new Date()) : undefined
@@ -46,6 +47,7 @@ export function DatePicker({ value, onChange, placeholder = 'Pick a date', class
           selected={selected}
           onSelect={handleSelect}
           defaultMonth={selected}
+          disabled={disableFuture ? (d: Date) => { const t = new Date(); t.setHours(0, 0, 0, 0); return d >= t } : undefined}
           initialFocus
         />
       </PopoverContent>

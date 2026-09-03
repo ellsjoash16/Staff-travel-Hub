@@ -84,6 +84,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [editingPostId, setEditingPostId] = useState<string | null>(null)
   const [tripForm, setTripForm] = useState<TripForm>(emptyTripForm())
   const [editingTripId, setEditingTripId] = useState<string | null>(null)
+  const [pastTripFormOpen, setPastTripFormOpen] = useState(false)
   const [locationForm, setLocationForm] = useState<LocationForm>(emptyLocationForm())
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
   const [photoResults, setPhotoResults] = useState<{ url: string; thumb: string; credit: string | null }[]>([])
@@ -317,6 +318,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
   async function submitTrip() {
     if (!tripForm.name) { toast.error('Trip name is required'); return }
+    if (tripForm.completed && (!tripForm.date || tripForm.date >= today())) {
+      toast.error('A past trip must have a date in the past'); return
+    }
     const id = editingTripId || crypto.randomUUID()
     const participants = tripForm.participants.split(',').map(s => s.trim()).filter(Boolean)
     const imageDataUrl = tripForm.image?.startsWith('data:') ? tripForm.image : null
@@ -349,13 +353,13 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       } else {
         await addTrip(trip, imageDataUrl); toast.success('Trip added!')
       }
-      setTripForm(emptyTripForm()); setEditingTripId(null)
+      setTripForm(emptyTripForm()); setEditingTripId(null); setPastTripFormOpen(false)
     } catch (err) {
       console.error(err); toast.error((err as Error)?.message || 'Failed to save trip')
     } finally { setTripSaving(false) }
   }
 
-  function startEditTrip(trip: Trip) {
+  function startEditTrip(trip: Trip, inPastTab = false) {
     setTripForm({
       name: trip.name,
       description: trip.description ?? '',
@@ -377,7 +381,9 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       eventSpaces: trip.eventSpaces != null ? String(trip.eventSpaces) : '',
       eventSponsor: trip.eventSponsor ?? '',
     })
-    setEditingTripId(trip.id); setTab('trips')
+    setEditingTripId(trip.id)
+    if (inPastTab) setPastTripFormOpen(true)
+    else setTab('trips')
   }
 
   async function handleDeleteTrip(id: string) {
@@ -387,10 +393,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   }
 
   async function handleTripComplete(trip: Trip) {
-    if (!confirm(`Mark "${trip.name}" as complete? It will move to the By Year tab.`)) return
+    if (!confirm(`Mark "${trip.name}" as complete? It will move to the DAF Adventures tab.`)) return
     try {
       await completeTrip(trip)
-      toast.success('Trip marked complete — now visible in By Year tab')
+      toast.success('Trip marked complete — now visible in DAF Adventures tab')
     } catch (err) {
       console.error(err); toast.error('Failed to complete trip')
     }
@@ -497,6 +503,277 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     }
   }
 
+  function renderTripForm() {
+    return (
+      <div className="space-y-4">
+        {/* Tick boxes first — external trips don't use a photo, so decide type up top. */}
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <input
+              id="trip-external"
+              type="checkbox"
+              checked={tripForm.external}
+              onChange={(e) => setTrip('external', e.target.checked)}
+              className="h-4 w-4 rounded border-input accent-primary"
+            />
+            <label htmlFor="trip-external" className="text-sm font-medium select-none cursor-pointer">
+              External trip
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="trip-international"
+              type="checkbox"
+              checked={tripForm.international}
+              onChange={(e) => setTrip('international', e.target.checked)}
+              className="h-4 w-4 rounded border-input accent-primary"
+            />
+            <label htmlFor="trip-international" className="text-sm font-medium select-none cursor-pointer">
+              International
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="trip-completed"
+              type="checkbox"
+              checked={tripForm.completed}
+              onChange={(e) => setTrip('completed', e.target.checked)}
+              className="h-4 w-4 rounded border-input accent-primary"
+            />
+            <label htmlFor="trip-completed" className="text-sm font-medium select-none cursor-pointer">
+              Mark as completed
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="trip-register-interest"
+              type="checkbox"
+              checked={tripForm.showRegisterInterest}
+              onChange={(e) => setTrip('showRegisterInterest', e.target.checked)}
+              className="h-4 w-4 rounded border-input accent-primary"
+            />
+            <label htmlFor="trip-register-interest" className="text-sm font-medium select-none cursor-pointer">
+              Show Register Interest
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="trip-is-event"
+              type="checkbox"
+              checked={tripForm.isEvent}
+              onChange={(e) => setTrip('isEvent', e.target.checked)}
+              className="h-4 w-4 rounded border-input accent-primary"
+            />
+            <label htmlFor="trip-is-event" className="text-sm font-medium select-none cursor-pointer">
+              This is an event
+            </label>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Trip Photo <span className="text-muted-foreground font-normal">(optional)</span></Label>
+          <ImageUpload value={tripForm.image} onChange={(v) => setTrip('image', v)} />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Trip Name <span className="text-destructive">*</span></Label>
+          <Input placeholder="e.g. Bali Retreat 2026" value={tripForm.name} onChange={(e) => setTrip('name', e.target.value)} />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Short Description <span className="text-muted-foreground font-normal">(shown on upcoming trips page)</span></Label>
+          <Textarea placeholder="e.g. A 7-night luxury retreat in Bali covering beach resorts, culture and cuisine…" value={tripForm.description} onChange={(e) => setTrip('description', e.target.value)} rows={3} />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Participants <span className="text-muted-foreground font-normal">(comma separated)</span></Label>
+          <Input placeholder="e.g. Sarah Johnson, Mike Smith" value={tripForm.participants} onChange={(e) => setTrip('participants', e.target.value)} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Start Date</Label>
+            <DatePicker value={tripForm.date} onChange={(v) => setTrip('date', v)} disableFuture={tripForm.completed} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>End Date <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <DatePicker value={tripForm.endDate} onChange={(v) => setTrip('endDate', v)} disableFuture={tripForm.completed} />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Registration Deadline <span className="text-muted-foreground font-normal">(optional)</span></Label>
+          <DatePicker value={tripForm.registrationDeadline} onChange={(v) => setTrip('registrationDeadline', v)} />
+        </div>
+
+        <div className="space-y-1.5 relative" ref={tripLocRef}>
+          <Label>Locations <span className="text-muted-foreground font-normal">(optional — pick one or more)</span></Label>
+          <button
+            type="button"
+            onClick={() => setTripLocOpen(o => !o)}
+            className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm lg:text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <span className={tripForm.locationIds.length === 0 ? 'text-muted-foreground' : ''}>
+              {tripForm.locationIds.length === 0
+                ? '— No location —'
+                : tripForm.locationIds.map(id => locations.find(l => l.id === id)?.name).filter(Boolean).join(', ')}
+            </span>
+            <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+          </button>
+          {tripLocOpen && (
+            <div className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-background shadow-md">
+              {[...locations].sort((a, b) => a.name.localeCompare(b.name)).map(loc => (
+                <label key={loc.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-border accent-primary"
+                    checked={tripForm.locationIds.includes(loc.id)}
+                    onChange={() => {
+                      const next = tripForm.locationIds.includes(loc.id)
+                        ? tripForm.locationIds.filter(x => x !== loc.id)
+                        : [...tripForm.locationIds, loc.id]
+                      setTrip('locationIds', next)
+                    }}
+                  />
+                  {loc.name} <span className="text-muted-foreground">({loc.country})</span>
+                </label>
+              ))}
+              {locations.length === 0 && <p className="px-3 py-2 text-sm text-muted-foreground">No locations yet — add them in the Locations tab.</p>}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-1.5 relative" ref={rolesRef}>
+          <label className="text-sm font-medium">Restrict to Roles <span className="text-muted-foreground font-normal">(leave empty for all staff)</span></label>
+          <button
+            type="button"
+            onClick={() => setRolesOpen(o => !o)}
+            className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <span className={tripForm.allowedRoles.length === 0 ? 'text-muted-foreground' : ''}>
+              {tripForm.allowedRoles.length === 0 ? '— All staff —' : tripForm.allowedRoles.join(', ')}
+            </span>
+            <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+          </button>
+          {rolesOpen && (
+            <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-background shadow-md">
+              {['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM'].map(r => (
+                <label key={r} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-border accent-primary"
+                    checked={tripForm.allowedRoles.includes(r)}
+                    onChange={() => {
+                      const next = tripForm.allowedRoles.includes(r)
+                        ? tripForm.allowedRoles.filter(x => x !== r)
+                        : [...tripForm.allowedRoles, r]
+                      setTrip('allowedRoles', next)
+                    }}
+                  />
+                  {r}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {tripForm.isEvent && (
+          <>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Event Type</label>
+              <AppSelect
+                value={tripForm.eventType}
+                onChange={val => setTrip('eventType', val)}
+                placeholder="— Select type —"
+                options={[
+                  { value: '', label: '— Select type —' },
+                  { value: 'Drinks', label: 'Drinks' },
+                  { value: 'Dinner', label: 'Dinner' },
+                  { value: 'Sporting Event', label: 'Sporting Event' },
+                  { value: 'Conference', label: 'Conference' },
+                  { value: 'Team Building', label: 'Team Building' },
+                  { value: 'Social', label: 'Social' },
+                  { value: 'Other', label: 'Other' },
+                ]}
+              />
+            </div>
+            <div className="space-y-1.5 relative" ref={buildingRef}>
+              <label className="text-sm font-medium">Buildings <span className="text-muted-foreground font-normal">(optional)</span></label>
+              <button
+                type="button"
+                onClick={() => setBuildingOpen(o => !o)}
+                className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <span className={tripForm.eventBuilding.length === 0 ? 'text-muted-foreground' : ''}>
+                  {tripForm.eventBuilding.length === 0 ? '— Select buildings —' : tripForm.eventBuilding.join(', ')}
+                </span>
+                <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+              </button>
+              {buildingOpen && (
+                <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-background shadow-md">
+                  {['Boxley', 'Shirley', 'London', 'Sale'].map(b => (
+                    <label key={b} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-border accent-primary"
+                        checked={tripForm.eventBuilding.includes(b)}
+                        onChange={() => {
+                          const next = tripForm.eventBuilding.includes(b)
+                            ? tripForm.eventBuilding.filter(x => x !== b)
+                            : [...tripForm.eventBuilding, b]
+                          setTrip('eventBuilding', next)
+                        }}
+                      />
+                      {b}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Venue Name <span className="text-muted-foreground font-normal">(optional)</span></label>
+              <Input
+                placeholder="e.g. The Grand Ballroom"
+                value={tripForm.eventVenue}
+                onChange={(e) => setTrip('eventVenue', e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Number of Spaces <span className="text-muted-foreground font-normal">(optional)</span></label>
+              <Input
+                type="number"
+                min="1"
+                placeholder="e.g. 50"
+                value={tripForm.eventSpaces}
+                onChange={(e) => setTrip('eventSpaces', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Event Sponsor <span className="text-muted-foreground font-normal">(optional)</span></label>
+            <Input
+              placeholder="e.g. British Airways"
+              value={tripForm.eventSponsor}
+              onChange={(e) => setTrip('eventSponsor', e.target.value)}
+            />
+          </div>
+          </>
+        )}
+
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="secondary" onClick={() => { setTripForm(emptyTripForm()); setEditingTripId(null); setPastTripFormOpen(false) }} disabled={tripSaving}>Clear</Button>
+          <Button onClick={submitTrip} disabled={tripSaving}>
+            {tripSaving ? <><CircleNotch className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingTripId ? 'Update Trip' : 'Add Trip'}
+          </Button>
+        </div>
+        {editingTripId && <p className="text-right text-xs text-amber-500">Editing existing trip</p>}
+      </div>
+    )
+  }
+
   const tabsContent = (
         <>
           <div ref={topRef} className="scroll-mt-4" />
@@ -505,7 +782,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
               <TabsTrigger value="post" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingPostId ? 'Edit Post' : 'Post'}</TabsTrigger>
               <TabsTrigger value="locations" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingLocationId ? 'Edit Location' : 'Locations'}</TabsTrigger>
               <TabsTrigger value="trips" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">{editingTripId ? 'Edit Trip' : 'Upcoming Trips'}</TabsTrigger>
-              <TabsTrigger value="years" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">By Year</TabsTrigger>
+              <TabsTrigger value="years" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">DAF Adventures</TabsTrigger>
               <TabsTrigger value="registrations" className="lg:flex-1 px-3 xl:px-4 2xl:px-5 text-xs xl:text-sm 2xl:text-base">
                 Registrations
                 {activeRegistrations.length > 0 && (
@@ -840,269 +1117,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
             {/* ── TRIPS ── */}
             <TabsContent value="trips" className="space-y-4">
-              <div className="space-y-1.5">
-                <Label>Trip Photo <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <ImageUpload value={tripForm.image} onChange={(v) => setTrip('image', v)} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Trip Name <span className="text-destructive">*</span></Label>
-                <Input placeholder="e.g. Bali Retreat 2026" value={tripForm.name} onChange={(e) => setTrip('name', e.target.value)} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Short Description <span className="text-muted-foreground font-normal">(shown on upcoming trips page)</span></Label>
-                <Textarea placeholder="e.g. A 7-night luxury retreat in Bali covering beach resorts, culture and cuisine…" value={tripForm.description} onChange={(e) => setTrip('description', e.target.value)} rows={3} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Participants <span className="text-muted-foreground font-normal">(comma separated)</span></Label>
-                <Input placeholder="e.g. Sarah Johnson, Mike Smith" value={tripForm.participants} onChange={(e) => setTrip('participants', e.target.value)} />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Start Date</Label>
-                  <DatePicker value={tripForm.date} onChange={(v) => setTrip('date', v)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>End Date <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <DatePicker value={tripForm.endDate} onChange={(v) => setTrip('endDate', v)} />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Registration Deadline <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <DatePicker value={tripForm.registrationDeadline} onChange={(v) => setTrip('registrationDeadline', v)} />
-              </div>
-
-              <div className="space-y-1.5 relative" ref={tripLocRef}>
-                <Label>Locations <span className="text-muted-foreground font-normal">(optional — pick one or more)</span></Label>
-                <button
-                  type="button"
-                  onClick={() => setTripLocOpen(o => !o)}
-                  className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm lg:text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                >
-                  <span className={tripForm.locationIds.length === 0 ? 'text-muted-foreground' : ''}>
-                    {tripForm.locationIds.length === 0
-                      ? '— No location —'
-                      : tripForm.locationIds.map(id => locations.find(l => l.id === id)?.name).filter(Boolean).join(', ')}
-                  </span>
-                  <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
-                </button>
-                {tripLocOpen && (
-                  <div className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-background shadow-md">
-                    {[...locations].sort((a, b) => a.name.localeCompare(b.name)).map(loc => (
-                      <label key={loc.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-border accent-primary"
-                          checked={tripForm.locationIds.includes(loc.id)}
-                          onChange={() => {
-                            const next = tripForm.locationIds.includes(loc.id)
-                              ? tripForm.locationIds.filter(x => x !== loc.id)
-                              : [...tripForm.locationIds, loc.id]
-                            setTrip('locationIds', next)
-                          }}
-                        />
-                        {loc.name} <span className="text-muted-foreground">({loc.country})</span>
-                      </label>
-                    ))}
-                    {locations.length === 0 && <p className="px-3 py-2 text-sm text-muted-foreground">No locations yet — add them in the Locations tab.</p>}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-2">
-                  <input
-                    id="trip-external"
-                    type="checkbox"
-                    checked={tripForm.external}
-                    onChange={(e) => setTrip('external', e.target.checked)}
-                    className="h-4 w-4 rounded border-input accent-primary"
-                  />
-                  <label htmlFor="trip-external" className="text-sm font-medium select-none cursor-pointer">
-                    External trip
-                  </label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="trip-international"
-                    type="checkbox"
-                    checked={tripForm.international}
-                    onChange={(e) => setTrip('international', e.target.checked)}
-                    className="h-4 w-4 rounded border-input accent-primary"
-                  />
-                  <label htmlFor="trip-international" className="text-sm font-medium select-none cursor-pointer">
-                    International
-                  </label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="trip-completed"
-                    type="checkbox"
-                    checked={tripForm.completed}
-                    onChange={(e) => setTrip('completed', e.target.checked)}
-                    className="h-4 w-4 rounded border-input accent-primary"
-                  />
-                  <label htmlFor="trip-completed" className="text-sm font-medium select-none cursor-pointer">
-                    Mark as completed
-                  </label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="trip-register-interest"
-                    type="checkbox"
-                    checked={tripForm.showRegisterInterest}
-                    onChange={(e) => setTrip('showRegisterInterest', e.target.checked)}
-                    className="h-4 w-4 rounded border-input accent-primary"
-                  />
-                  <label htmlFor="trip-register-interest" className="text-sm font-medium select-none cursor-pointer">
-                    Show Register Interest
-                  </label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="trip-is-event"
-                    type="checkbox"
-                    checked={tripForm.isEvent}
-                    onChange={(e) => setTrip('isEvent', e.target.checked)}
-                    className="h-4 w-4 rounded border-input accent-primary"
-                  />
-                  <label htmlFor="trip-is-event" className="text-sm font-medium select-none cursor-pointer">
-                    This is an event
-                  </label>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 relative" ref={rolesRef}>
-                <label className="text-sm font-medium">Restrict to Roles <span className="text-muted-foreground font-normal">(leave empty for all staff)</span></label>
-                <button
-                  type="button"
-                  onClick={() => setRolesOpen(o => !o)}
-                  className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                >
-                  <span className={tripForm.allowedRoles.length === 0 ? 'text-muted-foreground' : ''}>
-                    {tripForm.allowedRoles.length === 0 ? '— All staff —' : tripForm.allowedRoles.join(', ')}
-                  </span>
-                  <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
-                </button>
-                {rolesOpen && (
-                  <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-background shadow-md">
-                    {['Travel Manager', 'NTM', 'DTM', 'Sales Manager', 'DSM', 'Admin', 'Director', 'RSM'].map(r => (
-                      <label key={r} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-border accent-primary"
-                          checked={tripForm.allowedRoles.includes(r)}
-                          onChange={() => {
-                            const next = tripForm.allowedRoles.includes(r)
-                              ? tripForm.allowedRoles.filter(x => x !== r)
-                              : [...tripForm.allowedRoles, r]
-                            setTrip('allowedRoles', next)
-                          }}
-                        />
-                        {r}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {tripForm.isEvent && (
-                <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Event Type</label>
-                    <AppSelect
-                      value={tripForm.eventType}
-                      onChange={val => setTrip('eventType', val)}
-                      placeholder="— Select type —"
-                      options={[
-                        { value: '', label: '— Select type —' },
-                        { value: 'Drinks', label: 'Drinks' },
-                        { value: 'Dinner', label: 'Dinner' },
-                        { value: 'Sporting Event', label: 'Sporting Event' },
-                        { value: 'Conference', label: 'Conference' },
-                        { value: 'Team Building', label: 'Team Building' },
-                        { value: 'Social', label: 'Social' },
-                        { value: 'Other', label: 'Other' },
-                      ]}
-                    />
-                  </div>
-                  <div className="space-y-1.5 relative" ref={buildingRef}>
-                    <label className="text-sm font-medium">Buildings <span className="text-muted-foreground font-normal">(optional)</span></label>
-                    <button
-                      type="button"
-                      onClick={() => setBuildingOpen(o => !o)}
-                      className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    >
-                      <span className={tripForm.eventBuilding.length === 0 ? 'text-muted-foreground' : ''}>
-                        {tripForm.eventBuilding.length === 0 ? '— Select buildings —' : tripForm.eventBuilding.join(', ')}
-                      </span>
-                      <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
-                    </button>
-                    {buildingOpen && (
-                      <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-background shadow-md">
-                        {['Boxley', 'Shirley', 'London', 'Sale'].map(b => (
-                          <label key={b} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
-                            <input
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-border accent-primary"
-                              checked={tripForm.eventBuilding.includes(b)}
-                              onChange={() => {
-                                const next = tripForm.eventBuilding.includes(b)
-                                  ? tripForm.eventBuilding.filter(x => x !== b)
-                                  : [...tripForm.eventBuilding, b]
-                                setTrip('eventBuilding', next)
-                              }}
-                            />
-                            {b}
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Venue Name <span className="text-muted-foreground font-normal">(optional)</span></label>
-                    <Input
-                      placeholder="e.g. The Grand Ballroom"
-                      value={tripForm.eventVenue}
-                      onChange={(e) => setTrip('eventVenue', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Number of Spaces <span className="text-muted-foreground font-normal">(optional)</span></label>
-                    <Input
-                      type="number"
-                      min="1"
-                      placeholder="e.g. 50"
-                      value={tripForm.eventSpaces}
-                      onChange={(e) => setTrip('eventSpaces', e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Event Sponsor <span className="text-muted-foreground font-normal">(optional)</span></label>
-                  <Input
-                    placeholder="e.g. British Airways"
-                    value={tripForm.eventSponsor}
-                    onChange={(e) => setTrip('eventSponsor', e.target.value)}
-                  />
-                </div>
-                </>
-              )}
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="secondary" onClick={() => { setTripForm(emptyTripForm()); setEditingTripId(null) }} disabled={tripSaving}>Clear</Button>
-                <Button onClick={submitTrip} disabled={tripSaving}>
-                  {tripSaving ? <><CircleNotch className="h-4 w-4 mr-2 animate-spin" />Saving…</> : editingTripId ? 'Update Trip' : 'Add Trip'}
-                </Button>
-              </div>
-              {editingTripId && <p className="text-right text-xs text-amber-500">Editing existing trip</p>}
+              {renderTripForm()}
 
               {trips.filter(t => !t.completed).length > 0 && (
                 <>
@@ -1146,12 +1161,25 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
             {/* ── BY YEAR ── */}
             <TabsContent value="years" className="space-y-4">
+              {pastTripFormOpen ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => { setPastTripFormOpen(false); setTripForm(emptyTripForm()); setEditingTripId(null) }}
+                      className="flex items-center gap-1.5 text-sm lg:text-base text-muted-foreground hover:text-foreground transition-colors">
+                      <CaretRight className="h-4 w-4 rotate-180" /> Back
+                    </button>
+                    <h3 className="font-gilbert text-base text-foreground">{editingTripId ? 'Edit Past Trip' : 'Add Past Trip'}</h3>
+                  </div>
+                  {renderTripForm()}
+                </>
+              ) : (
+                <>
               <div className="flex items-center justify-between">
-                <p className="text-xs lg:text-sm text-muted-foreground">Manually add past trips directly to the By Year view</p>
+                <p className="text-xs lg:text-sm text-muted-foreground">Manually add past trips directly to the DAF Adventures view</p>
                 <Button size="sm" className="gap-1.5 flex-shrink-0" onClick={() => {
                   setTripForm({ ...emptyTripForm(), completed: true })
                   setEditingTripId(null)
-                  setTab('trips')
+                  setPastTripFormOpen(true)
                 }}>
                   <Plus className="h-3.5 w-3.5" /> Add Past Trip
                 </Button>
@@ -1228,7 +1256,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                     {t.date && <p className="text-xs lg:text-sm text-muted-foreground">{fmtDate(t.date)}</p>}
                                   </div>
                                   <div className="flex gap-1.5 flex-shrink-0">
-                                    <Button size="sm" variant="secondary" onClick={() => { startEditTrip(t); setTab('trips') }}><PencilSimple className="h-3 w-3" /></Button>
+                                    <Button size="sm" variant="secondary" onClick={() => startEditTrip(t, true)}><PencilSimple className="h-3 w-3" /></Button>
                                     <Button size="sm" variant="destructive" onClick={() => handleDeleteTrip(t.id)}><Trash className="h-3 w-3" /></Button>
                                   </div>
                                 </div>
@@ -1241,6 +1269,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   </>
                 )
               })()}
+                </>
+              )}
             </TabsContent>
 
             {/* ── REGISTRATIONS ── */}

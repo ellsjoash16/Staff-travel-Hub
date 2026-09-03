@@ -647,7 +647,44 @@ export async function purgeExpiredRegistrations(trips: Trip[], graceDays = 10): 
 }
 
 export async function deleteUserProfile(uid: string): Promise<void> {
-  await adminWrite('userProfiles', uid, 'delete')
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) throw new Error('Not authenticated')
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  try {
+    const res = await fetch('/api/delete-user', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid }),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({})) as { error?: string }
+      throw new Error(body.error ?? `Delete failed: ${res.status}`)
+    }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export async function purgeOrphanLogins(): Promise<{ scanned: number; orphans: number; deleted: number }> {
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) throw new Error('Not authenticated')
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 60000)
+  try {
+    const res = await fetch('/api/purge-orphan-logins', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      signal: controller.signal,
+    })
+    const body = await res.json().catch(() => ({})) as { scanned?: number; orphans?: number; deleted?: number; error?: string }
+    if (!res.ok) throw new Error(body.error ?? `Purge failed: ${res.status}`)
+    return { scanned: body.scanned ?? 0, orphans: body.orphans ?? 0, deleted: body.deleted ?? 0 }
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 export async function fetchUserProfile(uid: string): Promise<UserProfile | null> {

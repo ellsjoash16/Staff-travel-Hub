@@ -68,7 +68,7 @@ const emptyLocationForm = (): LocationForm => ({ name: '', country: '', imageUrl
 interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
 export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
-  const { state, dispatch, togglePin, movePostsToFolder, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, toggleAdminUid, banUser, editUserProfile, createUser } = useApp()
+  const { state, dispatch, togglePin, movePostsToFolder, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins, loadUserProfiles, toggleAdminUid, banUser, editUserProfile, createUser } = useApp()
   const { posts, courses, trips, locations, settings, registrations, userProfiles } = state
 
   // Only count/show registrations for trips that are still upcoming — passed
@@ -129,6 +129,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
 
   const [usersLoaded, setUsersLoaded] = useState(false)
   const [usersLoading, setUsersLoading] = useState(false)
+  const [purgingLogins, setPurgingLogins] = useState(false)
   const [userSearch, setUserSearch] = useState('')
   const [newUserOpen, setNewUserOpen] = useState(false)
   const [newUser, setNewUser] = useState(emptyNewUser())
@@ -163,6 +164,17 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       console.error('[handleLoadUsers]', err)
       toast.error(`Failed to load users: ${(err as Error)?.message || String(err) || 'unknown error'}`)
     } finally { setUsersLoading(false) }
+  }
+
+  async function handlePurgeOrphanLogins() {
+    if (!confirm('Delete leftover logins from previously-deleted accounts?\n\nThis permanently removes email/password logins that no longer have a profile. Microsoft sign-in users and admins are never touched.')) return
+    setPurgingLogins(true)
+    try {
+      const { deleted } = await purgeOrphanLogins()
+      toast.success(deleted === 0 ? 'No orphan logins found' : `Deleted ${deleted} orphan login${deleted !== 1 ? 's' : ''}`)
+    } catch (err: unknown) {
+      toast.error((err as Error)?.message ?? 'Failed to clean up logins')
+    } finally { setPurgingLogins(false) }
   }
 
   async function handleCreateUser() {
@@ -1823,6 +1835,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   {usersLoading ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <ArrowsClockwise className="h-3.5 w-3.5" />}
                   Refresh
                 </Button>
+                <Button size="sm" variant="secondary" className="gap-1.5 flex-shrink-0 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handlePurgeOrphanLogins} disabled={purgingLogins}>
+                  {purgingLogins ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <Trash className="h-3.5 w-3.5" />}
+                  Clean up old logins
+                </Button>
               </div>
 
               {/* Create account form */}
@@ -2166,20 +2182,20 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                         size="sm" variant="destructive"
                                         disabled={deletingProfileUid === u.uid}
                                         onClick={async () => {
-                                          if (!confirm(`Delete account for ${u.firstName} ${u.lastName}? This removes their saved profile but not their login.`)) return
+                                          if (!confirm(`Delete account for ${u.firstName} ${u.lastName}? This permanently deletes both their saved profile and their login.`)) return
                                           setDeletingProfileUid(u.uid)
                                           try {
                                             await removeUserProfile(u.uid)
-                                            toast.success('Profile deleted')
-                                          } catch {
-                                            toast.error('Failed to delete profile')
+                                            toast.success('Account deleted')
+                                          } catch (err: unknown) {
+                                            toast.error((err as Error)?.message ?? 'Failed to delete account')
                                           } finally {
                                             setDeletingProfileUid(null)
                                           }
                                         }}
                                         className="gap-1.5 ml-auto"
                                       >
-                                        {deletingProfileUid === u.uid ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <Trash className="h-3.5 w-3.5" />} Delete Profile
+                                        {deletingProfileUid === u.uid ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <Trash className="h-3.5 w-3.5" />} Delete Account
                                       </Button>
                                     </>
                                   )

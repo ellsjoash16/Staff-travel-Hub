@@ -14,7 +14,7 @@ import {
   insertLocation, updateLocation, removeLocation,
   uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
-  fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, purgeExpiredRegistrations, deleteUserProfile,
+  fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, purgeExpiredRegistrations, deleteUserProfile, purgeOrphanLogins,
   fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile, adminCreateUser, clearMustChangePassword,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
@@ -197,6 +197,7 @@ interface AppContextValue {
   setRegistrationStatus: (id: string, status: RegistrationStatus) => Promise<void>
   removeRegistration: (id: string) => Promise<void>
   removeUserProfile: (uid: string) => Promise<void>
+  purgeOrphanLogins: () => Promise<{ scanned: number; orphans: number; deleted: number }>
   loadUserProfiles: () => Promise<void>
   loadPosts: () => Promise<void>
   loadMyRegistrations: () => Promise<void>
@@ -382,6 +383,10 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   async function removeUserProfile(uid: string): Promise<void> {
     await deleteUserProfile(uid)
     dispatch({ type: 'DELETE_USER_PROFILE', uid })
+  }
+
+  async function purgeOrphanLoginsFn(): Promise<{ scanned: number; orphans: number; deleted: number }> {
+    return purgeOrphanLogins()
   }
 
   async function toggleAdminUid(uid: string, isCurrentlyAdmin?: boolean): Promise<void> {
@@ -659,7 +664,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
       addLocation, editLocation, deleteLocation, searchPhotos,
       saveSettings, savePageImages,
       loadPosts,
-      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, loadUserProfiles, createUser, completePasswordChange, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins: purgeOrphanLoginsFn, loadUserProfiles, createUser, completePasswordChange, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
     }}>
       {children}
     </AppContext.Provider>

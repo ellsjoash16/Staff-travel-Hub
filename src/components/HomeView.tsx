@@ -62,8 +62,8 @@ function PreviewPanel({
     >
       <div className="flex items-center justify-between gap-2 px-4 pt-3 pb-2.5 flex-shrink-0 border-b border-border/60">
         <div className="min-w-0">
-          <p className="text-sm xl:text-base font-semibold text-foreground leading-tight">{title}</p>
-          <p className="text-[10px] xl:text-xs text-muted-foreground leading-tight mt-0.5">{subtitle}</p>
+          <p className="text-sm xl:text-base 2xl:text-lg font-semibold text-foreground leading-tight">{title}</p>
+          <p className="text-[10px] xl:text-xs 2xl:text-sm text-muted-foreground leading-tight mt-0.5">{subtitle}</p>
         </div>
         <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0" />
       </div>
@@ -104,18 +104,18 @@ function MiniRow({
   return (
     <div className="flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-muted/60 transition-colors">
       <div
-        className="h-9 w-9 rounded-md overflow-hidden bg-muted flex-shrink-0"
+        className="h-9 w-9 2xl:h-11 2xl:w-11 rounded-md overflow-hidden bg-muted flex-shrink-0"
         style={photo ? { backgroundImage: `url("${photo}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
       >
         {!photo && (
           <div className="h-full w-full flex items-center justify-center">
-            <Airplane className="h-4 w-4 text-muted-foreground/30" />
+            <Airplane className="h-4 w-4 2xl:h-5 2xl:w-5 text-muted-foreground/30" />
           </div>
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-foreground truncate">{title}</p>
-        {subtitle && <p className="text-[10px] text-muted-foreground truncate">{subtitle}</p>}
+        <p className="text-xs 2xl:text-sm font-medium text-foreground truncate">{title}</p>
+        {subtitle && <p className="text-[10px] 2xl:text-xs text-muted-foreground truncate">{subtitle}</p>}
       </div>
       {badge}
     </div>
@@ -239,12 +239,12 @@ function SharePanel({ onOpen }: { onOpen: () => void }) {
     >
       {/* Header */}
       <div className="flex items-center gap-2.5 px-4 pt-3 pb-2.5 flex-shrink-0 border-b border-border/60">
-        <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-          <Airplane className="h-4 w-4" />
+        <div className="h-8 w-8 2xl:h-10 2xl:w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+          <Airplane className="h-4 w-4 2xl:h-5 2xl:w-5" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm xl:text-base font-semibold text-foreground leading-tight">Share My Trip</p>
-          <p className="text-[10px] xl:text-xs text-muted-foreground leading-tight mt-0.5">5 steps · about 2 minutes</p>
+          <p className="text-sm xl:text-base 2xl:text-lg font-semibold text-foreground leading-tight">Share My Trip</p>
+          <p className="text-[10px] xl:text-xs 2xl:text-sm text-muted-foreground leading-tight mt-0.5">5 steps · about 2 minutes</p>
         </div>
       </div>
 
@@ -252,10 +252,10 @@ function SharePanel({ onOpen }: { onOpen: () => void }) {
       <div className="flex-1 min-h-0 overflow-y-auto p-2">
         {SHARE_STEPS.map((s, i) => (
           <div key={s.label} className="flex items-center gap-2.5 rounded-lg p-1.5">
-            <div className="h-6 w-6 rounded-full bg-muted text-foreground/70 flex items-center justify-center text-[11px] font-semibold flex-shrink-0">{i + 1}</div>
+            <div className="h-6 w-6 2xl:h-7 2xl:w-7 rounded-full bg-muted text-foreground/70 flex items-center justify-center text-[11px] 2xl:text-xs font-semibold flex-shrink-0">{i + 1}</div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-foreground truncate">{s.label}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{s.sub}</p>
+              <p className="text-xs 2xl:text-sm font-medium text-foreground truncate">{s.label}</p>
+              <p className="text-[10px] 2xl:text-xs text-muted-foreground truncate">{s.sub}</p>
             </div>
           </div>
         ))}
@@ -319,7 +319,7 @@ export function HomeView() {
   }
 
   return (
-    <div className="h-full min-h-0 mx-auto w-full max-w-[2200px] flex flex-col md:grid md:grid-cols-[repeat(3,minmax(0,1fr))_1.4fr] md:grid-rows-[1.15fr_1fr] gap-2 md:gap-3 2xl:gap-4">
+    <div className="h-full min-h-0 mx-auto w-full max-w-[2200px] flex flex-col md:grid md:grid-cols-[repeat(3,minmax(0,1fr))_1.15fr] xl:grid-cols-[repeat(3,minmax(0,1fr))_1.35fr] 2xl:grid-cols-[repeat(3,minmax(0,1fr))_1.5fr] md:grid-rows-[1.15fr_1fr] gap-2 md:gap-3 xl:gap-4 2xl:gap-5">
 
       {/* ── Latest staff adventures — compact feed in the top-left three columns ── */}
       <div
@@ -392,14 +392,14 @@ export function HomeView() {
           className="grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
         >
           {feedStats.map(s => (
-            <div key={s.label} className="relative rounded-xl border border-border bg-card px-3 py-5 flex flex-col items-center justify-center text-center min-w-0 min-h-[11rem]">
+            <div key={s.label} className="relative rounded-xl border border-border bg-card px-3 py-5 flex flex-col items-center justify-center text-center min-w-0 min-h-[clamp(9rem,15vh,13rem)]">
               <div className="w-full flex flex-col items-center justify-center gap-2">
                 {s.top}
                 {s.value !== undefined && (
-                  <p className={`w-full ${s.top ? 'text-2xl xl:text-3xl' : 'text-4xl xl:text-5xl'} font-bold text-foreground leading-tight tracking-tight truncate`}>{s.value}</p>
+                  <p className={`w-full ${s.top ? 'text-2xl xl:text-3xl 2xl:text-4xl' : 'text-4xl xl:text-5xl 2xl:text-6xl'} font-bold text-foreground leading-tight tracking-tight truncate`}>{s.value}</p>
                 )}
               </div>
-              <p className="absolute inset-x-0 bottom-4 px-3 text-[10px] uppercase tracking-wide text-muted-foreground truncate">{s.label}</p>
+              <p className="absolute inset-x-0 bottom-4 px-3 text-[10px] 2xl:text-xs uppercase tracking-wide text-muted-foreground truncate">{s.label}</p>
             </div>
           ))}
         </div>

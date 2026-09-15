@@ -319,7 +319,7 @@ export function HomeView() {
   }
 
   return (
-    <div className="h-full min-h-0 mx-auto w-full max-w-[2200px] flex flex-col md:grid md:grid-cols-[repeat(3,minmax(0,1fr))_1.15fr] xl:grid-cols-[repeat(3,minmax(0,1fr))_1.35fr] 2xl:grid-cols-[repeat(3,minmax(0,1fr))_1.5fr] md:grid-rows-[1.15fr_1fr] gap-2 md:gap-3 xl:gap-4 2xl:gap-5">
+    <div className="h-full min-h-0 mx-auto w-full max-w-[2200px] flex flex-col md:grid md:grid-cols-[repeat(3,minmax(0,1fr))_1.15fr] xl:grid-cols-[repeat(3,minmax(0,1fr))_1.35fr] 2xl:grid-cols-[repeat(3,minmax(0,1fr))_1.5fr] md:grid-rows-[minmax(0,1.15fr)_minmax(0,1fr)] gap-2 md:gap-3 xl:gap-4 2xl:gap-5">
 
       {/* ── Latest staff adventures — compact feed in the top-left three columns ── */}
       <div
@@ -357,9 +357,9 @@ export function HomeView() {
         </div>
 
         {/* Feed-style post cards */}
-        <div className="flex-1 min-h-0 overflow-y-auto flex items-center">
+        <div className="flex-1 min-h-0 overflow-hidden">
           {feedPosts.length === 0 ? (
-            <div className="w-full flex flex-col items-center justify-center text-center gap-2 py-6">
+            <div className="h-full w-full flex flex-col items-center justify-center text-center gap-2 py-6">
               <p className="text-sm font-medium text-foreground">No trips shared yet</p>
               <button
                 onClick={() => navigate('submit')}
@@ -369,7 +369,7 @@ export function HomeView() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3 w-full">
+            <div className="grid grid-cols-3 md:grid-rows-1 gap-3 w-full md:h-full">
               {feedPosts.slice(0, 3).map((post, i) => (
                 <PostCard
                   key={post.id}

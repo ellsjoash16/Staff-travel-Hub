@@ -35,16 +35,16 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames, compact = 
     >
     <article className="bg-card rounded-2xl overflow-hidden border border-border/40 w-full h-full flex flex-col">
       {/* Image with overlaid author */}
-      <div className="relative overflow-hidden rounded-t-2xl flex-shrink-0">
+      <div className={`relative overflow-hidden rounded-t-2xl flex-shrink-0 ${compact ? 'md:flex-1 md:min-h-0' : ''}`}>
         {post.images.length > 0 ? (
           <img
             src={post.images[0]}
             alt={post.title}
-            className={`w-full ${compact ? 'aspect-[16/10]' : 'aspect-[4/3]'} object-cover rounded-t-2xl group-hover:scale-[1.03] transition-transform duration-500`}
+            className={`w-full ${compact ? 'aspect-[16/10] md:aspect-auto md:h-full' : 'aspect-[4/3]'} object-cover rounded-t-2xl group-hover:scale-[1.03] transition-transform duration-500`}
             loading="lazy"
           />
         ) : (
-          <div className={`w-full ${compact ? 'aspect-[16/10]' : 'aspect-[4/3]'} rounded-t-2xl bg-gradient-to-br from-primary/25 via-primary/10 to-transparent flex items-center justify-center`}>
+          <div className={`w-full ${compact ? 'aspect-[16/10] md:aspect-auto md:h-full' : 'aspect-[4/3]'} rounded-t-2xl bg-gradient-to-br from-primary/25 via-primary/10 to-transparent flex items-center justify-center`}>
             <Globe className="h-12 w-12 text-primary/30" />
           </div>
         )}
@@ -95,7 +95,7 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames, compact = 
       </div>
 
       {/* Body with destination watermark */}
-      <div className="relative flex-1 px-4 xl:px-5 pt-3 xl:pt-4 pb-2 xl:pb-3 overflow-hidden">
+      <div className={`relative flex-1 px-4 xl:px-5 pt-3 xl:pt-4 pb-2 xl:pb-3 overflow-hidden ${compact ? 'md:flex-none' : ''}`}>
         {watermark && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
             <span className={`${compact ? 'text-[2.5rem]' : 'text-[3.5rem] xl:text-[4.5rem]'} font-black text-foreground/[0.04] whitespace-nowrap -rotate-12 leading-none tracking-widest uppercase`}>

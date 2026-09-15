@@ -259,7 +259,7 @@ export function LoginScreen() {
                   <Label>Job Role <span className="text-destructive">*</span></Label>
                   <AppSelect
                     value={jobRole}
-                    onChange={setJobRole}
+                    onChange={v => { setJobRole(v); if (v === 'Admin') setSalesDivision('') }}
                     placeholder="— Select your role —"
                     options={[{ value: '', label: '— Select your role —' }, ...JOB_ROLES.map(r => ({ value: r, label: r }))]}
                   />
@@ -273,7 +273,7 @@ export function LoginScreen() {
                     options={[{ value: '', label: '— Select your building —' }, ...BUILDINGS.map(b => ({ value: b, label: b }))]}
                   />
                 </div>
-                {building && (
+                {building && jobRole !== 'Admin' && (
                   <div className="space-y-1.5">
                     <Label>Sales Division <span className="text-muted-foreground font-normal">(optional)</span></Label>
                     <AppSelect

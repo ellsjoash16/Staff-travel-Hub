@@ -3,8 +3,18 @@ import { MapPin, Calendar, Airplane, Star, Buildings, Users, Medal, Clock } from
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
+import { destinationImage, isUsableImage } from '@/lib/destinationImages'
 import { RegisterInterestDialog } from './RegisterInterestDialog'
 import type { Trip, Location } from '@/lib/types'
+
+// The image to show for an upcoming trip: its own uploaded photo when it has a
+// usable one, otherwise fall back to its location's image (the location's own
+// photo, then the auto-matched destination photo).
+function resolveTripImage(trip: Trip, location: Location | null): string | null {
+  if (isUsableImage(trip.image)) return trip.image as string
+  if (!location) return null
+  return location.imageUrl || destinationImage(location.name, location.country)
+}
 
 function openLotusPassport(trip: Trip) {
   window.open(`http://lotusprofiles/PassportDetails?tripId=${encodeURIComponent(trip.id)}&tripName=${encodeURIComponent(trip.name)}`, '_blank')
@@ -60,6 +70,7 @@ function CountdownTimer({ dateStr }: { dateStr: string }) {
 
 function FeaturedTripCard({ trip, locations }: { trip: Trip; locations: Location[] }) {
   const location = locations[0] ?? null
+  const img = resolveTripImage(trip, location)
   const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
@@ -72,8 +83,8 @@ function FeaturedTripCard({ trip, locations }: { trip: Trip; locations: Location
 
         {/* Image */}
         <div className="relative md:w-2/5 flex-shrink-0 h-28 sm:h-48 md:h-auto">
-          {trip.image ? (
-            <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
+          {img ? (
+            <img src={img} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
               <Airplane className="h-12 w-12 sm:h-16 sm:w-16 text-primary/30" />
@@ -128,6 +139,7 @@ function FeaturedTripCard({ trip, locations }: { trip: Trip; locations: Location
 
 function TripCard({ trip, locations, showRegisterInterest }: { trip: Trip; locations: Location[]; showRegisterInterest: boolean }) {
   const location = locations[0] ?? null
+  const img = resolveTripImage(trip, location)
   const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
@@ -139,8 +151,8 @@ function TripCard({ trip, locations, showRegisterInterest }: { trip: Trip; locat
 
       {/* Image */}
       <div className="relative w-full h-32 sm:h-40 lg:h-44 2xl:h-52 flex-shrink-0">
-        {trip.image ? (
-          <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
+        {img ? (
+          <img src={img} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
             <Airplane className="h-8 w-8 sm:h-10 sm:w-10 text-primary/25" />
@@ -184,6 +196,7 @@ function TripCard({ trip, locations, showRegisterInterest }: { trip: Trip; locat
 // ── Event card ────────────────────────────────────────────────────────────────
 
 function EventCard({ trip, location }: { trip: Trip; location: Location | null }) {
+  const img = resolveTripImage(trip, location)
   const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
@@ -201,8 +214,8 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
       {/* Mobile: horizontal list row */}
       <div className="sm:hidden flex rounded-2xl overflow-hidden bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm min-h-[112px]">
         <div className="relative w-28 flex-shrink-0 self-stretch">
-          {trip.image ? (
-            <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
+          {img ? (
+            <img src={img} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/15 to-violet-600/5 flex items-center justify-center">
               <Star className="h-7 w-7 text-violet-500/25" />
@@ -243,8 +256,8 @@ function EventCard({ trip, location }: { trip: Trip; location: Location | null }
       {/* Tablet+: vertical card */}
       <div className="hidden sm:flex flex-col rounded-2xl overflow-hidden bg-background/80 backdrop-blur-xl border border-white/10 shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
         <div className="relative w-full h-40 lg:h-44 2xl:h-52 flex-shrink-0">
-          {trip.image ? (
-            <img src={trip.image} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
+          {img ? (
+            <img src={img} alt={trip.name} className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/15 to-violet-600/5 flex items-center justify-center">
               <Star className="h-10 w-10 text-violet-500/25" />

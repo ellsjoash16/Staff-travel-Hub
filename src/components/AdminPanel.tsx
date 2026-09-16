@@ -104,6 +104,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const rolesRef = useRef<HTMLDivElement>(null)
   const [tripLocOpen, setTripLocOpen] = useState(false)
   const tripLocRef = useRef<HTMLDivElement>(null)
+  const [newLocOpen, setNewLocOpen] = useState(false)
+  const [newLocName, setNewLocName] = useState('')
+  const [newLocCountry, setNewLocCountry] = useState('')
+  const [newLocSaving, setNewLocSaving] = useState(false)
   const [postLocOpen, setPostLocOpen] = useState(false)
   const postLocRef = useRef<HTMLDivElement>(null)
 
@@ -436,6 +440,25 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     } finally { setLocationSaving(false) }
   }
 
+  // Create a location inline from the trip form and auto-select it, so admins
+  // don't have to leave the trip to add a missing place in the Locations tab.
+  async function submitNewTripLocation() {
+    if (!newLocName.trim() || !newLocCountry) {
+      toast.error('Name and country are required'); return
+    }
+    const id = crypto.randomUUID()
+    const location: Location = { id, name: newLocName.trim(), country: newLocCountry, imageUrl: null }
+    setNewLocSaving(true)
+    try {
+      await addLocation(location)
+      setTrip('locationIds', [...tripForm.locationIds, id])
+      setNewLocName(''); setNewLocCountry(''); setNewLocOpen(false)
+      toast.success('Location added!')
+    } catch (err) {
+      console.error(err); toast.error((err as Error)?.message || 'Failed to add location')
+    } finally { setNewLocSaving(false) }
+  }
+
   async function findLocationPhoto() {
     const q = [locationForm.name, locationForm.country].filter(Boolean).join(' ').trim()
     if (!q) { toast.error('Enter a location name or country first'); return }
@@ -633,7 +656,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
             <CaretDown className="h-4 w-4 opacity-50 flex-shrink-0" />
           </button>
           {tripLocOpen && (
-            <div className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-background shadow-md">
+            <div className="absolute z-50 w-full mt-1 max-h-72 overflow-y-auto rounded-md border border-border bg-background shadow-md">
               {[...locations].sort((a, b) => a.name.localeCompare(b.name)).map(loc => (
                 <label key={loc.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted cursor-pointer text-sm select-none">
                   <input
@@ -650,7 +673,43 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                   {loc.name} <span className="text-muted-foreground">({loc.country})</span>
                 </label>
               ))}
-              {locations.length === 0 && <p className="px-3 py-2 text-sm text-muted-foreground">No locations yet — add them in the Locations tab.</p>}
+              {locations.length === 0 && <p className="px-3 py-2 text-sm text-muted-foreground">No locations yet — add one below.</p>}
+
+              {/* Inline "add a location" so admins never have to leave the trip form */}
+              <div className="border-t border-border sticky bottom-0 bg-background">
+                {!newLocOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => setNewLocOpen(true)}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-primary hover:bg-muted transition-colors"
+                  >
+                    <Plus className="h-4 w-4" /> Add a new location
+                  </button>
+                ) : (
+                  <div className="p-3 space-y-2 bg-muted/40">
+                    <Input
+                      placeholder="Location name (e.g. Cayenne)"
+                      value={newLocName}
+                      onChange={(e) => setNewLocName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewTripLocation() } }}
+                    />
+                    <AppSelect
+                      value={newLocCountry}
+                      onChange={setNewLocCountry}
+                      placeholder="— select country —"
+                      searchable
+                      options={[{ value: '', label: '— select country —' }, ...COUNTRIES.map(c => ({ value: c, label: c }))]}
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button type="button" size="sm" variant="secondary" onClick={() => { setNewLocOpen(false); setNewLocName(''); setNewLocCountry('') }} disabled={newLocSaving}>Cancel</Button>
+                      <Button type="button" size="sm" onClick={submitNewTripLocation} disabled={newLocSaving}>
+                        {newLocSaving ? <><CircleNotch className="h-3.5 w-3.5 mr-1.5 animate-spin" />Adding…</> : 'Add & select'}
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">You can add a photo later in the Locations tab.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -9,6 +9,23 @@ import type { Post, Course, Location, Trip } from '@/lib/types'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string
 
+// Our country dropdown names don't all match the ADMIN value in the map's
+// GeoJSON (public/countries.json), so these locations would never highlight or
+// open a card. Map our name → the GeoJSON's ADMIN value, and back again.
+const ADMIN_ALIASES: Record<string, string> = {
+  'Bahamas': 'The Bahamas',
+  'Congo': 'Republic of the Congo',
+  'Eswatini': 'eSwatini',
+  'Serbia': 'Republic of Serbia',
+  'Tanzania': 'United Republic of Tanzania',
+  'Timor-Leste': 'East Timor',
+}
+const ADMIN_TO_COUNTRY: Record<string, string> = Object.fromEntries(
+  Object.entries(ADMIN_ALIASES).map(([country, admin]) => [admin, country])
+)
+const toAdmin = (country: string) => ADMIN_ALIASES[country] ?? country
+const fromAdmin = (admin: string) => ADMIN_TO_COUNTRY[admin] ?? admin
+
 type ModalState =
   | null
   | { view: 'country'; country: string; locations: Location[] }
@@ -34,8 +51,10 @@ export function MapViewGlobe({ onSelectPost, compact = false }: { onSelectPost: 
     return () => ro.disconnect()
   }, [])
 
+  // ADMIN values (for the GeoJSON filter / hover match) of the countries we have
+  // locations in.
   const activeCountries = useMemo(() => {
-    return locations.map(l => l.country)
+    return locations.map(l => toAdmin(l.country))
   }, [locations])
 
   function openLocation(location: Location, backCountry: string) {
@@ -59,8 +78,9 @@ export function MapViewGlobe({ onSelectPost, compact = false }: { onSelectPost: 
   const handleClick = useCallback((e: MapMouseEvent) => {
     const feature = e.features?.[0]
     if (!feature) return
-    const country = feature.properties?.ADMIN as string
-    if (!country) return
+    const admin = feature.properties?.ADMIN as string
+    if (!admin) return
+    const country = fromAdmin(admin)
     const countryLocations = locations.filter(l => l.country === country)
     if (countryLocations.length === 0) return
     if (countryLocations.length === 1) {
@@ -146,7 +166,7 @@ export function MapViewGlobe({ onSelectPost, compact = false }: { onSelectPost: 
       {hoveredCountry && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 pointer-events-none z-10">
           <div className="bg-black/70 text-white text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm">
-            {hoveredCountry} — click to explore
+            {fromAdmin(hoveredCountry)} — click to explore
           </div>
         </div>
       )}

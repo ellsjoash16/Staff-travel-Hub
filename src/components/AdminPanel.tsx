@@ -107,6 +107,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [newLocOpen, setNewLocOpen] = useState(false)
   const [newLocName, setNewLocName] = useState('')
   const [newLocCountry, setNewLocCountry] = useState('')
+  const [newLocImageUrl, setNewLocImageUrl] = useState('')
+  const [newLocPhotos, setNewLocPhotos] = useState<{ url: string; thumb: string; credit: string | null }[]>([])
+  const [newLocPhotoIdx, setNewLocPhotoIdx] = useState(0)
+  const [newLocPhotoSearching, setNewLocPhotoSearching] = useState(false)
   const [newLocSaving, setNewLocSaving] = useState(false)
   const [postLocOpen, setPostLocOpen] = useState(false)
   const postLocRef = useRef<HTMLDivElement>(null)
@@ -440,6 +444,39 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     } finally { setLocationSaving(false) }
   }
 
+  function resetNewLoc() {
+    setNewLocName(''); setNewLocCountry(''); setNewLocImageUrl('')
+    setNewLocPhotos([]); setNewLocPhotoIdx(0); setNewLocOpen(false)
+  }
+
+  // Auto-find a photo for the inline location so the trip gets an image without
+  // the admin hunting for one. Silent (no toast) — it's a best-effort helper.
+  // Search the city name only so we don't get the country's famous city by
+  // mistake; only fall back to the country (a generic country shot) if the city
+  // returns nothing.
+  async function findNewLocPhoto(silent = false) {
+    const city = newLocName.trim()
+    if (!city && !newLocCountry) { if (!silent) toast.error('Enter a name or country first'); return }
+    setNewLocPhotoSearching(true)
+    try {
+      let results = city ? await searchPhotos(city) : []
+      if (results.length === 0 && newLocCountry) results = await searchPhotos(newLocCountry)
+      if (results.length === 0) { if (!silent) toast.error('No photos found — paste a URL instead'); return }
+      setNewLocPhotos(results)
+      setNewLocPhotoIdx(0)
+      setNewLocImageUrl(results[0].url)
+    } catch (err) {
+      if (!silent) toast.error((err as Error)?.message || 'Photo search failed')
+    } finally { setNewLocPhotoSearching(false) }
+  }
+
+  function cycleNewLocPhoto() {
+    if (newLocPhotos.length === 0) return
+    const next = (newLocPhotoIdx + 1) % newLocPhotos.length
+    setNewLocPhotoIdx(next)
+    setNewLocImageUrl(newLocPhotos[next].url)
+  }
+
   // Create a location inline from the trip form and auto-select it, so admins
   // don't have to leave the trip to add a missing place in the Locations tab.
   async function submitNewTripLocation() {
@@ -447,12 +484,12 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
       toast.error('Name and country are required'); return
     }
     const id = crypto.randomUUID()
-    const location: Location = { id, name: newLocName.trim(), country: newLocCountry, imageUrl: null }
+    const location: Location = { id, name: newLocName.trim(), country: newLocCountry, imageUrl: newLocImageUrl.trim() || null }
     setNewLocSaving(true)
     try {
       await addLocation(location)
       setTrip('locationIds', [...tripForm.locationIds, id])
-      setNewLocName(''); setNewLocCountry(''); setNewLocOpen(false)
+      resetNewLoc()
       toast.success('Location added!')
     } catch (err) {
       console.error(err); toast.error((err as Error)?.message || 'Failed to add location')
@@ -642,7 +679,8 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
         </div>
 
         <div className="space-y-1.5 relative" ref={tripLocRef}>
-          <Label>Locations <span className="text-muted-foreground font-normal">(optional — pick one or more)</span></Label>
+          <Label>Location <span className="text-muted-foreground font-normal">(optional — pick one or more)</span></Label>
+          <p className="text-[11px] text-muted-foreground -mt-0.5">Picking a location gives the trip its photo and puts it on the world map. Can't find the place? Add it in seconds below.</p>
           <button
             type="button"
             onClick={() => setTripLocOpen(o => !o)}
@@ -686,27 +724,66 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                     <Plus className="h-4 w-4" /> Add a new location
                   </button>
                 ) : (
-                  <div className="p-3 space-y-2 bg-muted/40">
+                  <div className="p-3 space-y-2.5 bg-muted/40">
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-foreground">New location</p>
+                      <p className="text-[11px] text-muted-foreground">Step 1 — name it &nbsp;·&nbsp; Step 2 — pick the country &nbsp;·&nbsp; Step 3 — we grab a photo for the trip.</p>
+                    </div>
                     <Input
-                      placeholder="Location name (e.g. Cayenne)"
+                      placeholder="1. Location name (e.g. Cayenne)"
                       value={newLocName}
                       onChange={(e) => setNewLocName(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewTripLocation() } }}
                     />
                     <AppSelect
                       value={newLocCountry}
-                      onChange={setNewLocCountry}
-                      placeholder="— select country —"
+                      onChange={(val) => { setNewLocCountry(val); if (val && newLocName.trim() && !newLocImageUrl) findNewLocPhoto(true) }}
+                      placeholder="2. — select country —"
                       searchable
-                      options={[{ value: '', label: '— select country —' }, ...COUNTRIES.map(c => ({ value: c, label: c }))]}
+                      options={[{ value: '', label: '2. — select country —' }, ...COUNTRIES.map(c => ({ value: c, label: c }))]}
                     />
-                    <div className="flex justify-end gap-2">
-                      <Button type="button" size="sm" variant="secondary" onClick={() => { setNewLocOpen(false); setNewLocName(''); setNewLocCountry('') }} disabled={newLocSaving}>Cancel</Button>
+
+                    {/* Photo — auto-found, so the trip always gets an image */}
+                    <div className="flex items-start gap-2.5">
+                      <div
+                        className="flex-shrink-0 w-20 h-14 rounded-md border border-border overflow-hidden bg-muted flex items-center justify-center"
+                        style={newLocImageUrl ? { backgroundImage: `url("${newLocImageUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+                      >
+                        {!newLocImageUrl && (newLocPhotoSearching ? <CircleNotch className="h-4 w-4 animate-spin text-muted-foreground" /> : <Globe className="h-4 w-4 text-muted-foreground/40" />)}
+                      </div>
+                      <div className="flex-1 space-y-1.5">
+                        <div className="flex gap-1.5">
+                          <Button type="button" size="sm" variant="secondary" className="h-7 gap-1 text-xs" onClick={() => findNewLocPhoto(false)} disabled={newLocPhotoSearching}>
+                            {newLocPhotoSearching ? <CircleNotch className="h-3 w-3 animate-spin" /> : <MagnifyingGlass className="h-3 w-3" />}
+                            {newLocImageUrl ? 'Find photo' : '3. Find photo'}
+                          </Button>
+                          {newLocPhotos.length > 1 && (
+                            <Button type="button" size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={cycleNewLocPhoto}>
+                              <ArrowsClockwise className="h-3 w-3" /> Try another
+                              <span className="text-muted-foreground">({newLocPhotoIdx + 1}/{newLocPhotos.length})</span>
+                            </Button>
+                          )}
+                        </div>
+                        <Input
+                          className="h-7 text-xs"
+                          placeholder="…or paste an image URL"
+                          value={newLocImageUrl}
+                          onChange={(e) => { setNewLocImageUrl(e.target.value); setNewLocPhotos([]) }}
+                        />
+                      </div>
+                    </div>
+                    {newLocImageUrl && newLocPhotos.length > 0 && (
+                      <p className="text-[11px] text-amber-600 dark:text-amber-500">
+                        Auto-picked — check it's actually {newLocName.trim() || 'the right place'}. Use <span className="font-medium">Try another</span> or paste your own if it's off.
+                      </p>
+                    )}
+
+                    <div className="flex justify-end gap-2 pt-0.5">
+                      <Button type="button" size="sm" variant="secondary" onClick={resetNewLoc} disabled={newLocSaving}>Cancel</Button>
                       <Button type="button" size="sm" onClick={submitNewTripLocation} disabled={newLocSaving}>
                         {newLocSaving ? <><CircleNotch className="h-3.5 w-3.5 mr-1.5 animate-spin" />Adding…</> : 'Add & select'}
                       </Button>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">You can add a photo later in the Locations tab.</p>
                   </div>
                 )}
               </div>

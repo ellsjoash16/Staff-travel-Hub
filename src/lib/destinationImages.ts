@@ -112,7 +112,7 @@ export function destinationImage(name?: string | null, country?: string | null, 
   return Array.isArray(val) ? val[variant % val.length] : val
 }
 
-type TripLike = { image?: string | null; locationId?: string | null }
+type TripLike = { image?: string | null; locationId?: string | null; locationIds?: string[] | null }
 type LocationLike = { id: string; name: string; country: string; imageUrl?: string | null }
 
 // Dead legacy uploads live in the (now billing-disabled) Firebase bucket and
@@ -127,4 +127,15 @@ export function tripImage(trip: TripLike, locations: LocationLike[], variant = 0
   const loc = trip.locationId ? locations.find(l => l.id === trip.locationId) : null
   const locPhoto = loc ? (loc.imageUrl || destinationImage(loc.name, loc.country, variant)) : null
   return locPhoto || (isUsableImage(trip.image) ? (trip.image as string) : null)
+}
+
+// The image for an upcoming trip: its own uploaded photo when it has a usable
+// one, otherwise fall back to its location's image (the location's own photo,
+// then the auto-matched destination photo). Shared by the Upcoming Trips view
+// and the home dashboard panel so they stay in sync.
+export function upcomingTripImage(trip: TripLike, locations: LocationLike[], variant = 0): string | null {
+  if (isUsableImage(trip.image)) return trip.image as string
+  const id = trip.locationId ?? (trip.locationIds?.length ? trip.locationIds[0] : null)
+  const loc = id ? locations.find(l => l.id === id) : null
+  return loc ? (loc.imageUrl || destinationImage(loc.name, loc.country, variant)) : null
 }

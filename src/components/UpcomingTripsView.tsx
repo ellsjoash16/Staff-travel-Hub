@@ -3,18 +3,9 @@ import { MapPin, Calendar, Airplane, Star, Buildings, Users, Medal, Clock } from
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { fmtDate } from '@/lib/utils'
-import { destinationImage, isUsableImage } from '@/lib/destinationImages'
+import { upcomingTripImage } from '@/lib/destinationImages'
 import { RegisterInterestDialog } from './RegisterInterestDialog'
 import type { Trip, Location } from '@/lib/types'
-
-// The image to show for an upcoming trip: its own uploaded photo when it has a
-// usable one, otherwise fall back to its location's image (the location's own
-// photo, then the auto-matched destination photo).
-function resolveTripImage(trip: Trip, location: Location | null): string | null {
-  if (isUsableImage(trip.image)) return trip.image as string
-  if (!location) return null
-  return location.imageUrl || destinationImage(location.name, location.country)
-}
 
 function openLotusPassport(trip: Trip) {
   window.open(`http://lotusprofiles/PassportDetails?tripId=${encodeURIComponent(trip.id)}&tripName=${encodeURIComponent(trip.name)}`, '_blank')
@@ -70,7 +61,7 @@ function CountdownTimer({ dateStr }: { dateStr: string }) {
 
 function FeaturedTripCard({ trip, locations }: { trip: Trip; locations: Location[] }) {
   const location = locations[0] ?? null
-  const img = resolveTripImage(trip, location)
+  const img = upcomingTripImage(trip, locations)
   const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
@@ -139,7 +130,7 @@ function FeaturedTripCard({ trip, locations }: { trip: Trip; locations: Location
 
 function TripCard({ trip, locations, showRegisterInterest }: { trip: Trip; locations: Location[]; showRegisterInterest: boolean }) {
   const location = locations[0] ?? null
-  const img = resolveTripImage(trip, location)
+  const img = upcomingTripImage(trip, locations)
   const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)
@@ -196,7 +187,7 @@ function TripCard({ trip, locations, showRegisterInterest }: { trip: Trip; locat
 // ── Event card ────────────────────────────────────────────────────────────────
 
 function EventCard({ trip, location }: { trip: Trip; location: Location | null }) {
-  const img = resolveTripImage(trip, location)
+  const img = upcomingTripImage(trip, location ? [location] : [])
   const [dialogOpen, setDialogOpen] = useState(false)
   const todayStr = new Date().toISOString().slice(0, 10)
   const registrationOpen = trip.showRegisterInterest && (!trip.registrationDeadline || trip.registrationDeadline >= todayStr)

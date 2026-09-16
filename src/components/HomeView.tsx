@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { ArrowRight, X, Megaphone, Airplane, ArrowsOut } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
-import { tripImage } from '@/lib/destinationImages'
+import { tripImage, upcomingTripImage } from '@/lib/destinationImages'
 import { countryFlagUrl } from '@/lib/flags'
 import { fmtDate, tripHasPassed } from '@/lib/utils'
 import type { View } from '@/lib/types'
@@ -161,7 +161,7 @@ function UpcomingTripsPanel({ onOpen }: { onOpen: () => void }) {
   const [tab, setTab] = useState<'trips' | 'events'>('trips')
 
   const todayStr = new Date().toISOString().slice(0, 10)
-  const upcoming = trips.filter(t => t.date >= todayStr && !t.completed && !t.isEvent).sort((a, b) => a.date.localeCompare(b.date))
+  const upcoming = trips.filter(t => t.date >= todayStr && !t.completed && !t.isEvent && !t.external).sort((a, b) => a.date.localeCompare(b.date))
   const events = trips.filter(t => t.isEvent && !t.completed && (t.endDate ?? t.date) >= todayStr).sort((a, b) => a.date.localeCompare(b.date))
   const list = tab === 'trips' ? upcoming : events
 
@@ -179,7 +179,7 @@ function UpcomingTripsPanel({ onOpen }: { onOpen: () => void }) {
         const names = ids.map(id => locations.find(l => l.id === id)?.name).filter(Boolean) as string[]
         const place = names.length ? names.join(' · ') : (trip.eventVenue || null)
         const subtitle = [place, fmtDate(trip.date)].filter(Boolean).join(' · ')
-        return <MiniRow key={trip.id} photo={trip.image ?? null} title={trip.name} subtitle={subtitle || undefined} />
+        return <MiniRow key={trip.id} photo={upcomingTripImage(trip, locations)} title={trip.name} subtitle={subtitle || undefined} />
       })}
     </PreviewPanel>
   )

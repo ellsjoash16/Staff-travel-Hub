@@ -319,7 +319,7 @@ export function UpcomingTripsView() {
   const todayStr = new Date().toISOString().slice(0, 10)
 
   const upcoming = trips
-    .filter(t => t.date >= todayStr && !t.completed && !t.isEvent)
+    .filter(t => t.date >= todayStr && !t.completed && !t.isEvent && !t.external)
     .sort((a, b) => a.date.localeCompare(b.date))
 
   const events = trips

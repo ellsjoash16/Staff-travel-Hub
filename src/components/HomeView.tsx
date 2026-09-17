@@ -161,7 +161,7 @@ function UpcomingTripsPanel({ onOpen }: { onOpen: () => void }) {
   const [tab, setTab] = useState<'trips' | 'events'>('trips')
 
   const todayStr = new Date().toISOString().slice(0, 10)
-  const upcoming = trips.filter(t => t.date >= todayStr && !t.completed && !t.isEvent && !t.external).sort((a, b) => a.date.localeCompare(b.date))
+  const upcoming = trips.filter(t => t.date >= todayStr && !t.completed && !t.isEvent).sort((a, b) => a.date.localeCompare(b.date))
   const events = trips.filter(t => t.isEvent && !t.completed && (t.endDate ?? t.date) >= todayStr).sort((a, b) => a.date.localeCompare(b.date))
   const list = tab === 'trips' ? upcoming : events
 

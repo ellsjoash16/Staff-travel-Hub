@@ -415,7 +415,7 @@ export function HomeView() {
               <div className="relative z-10 w-full flex flex-col items-center justify-center gap-2">
                 {s.top}
                 {s.value !== undefined && (
-                  <p className={`w-full ${s.top ? 'text-2xl xl:text-3xl 2xl:text-4xl' : 'text-4xl xl:text-5xl 2xl:text-6xl'} font-bold text-foreground leading-tight tracking-tight truncate`}>{s.value}</p>
+                  <p className={`w-full ${s.top || s.bg ? 'text-2xl xl:text-3xl 2xl:text-4xl' : 'text-4xl xl:text-5xl 2xl:text-6xl'} font-bold text-foreground leading-tight tracking-tight truncate`}>{s.value}</p>
                 )}
               </div>
               <p className="absolute inset-x-0 bottom-4 px-3 text-[10px] 2xl:text-xs uppercase tracking-wide text-muted-foreground truncate z-10">{s.label}</p>

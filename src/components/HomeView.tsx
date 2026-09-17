@@ -3,7 +3,7 @@ import { ArrowRight, X, Megaphone, Airplane, ArrowsOut } from '@phosphor-icons/r
 import { useApp } from '@/context/AppContext'
 import { PostCard } from './PostCard'
 import { tripImage, upcomingTripImage } from '@/lib/destinationImages'
-import { countryFlagUrl } from '@/lib/flags'
+import { countryFlagLargeUrl } from '@/lib/flags'
 import { fmtDate, tripHasPassed } from '@/lib/utils'
 import type { View } from '@/lib/types'
 
@@ -291,13 +291,13 @@ export function HomeView() {
   const topDestId = [...destCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]
   const topLoc = topDestId ? locations.find(l => l.id === topDestId) : null
   const topDest = topLoc?.name ?? '—'
-  const topFlagUrl = topLoc ? countryFlagUrl(topLoc.country) : null
+  const topFlagUrl = topLoc ? countryFlagLargeUrl(topLoc.country) : null
 
   const countriesVisited = new Set(locations.map(l => l.country)).size
   const worldPct = Math.round((countriesVisited / 195) * 100) // 195 countries in the world
 
-  const feedStats: { top?: React.ReactNode; value?: string | number; label: string }[] = [
-    { top: topFlagUrl ? <img src={topFlagUrl} alt="" className="h-16 w-16 rounded-lg shadow-sm" /> : null, value: topDest, label: 'Most visited' },
+  const feedStats: { top?: React.ReactNode; bg?: string | null; value?: string | number; label: string }[] = [
+    { bg: topFlagUrl, value: topDest, label: 'Most visited' },
     { value: tripsThisYear, label: `Trips in ${year}` },
     { value: locations.length, label: 'Destinations' },
     { top: <Suspense fallback={<div className="h-12 w-12" />}><StatRing pct={worldPct} /></Suspense>, label: 'Of the world' },
@@ -391,15 +391,34 @@ export function HomeView() {
           onClick={e => e.stopPropagation()}
           className="grid grid-cols-4 gap-2 flex-shrink-0 cursor-default"
         >
+          {/* Ripple filter for the waving flag background */}
+          <svg width="0" height="0" className="absolute" aria-hidden="true">
+            <defs>
+              <filter id="flagRipple">
+                <feTurbulence type="fractalNoise" baseFrequency="0.008 0.02" numOctaves="2" seed="4" result="noise">
+                  <animate attributeName="baseFrequency" dur="16s" values="0.008 0.02;0.013 0.03;0.008 0.02" repeatCount="indefinite" />
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="16" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+            </defs>
+          </svg>
           {feedStats.map(s => (
-            <div key={s.label} className="relative rounded-xl border border-border bg-card px-3 py-5 flex flex-col items-center justify-center text-center min-w-0 min-h-[clamp(9rem,15vh,13rem)]">
-              <div className="w-full flex flex-col items-center justify-center gap-2">
+            <div key={s.label} className="relative overflow-hidden rounded-xl border border-border bg-card px-3 py-5 flex flex-col items-center justify-center text-center min-w-0 min-h-[clamp(9rem,15vh,13rem)]">
+              {s.bg && (
+                <img
+                  src={s.bg}
+                  alt=""
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-25 dark:opacity-30 [filter:url(#flagRipple)]"
+                />
+              )}
+              <div className="relative z-10 w-full flex flex-col items-center justify-center gap-2">
                 {s.top}
                 {s.value !== undefined && (
                   <p className={`w-full ${s.top ? 'text-2xl xl:text-3xl 2xl:text-4xl' : 'text-4xl xl:text-5xl 2xl:text-6xl'} font-bold text-foreground leading-tight tracking-tight truncate`}>{s.value}</p>
                 )}
               </div>
-              <p className="absolute inset-x-0 bottom-4 px-3 text-[10px] 2xl:text-xs uppercase tracking-wide text-muted-foreground truncate">{s.label}</p>
+              <p className="absolute inset-x-0 bottom-4 px-3 text-[10px] 2xl:text-xs uppercase tracking-wide text-muted-foreground truncate z-10">{s.label}</p>
             </div>
           ))}
         </div>

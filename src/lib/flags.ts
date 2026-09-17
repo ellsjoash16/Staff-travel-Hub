@@ -53,3 +53,9 @@ export function countryFlagUrl(country?: string | null): string | null {
   const iso = countryIso(country)
   return iso ? `https://flagsapi.com/${iso.toUpperCase()}/flat/64.png` : null
 }
+
+/** Crisp full-size flag (SVG, flagcdn.com) — for filling a card background. */
+export function countryFlagLargeUrl(country?: string | null): string | null {
+  const iso = countryIso(country)
+  return iso ? `https://flagcdn.com/${iso.toLowerCase()}.svg` : null
+}

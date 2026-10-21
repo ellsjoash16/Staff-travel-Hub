@@ -59,6 +59,9 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
     persistGlobe([...visited, country].sort(), favourite)
   }
 
+  // Countries that come from reviews can't be removed (they're automatic);
+  // they stay on the globe as long as the review exists.
+
   function removeCountry(country: string) {
     persistGlobe(visited.filter(c => c !== country), favourite === country ? null : favourite)
   }
@@ -74,6 +77,26 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
       (profile.uid && p.userId === profile.uid) || norm(p.staff) === target
     )
   }, [profile, posts])
+
+  // Countries the person has reviewed — these appear on their globe automatically
+  // (derived from each review's linked location), on top of any added manually.
+  const reviewCountries = useMemo(() => {
+    const countries = new Set<string>()
+    for (const p of reviews) {
+      for (const id of (p.locationIds?.length ? p.locationIds : [p.locationId])) {
+        if (!id) continue
+        const loc = locations.find(l => l.id === id)
+        if (loc?.country) countries.add(loc.country)
+      }
+    }
+    return Array.from(countries)
+  }, [reviews, locations])
+
+  // Everything shaded on the globe: reviewed countries ∪ manually added ones.
+  const allCountries = useMemo(
+    () => Array.from(new Set([...reviewCountries, ...visited])).sort(),
+    [reviewCountries, visited]
+  )
 
   if (!profile) return null
 
@@ -156,16 +179,16 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
                   {isSelf ? 'My travel map' : `Where ${name.split(' ')[0]} has been`}
                 </h2>
                 <span className="text-xs text-muted-foreground">
-                  {visited.length} countr{visited.length === 1 ? 'y' : 'ies'}
+                  {allCountries.length} countr{allCountries.length === 1 ? 'y' : 'ies'}
                 </span>
               </div>
 
               <div className="h-56 sm:h-72 rounded-2xl overflow-hidden border border-border bg-muted">
-                <ProfileGlobe visitedCountries={visited} favourite={favourite} color={state.settings.color || '#05979a'} />
+                <ProfileGlobe visitedCountries={allCountries} favourite={favourite} color={state.settings.color || '#05979a'} />
               </div>
 
-              {!isSelf && visited.length === 0 && (
-                <p className="mt-3 text-xs text-muted-foreground">No countries added yet.</p>
+              {!isSelf && allCountries.length === 0 && (
+                <p className="mt-3 text-xs text-muted-foreground">No countries yet.</p>
               )}
 
               {isSelf && (
@@ -175,14 +198,15 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
                     onChange={addCountry}
                     placeholder="Add a country you've visited…"
                     searchable
-                    options={COUNTRIES.filter(c => !visited.includes(c)).map(c => ({ value: c, label: c }))}
+                    options={COUNTRIES.filter(c => !allCountries.includes(c)).map(c => ({ value: c, label: c }))}
                   />
 
-                  {visited.length > 0 && (
+                  {allCountries.length > 0 && (
                     <>
                       <div className="flex flex-wrap gap-1.5">
-                        {visited.map(c => {
+                        {allCountries.map(c => {
                           const fav = favourite === c
+                          const fromReview = reviewCountries.includes(c)
                           return (
                             <span
                               key={c}
@@ -197,20 +221,26 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
                                 <Star className={`h-3.5 w-3.5 ${fav ? 'text-amber-500' : 'text-muted-foreground hover:text-amber-500'}`} weight={fav ? 'fill' : 'regular'} />
                               </button>
                               {c}
-                              <button
-                                type="button"
-                                onClick={() => removeCountry(c)}
-                                title="Remove"
-                                className="flex items-center text-muted-foreground hover:text-foreground"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
+                              {fromReview ? (
+                                <span title="From your reviews" className="flex items-center text-muted-foreground/60 pr-0.5">
+                                  <Camera className="h-3 w-3" />
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => removeCountry(c)}
+                                  title="Remove"
+                                  className="flex items-center text-muted-foreground hover:text-foreground"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              )}
                             </span>
                           )
                         })}
                       </div>
                       <p className="text-[11px] text-muted-foreground">
-                        Tap the <Star className="inline h-3 w-3 -mt-0.5 text-amber-500" weight="fill" /> to pick your favourite destination — it's shaded gold on your globe.
+                        Countries from your reviews (<Camera className="inline h-3 w-3 -mt-0.5" />) appear automatically. Tap the <Star className="inline h-3 w-3 -mt-0.5 text-amber-500" weight="fill" /> to pick your favourite — it's shaded gold on your globe.
                       </p>
                     </>
                   )}

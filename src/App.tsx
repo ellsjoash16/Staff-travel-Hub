@@ -60,6 +60,7 @@ const SettingsView  = lazy(() => import('@/components/SettingsView').then(m => (
 const MyRegistrationsView = lazy(() => import('@/components/MyRegistrationsView').then(m => ({ default: m.MyRegistrationsView })))
 const MapView       = lazy(() => import('@/components/MapView').then(m => ({ default: m.MapView })))
 const PostDetailDialog = lazy(() => import('@/components/PostDetailDialog').then(m => ({ default: m.PostDetailDialog })))
+const ProfileDialog = lazy(() => import('@/components/ProfileDialog').then(m => ({ default: m.ProfileDialog })))
 const PublicAdventures = lazy(() => import('@/components/PublicAdventures').then(m => ({ default: m.PublicAdventures })))
 
 function AppShell() {
@@ -203,6 +204,16 @@ function AppShell() {
           <PostDetailDialog
             post={state.openPost}
             onOpenChange={(open) => { if (!open) dispatch({ type: 'SET_OPEN_POST', post: null }) }}
+          />
+        )}
+      </Suspense>
+
+      {/* Staff profile opened from the search bar (works from any view) */}
+      <Suspense fallback={null}>
+        {state.openProfile && (
+          <ProfileDialog
+            profile={state.openProfile}
+            onOpenChange={(open) => { if (!open) dispatch({ type: 'SET_OPEN_PROFILE', profile: null }) }}
           />
         )}
       </Suspense>

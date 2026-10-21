@@ -134,6 +134,18 @@ export interface UserProfile {
   banUntil?: string | null
   isAdmin?: boolean
   mustChangePassword?: boolean
+  visitedCountries?: string[]
+  favouriteCountry?: string | null
+}
+
+export interface StaffMember {
+  uid: string
+  displayName: string
+  jobRole: string | null
+  building: string | null
+  salesDivision: string | null
+  visitedCountries: string[]
+  favouriteCountry: string | null
 }
 
 export interface NominatedPerson {

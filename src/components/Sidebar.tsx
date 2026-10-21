@@ -1,4 +1,4 @@
-import { Camera, Globe as Globe2, House as Home, Airplane as Plane, CalendarDots as CalendarDays, PaperPlaneTilt as Send, GearSix as Settings, Clock, CheckSquare as ClipboardCheck, ChatCircle as MessageCircle, Key as KeyRound, Sun, Moon, Monitor, SignOut as LogOut, CaretRight as ChevronRight } from '@phosphor-icons/react'
+import { Camera, Globe as Globe2, House as Home, Airplane as Plane, CalendarDots as CalendarDays, PaperPlaneTilt as Send, GearSix as Settings, Clock, CheckSquare as ClipboardCheck, ChatCircle as MessageCircle, Key as KeyRound, UserCircle, Sun, Moon, Monitor, SignOut as LogOut, CaretRight as ChevronRight } from '@phosphor-icons/react'
 import { useState, useEffect, useRef } from 'react'
 import { signOut } from 'firebase/auth'
 import { useApp } from '@/context/AppContext'
@@ -105,6 +105,12 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
 
   function go(view: View) {
     dispatch({ type: 'SET_VIEW', view })
+    setHovered(false)
+  }
+
+  function openMyProfile() {
+    dispatch({ type: 'SET_OPEN_PROFILE', profile: { uid: state.uid, name: displayName } })
+    setAccountOpen(false)
     setHovered(false)
   }
 
@@ -239,6 +245,15 @@ export function Sidebar({ onExpandedChange }: { onExpandedChange?: (v: boolean) 
 
           {accountOpen && (
             <>
+              <button
+                onClick={openMyProfile}
+                title={!expanded ? 'My Profile' : undefined}
+                className={`w-full flex items-center rounded-xl transition-all duration-150 text-muted-foreground hover:bg-primary/15 hover:text-foreground group
+                  ${expanded ? 'gap-3 px-3 py-2' : 'justify-center p-2.5 xl:p-3'}`}
+              >
+                <UserCircle className="h-[1.1rem] w-[1.1rem] flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
+                {expanded && <span className="text-sm font-medium">My Profile</span>}
+              </button>
               <button
                 onClick={() => { setChangePwdOpen(true); setAccountOpen(false) }}
                 title={!expanded ? 'Change Password' : undefined}

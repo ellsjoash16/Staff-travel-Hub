@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { fmtDateLong, initials, titleCase } from '@/lib/utils'
+import { useApp } from '@/context/AppContext'
 import type { Post, PostExtras } from '@/lib/types'
 
 const EXTRA_SECTIONS: {
@@ -34,7 +35,14 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export function PostDetailDialog({ post, onOpenChange }: Props) {
+  const { dispatch } = useApp()
   if (!post) return null
+
+  function openProfile() {
+    if (!post) return
+    onOpenChange(false)
+    dispatch({ type: 'SET_OPEN_PROFILE', profile: { uid: post.userId ?? null, name: post.staff } })
+  }
 
   const [heroImage, ...restImages] = post.images
   const hasExtras = EXTRA_SECTIONS.some(({ key }) => (post.extras?.[key] ?? []).length > 0)
@@ -112,14 +120,27 @@ export function PostDetailDialog({ post, onOpenChange }: Props) {
 
             {/* Author row */}
             <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 ring-2 ring-primary/25 flex-shrink-0">
-                {post.staffImage && <AvatarImage src={post.staffImage} alt={post.staff} className="object-cover" />}
-                <AvatarFallback className="text-xs bg-primary text-primary-foreground font-semibold">
-                  {initials(post.staff)}
-                </AvatarFallback>
-              </Avatar>
+              <button
+                type="button"
+                onClick={openProfile}
+                className="flex-shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                aria-label={`View ${titleCase(post.staff)}'s profile`}
+              >
+                <Avatar className="h-10 w-10 ring-2 ring-primary/25 hover:ring-primary/60 transition-all">
+                  {post.staffImage && <AvatarImage src={post.staffImage} alt={post.staff} className="object-cover" />}
+                  <AvatarFallback className="text-xs bg-primary text-primary-foreground font-semibold">
+                    {initials(post.staff)}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
               <div>
-                <p className="font-semibold text-sm leading-tight">{titleCase(post.staff)}</p>
+                <button
+                  type="button"
+                  onClick={openProfile}
+                  className="font-semibold text-sm leading-tight hover:text-primary transition-colors text-left"
+                >
+                  {titleCase(post.staff)}
+                </button>
                 <div className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground mt-0.5">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3 text-primary/70" />

@@ -3,6 +3,7 @@ import { MapPin, Images, PushPin, Globe, PlayCircle } from '@phosphor-icons/reac
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { fmtDate, initials, titleCase } from '@/lib/utils'
+import { useApp } from '@/context/AppContext'
 import type { Post } from '@/lib/types'
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function PostCard({ post, onClick, tiltDir = 1, locationNames, compact = false }: Props) {
+  const { dispatch } = useApp()
   const [hovered, setHovered] = useState(false)
   const locLabel = locationNames?.length ? locationNames.join(' · ') : post.location.name
   const watermark = locationNames?.[0] ?? post.location.name
@@ -81,7 +83,13 @@ export function PostCard({ post, onClick, tiltDir = 1, locationNames, compact = 
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className={`font-semibold ${compact ? 'text-xs lg:text-sm' : 'text-sm lg:text-base xl:text-lg 2xl:text-xl'} text-white leading-tight truncate drop-shadow`}>{titleCase(post.staff)}</p>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); dispatch({ type: 'SET_OPEN_PROFILE', profile: { uid: post.userId ?? null, name: post.staff } }) }}
+                className={`font-semibold ${compact ? 'text-xs lg:text-sm' : 'text-sm lg:text-base xl:text-lg 2xl:text-xl'} text-white leading-tight truncate drop-shadow hover:underline text-left max-w-full`}
+              >
+                {titleCase(post.staff)}
+              </button>
               <p className={`${compact ? 'text-[10px] lg:text-xs' : 'text-xs lg:text-sm xl:text-base'} text-white/80 flex items-center gap-0.5 truncate drop-shadow`}>
                 <MapPin className="h-2.5 w-2.5 lg:h-3 lg:w-3 flex-shrink-0" />
                 {locLabel}

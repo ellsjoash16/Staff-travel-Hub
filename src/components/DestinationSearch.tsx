@@ -1,15 +1,20 @@
 import { useState, useRef, useMemo } from 'react'
-import { MagnifyingGlass, MapPin, Camera, BookOpen, Airplane, X } from '@phosphor-icons/react'
+import { MagnifyingGlass, MapPin, Camera, BookOpen, Airplane, User, X } from '@phosphor-icons/react'
 import { useApp } from '@/context/AppContext'
+import { titleCase } from '@/lib/utils'
 
-type ResultType = 'location' | 'post' | 'course' | 'trip'
+type ResultType = 'person' | 'location' | 'post' | 'course' | 'trip'
 
 interface Result {
   id: string
   type: ResultType
   label: string
   sublabel: string
+  uid?: string | null
+  name?: string
 }
+
+const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
 
 interface Props {
   autoFocus?: boolean
@@ -20,7 +25,7 @@ interface Props {
 
 export function DestinationSearch({ autoFocus, onClose, variant = 'dark', placeholder }: Props) {
   const { state, dispatch } = useApp()
-  const { posts, courses, locations, trips } = state
+  const { posts, courses, locations, trips, directory } = state
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [activeIdx, setActiveIdx] = useState(-1)
@@ -32,6 +37,49 @@ export function DestinationSearch({ autoFocus, onClose, variant = 'dark', placeh
   const results = useMemo((): Result[] => {
     const q = query.trim().toLowerCase()
     if (!q) return []
+
+    // People: every staff account from the directory, plus any review author not in it.
+    const reviewCount = (uid: string | null, name: string) => {
+      const target = normName(name)
+      return posts.filter(p => (uid && p.userId === uid) || normName(p.staff) === target).length
+    }
+    const personSublabel = (uid: string | null, name: string, role: string | null) => {
+      const n = reviewCount(uid, name)
+      const parts = [role, n > 0 && `${n} review${n !== 1 ? 's' : ''}`].filter(Boolean) as string[]
+      return parts.join(' · ') || 'Staff'
+    }
+
+    const dirNames = new Set(directory.map(d => normName(d.displayName)))
+    const dirResults: Result[] = directory
+      .filter(d => d.displayName.toLowerCase().includes(q))
+      .map(d => ({
+        id: `person-${d.uid}`,
+        type: 'person' as ResultType,
+        label: titleCase(d.displayName),
+        sublabel: personSublabel(d.uid, d.displayName, d.jobRole),
+        uid: d.uid,
+        name: d.displayName,
+      }))
+
+    // Review authors with no directory account (e.g. legacy posts) — keyed by name.
+    const seenAuthors = new Set<string>()
+    const authorResults: Result[] = []
+    for (const p of posts) {
+      const key = normName(p.staff)
+      if (!p.staff || dirNames.has(key) || seenAuthors.has(key)) continue
+      if (!p.staff.toLowerCase().includes(q)) continue
+      seenAuthors.add(key)
+      authorResults.push({
+        id: `person-name-${key}`,
+        type: 'person' as ResultType,
+        label: titleCase(p.staff),
+        sublabel: personSublabel(null, p.staff, null),
+        uid: null,
+        name: p.staff,
+      })
+    }
+
+    const personResults = [...dirResults, ...authorResults].slice(0, 5)
 
     const locationResults: Result[] = locations
       .filter(l => l.name.toLowerCase().includes(q) || l.country.toLowerCase().includes(q))
@@ -70,14 +118,16 @@ export function DestinationSearch({ autoFocus, onClose, variant = 'dark', placeh
       .map(c => ({ id: `course-${c.id}`, type: 'course' as ResultType, label: c.title, sublabel: c.location.name || 'Course' }))
       .slice(0, 3)
 
-    return [...locationResults, ...postResults, ...tripResults, ...courseResults]
-  }, [query, locations, posts, courses, trips])
+    return [...personResults, ...locationResults, ...postResults, ...tripResults, ...courseResults]
+  }, [query, locations, posts, courses, trips, directory])
 
   function select(r: Result) {
     setQuery('')
     setOpen(false)
     onClose?.()
-    if (r.type === 'location') {
+    if (r.type === 'person') {
+      dispatch({ type: 'SET_OPEN_PROFILE', profile: { uid: r.uid ?? null, name: r.name ?? r.label } })
+    } else if (r.type === 'location') {
       const id = r.id.replace(/^loc-/, '')
       dispatch({ type: 'SET_OPEN_LOCATION', id })
       dispatch({ type: 'SET_VIEW', view: 'map' })
@@ -110,6 +160,7 @@ export function DestinationSearch({ autoFocus, onClose, variant = 'dark', placeh
   const chip = light ? 'bg-muted' : 'bg-white/10'
   const chipIcon = light ? 'text-foreground' : 'text-white'
   const typeIcon: Record<ResultType, React.ReactNode> = {
+    person:   <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${chip} flex-shrink-0`}><User className={`h-4 w-4 ${chipIcon}`} /></div>,
     location: <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${chip} flex-shrink-0`}><MapPin className={`h-4 w-4 ${chipIcon}`} /></div>,
     post:     <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${chip} flex-shrink-0`}><Camera className={`h-4 w-4 ${chipIcon}`} /></div>,
     trip:     <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${chip} flex-shrink-0`}><Airplane className={`h-4 w-4 ${chipIcon}`} /></div>,
@@ -117,6 +168,7 @@ export function DestinationSearch({ autoFocus, onClose, variant = 'dark', placeh
   }
 
   const sections: { type: ResultType; label: string }[] = [
+    { type: 'person',   label: 'People' },
     { type: 'location', label: 'Destinations' },
     { type: 'post',     label: 'Trip reviews' },
     { type: 'trip',     label: 'Trips & events' },
@@ -149,7 +201,7 @@ export function DestinationSearch({ autoFocus, onClose, variant = 'dark', placeh
           onChange={e => { setQuery(e.target.value); setOpen(true); setActiveIdx(-1) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder ?? 'Search posts, locations…'}
+          placeholder={placeholder ?? 'Search people, posts, locations…'}
           autoComplete="off"
           className={inputCls}
         />

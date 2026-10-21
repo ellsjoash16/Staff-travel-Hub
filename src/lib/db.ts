@@ -4,7 +4,7 @@ import {
   query, where, limit, serverTimestamp,
 } from 'firebase/firestore'
 import { db, auth } from './firebase'
-import type { Post, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile } from './types'
+import type { Post, Submission, Settings, Trip, Location, PostExtras, Registration, RegistrationStatus, UserProfile, StaffMember } from './types'
 import { encryptField, decryptField } from './crypto'
 
 // ── Admin write helper ────────────────────────────────────────────────────
@@ -719,7 +719,16 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     banUntil: data.banUntil ?? null,
     isAdmin: data.isAdmin ?? false,
     mustChangePassword: data.mustChangePassword ?? false,
+    visitedCountries: data.visitedCountries ?? [],
+    favouriteCountry: data.favouriteCountry ?? null,
   }
+}
+
+// Self-service: a user sets the countries they've visited with the company and
+// which one is their favourite. Firestore rules allow a user to merge-write
+// their own profile doc (no isAdmin/banned fields touched here).
+export async function saveVisitedCountries(uid: string, visitedCountries: string[], favouriteCountry: string | null): Promise<void> {
+  await setDoc(doc(db, 'userProfiles', uid), { visitedCountries, favouriteCountry }, { merge: true })
 }
 
 export async function clearMustChangePassword(uid: string): Promise<void> {
@@ -843,6 +852,16 @@ export async function saveAccountRecord(uid: string, email: string | null, displ
     authDisplayName: displayName ?? null,
     lastSignIn: serverTimestamp(),
   }, { merge: true })
+}
+
+// Safe staff directory for all signed-in users — names + roles only (no sensitive data).
+export async function fetchStaffDirectory(): Promise<StaffMember[]> {
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) return []
+  const res = await fetch('/api/list-staff', { headers: { Authorization: `Bearer ${token}` } })
+  if (!res.ok) return []
+  const { staff } = await res.json() as { staff: StaffMember[] }
+  return staff ?? []
 }
 
 export async function fetchAllUserProfiles(): Promise<(UserProfile & { updatedAt: string | null })[]> {

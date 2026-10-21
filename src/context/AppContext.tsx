@@ -5,7 +5,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import type { Post, Course, Submission, Settings, View, PanelImages, Trip, Location, Registration, RegistrationStatus, UserProfile } from '@/lib/types'
+import type { Post, Course, Submission, Settings, View, PanelImages, Trip, Location, Registration, RegistrationStatus, UserProfile, StaffMember } from '@/lib/types'
 import {
   fetchPosts, fetchSettings, fetchTrips, fetchLocations,
   insertPost, updatePost, removePost, togglePinPost, setPostFolders,
@@ -16,6 +16,7 @@ import {
   fetchPendingPosts, approvePost, submitPendingPost,
   fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, purgeExpiredRegistrations, deleteUserProfile, purgeOrphanLogins,
   fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile, adminCreateUser, clearMustChangePassword,
+  fetchStaffDirectory, saveVisitedCountries,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
 import { auth, appCheck, getAppCheckToken } from '@/lib/firebase'
@@ -54,13 +55,16 @@ interface AppState {
   activeFilter: string | null
   openPost: Post | null           // post to open in a detail dialog (from search)
   openLocationId: string | null   // location to open on the map (from search)
+  openProfile: { uid: string | null; name: string } | null  // staff profile to open (from search)
+  directory: StaffMember[]        // all staff accounts (safe fields), for search + profiles
   loading: boolean
   postsLoaded: boolean
   pendingPosts: Post[]
   registrations: Registration[]
   userProfiles: (UserProfile & { updatedAt: string | null })[]
   myRegistrations: Registration[]
-  currentUserProfile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean } | null
+  currentUserProfile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean; visitedCountries?: string[]; favouriteCountry?: string | null } | null
+  uid: string | null              // current signed-in user's uid (for own-profile editing)
 }
 
 type Action =
@@ -75,6 +79,8 @@ type Action =
   | { type: 'SET_FILTER'; filter: string | null }
   | { type: 'SET_OPEN_POST'; post: Post | null }
   | { type: 'SET_OPEN_LOCATION'; id: string | null }
+  | { type: 'SET_OPEN_PROFILE'; profile: { uid: string | null; name: string } | null }
+  | { type: 'SET_DIRECTORY'; directory: StaffMember[] }
   | { type: 'SET_ADMIN'; value: boolean }
   | { type: 'SET_PENDING'; posts: Post[] }
   | { type: 'SET_REGISTRATIONS'; registrations: Registration[] }
@@ -85,7 +91,7 @@ type Action =
   | { type: 'SET_USER_BANNED'; uid: string; banned: boolean; banUntil: string | null }
   | { type: 'SET_MY_REGISTRATIONS'; registrations: Registration[] }
   | { type: 'ADD_MY_REGISTRATION'; registration: Registration }
-  | { type: 'SET_CURRENT_USER_PROFILE'; profile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean } | null }
+  | { type: 'SET_CURRENT_USER_PROFILE'; profile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean; visitedCountries?: string[]; favouriteCountry?: string | null } | null }
   | { type: 'UPDATE_USER_PROFILE'; uid: string; fields: Partial<UserProfile> }
   | { type: 'UPDATE_TRIP_PARTICIPANTS'; tripId: string; name: string; action: 'add' | 'remove' }
   | { type: 'SET_POSTS_LOADED' }
@@ -119,6 +125,8 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_FILTER': return { ...state, activeFilter: action.filter }
     case 'SET_OPEN_POST': return { ...state, openPost: action.post }
     case 'SET_OPEN_LOCATION': return { ...state, openLocationId: action.id }
+    case 'SET_OPEN_PROFILE': return { ...state, openProfile: action.profile }
+    case 'SET_DIRECTORY': return { ...state, directory: action.directory }
     case 'SET_ADMIN': return { ...state, isAdmin: action.value }
     case 'SET_PENDING': return { ...state, pendingPosts: action.posts }
     case 'SET_REGISTRATIONS': return { ...state, registrations: action.registrations }
@@ -199,6 +207,8 @@ interface AppContextValue {
   removeUserProfile: (uid: string) => Promise<void>
   purgeOrphanLogins: () => Promise<{ scanned: number; orphans: number; deleted: number }>
   loadUserProfiles: () => Promise<void>
+  loadDirectory: () => Promise<void>
+  saveMyGlobe: (visitedCountries: string[], favouriteCountry: string | null) => Promise<void>
   loadPosts: () => Promise<void>
   loadMyRegistrations: () => Promise<void>
   toggleAdminUid: (uid: string, isCurrentlyAdmin?: boolean) => Promise<void>
@@ -218,9 +228,9 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     isAdmin: uid0 != null && SUPERADMIN_UIDS.includes(uid0),
     // Phones land on the Feed (Home is a full dashboard only on tablet/desktop).
     activeView: typeof window !== 'undefined' && window.innerWidth < 640 ? 'feed' : 'home',
-    activeFilter: null, openPost: null, openLocationId: null, loading: true,
+    activeFilter: null, openPost: null, openLocationId: null, openProfile: null, directory: [], loading: true,
     postsLoaded: false, pendingPosts: [], registrations: [], userProfiles: [], myRegistrations: [],
-    currentUserProfile: null,
+    currentUserProfile: null, uid: uid0,
   })
 
   // Initial data load
@@ -267,6 +277,9 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       dispatch({ type: 'SET_TRIPS_LOCATIONS', trips, locations })
       dispatch({ type: 'SET_MY_REGISTRATIONS', registrations: myRegs })
 
+      // Load the staff directory in the background (for search + profiles) — never blocks.
+      if (uid) fetchStaffDirectory().then(directory => dispatch({ type: 'SET_DIRECTORY', directory })).catch(() => {})
+
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(resolvedSettings)) } catch {}
       dispatch({ type: 'UPDATE_SETTINGS', settings: resolvedSettings })
 
@@ -293,7 +306,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       }
 
       if (profile) {
-        dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision, mustChangePassword: profile.mustChangePassword } })
+        dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision, mustChangePassword: profile.mustChangePassword, visitedCountries: profile.visitedCountries ?? [], favouriteCountry: profile.favouriteCountry ?? null } })
       }
     }
     init()
@@ -340,6 +353,29 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
   async function loadUserProfiles(): Promise<void> {
     const profiles = await fetchAllUserProfiles()
     dispatch({ type: 'SET_USER_PROFILES', profiles })
+  }
+
+  async function loadDirectory(): Promise<void> {
+    const directory = await fetchStaffDirectory()
+    dispatch({ type: 'SET_DIRECTORY', directory })
+  }
+
+  // Self-service: current user saves the countries they've visited with the
+  // company + their favourite. Updates own profile and the live directory entry.
+  async function saveMyGlobe(visitedCountries: string[], favouriteCountry: string | null): Promise<void> {
+    const uid = state.uid
+    if (!uid) return
+    await saveVisitedCountries(uid, visitedCountries, favouriteCountry)
+    dispatch({
+      type: 'SET_CURRENT_USER_PROFILE',
+      profile: state.currentUserProfile
+        ? { ...state.currentUserProfile, visitedCountries, favouriteCountry }
+        : { jobRole: null, salesDivision: null, visitedCountries, favouriteCountry },
+    })
+    dispatch({
+      type: 'SET_DIRECTORY',
+      directory: state.directory.map(d => d.uid === uid ? { ...d, visitedCountries, favouriteCountry } : d),
+    })
   }
 
   async function createUser(fields: { email: string; password: string; firstName: string; lastName: string; jobRole: string; salesDivision?: string | null; building?: string | null }): Promise<void> {
@@ -664,7 +700,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
       addLocation, editLocation, deleteLocation, searchPhotos,
       saveSettings, savePageImages,
       loadPosts,
-      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins: purgeOrphanLoginsFn, loadUserProfiles, createUser, completePasswordChange, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins: purgeOrphanLoginsFn, loadUserProfiles, loadDirectory, saveMyGlobe, createUser, completePasswordChange, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
     }}>
       {children}
     </AppContext.Provider>

@@ -146,8 +146,9 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
             )}
           </div>
 
-          {/* Travel map — countries visited with the company (favourite shaded gold) */}
-          {(isSelf || visited.length > 0) && (
+          {/* Travel map — countries visited with the company (favourite shaded gold).
+              Every profile shows a globe; it's just empty until countries are added. */}
+          {(
             <div className="px-6 sm:px-10 pb-6">
               <div className="flex items-center gap-2 mb-3">
                 <GlobeHemisphereWest className="h-4 w-4 text-primary" />
@@ -162,6 +163,10 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
               <div className="h-56 sm:h-72 rounded-2xl overflow-hidden border border-border bg-muted">
                 <ProfileGlobe visitedCountries={visited} favourite={favourite} color={state.settings.color || '#05979a'} />
               </div>
+
+              {!isSelf && visited.length === 0 && (
+                <p className="mt-3 text-xs text-muted-foreground">No countries added yet.</p>
+              )}
 
               {isSelf && (
                 <div className="mt-3 space-y-3">

@@ -858,7 +858,7 @@ export async function saveAccountRecord(uid: string, email: string | null, displ
 export async function fetchStaffDirectory(): Promise<StaffMember[]> {
   const token = await auth.currentUser?.getIdToken()
   if (!token) return []
-  const res = await fetch('/api/list-staff', { headers: { Authorization: `Bearer ${token}` } })
+  const res = await fetch('/api/list-users?mode=directory', { headers: { Authorization: `Bearer ${token}` } })
   if (!res.ok) return []
   const { staff } = await res.json() as { staff: StaffMember[] }
   return staff ?? []

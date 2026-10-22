@@ -824,6 +824,22 @@ export async function adminCreateUser(fields: {
   return { uid: body.uid!, email: body.email ?? fields.email.trim(), displayName: body.displayName ?? null }
 }
 
+// Admin sets a new temporary password for another user. The admin re-verifies
+// their own password client-side before this is called (see AdminPanel).
+export async function adminResetUserPassword(uid: string, newPassword: string): Promise<void> {
+  const token = await auth.currentUser?.getIdToken()
+  if (!token) throw new Error('Not authenticated')
+  const res = await fetch('/api/create-user', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'resetPassword', uid, password: newPassword }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string }
+    throw new Error(body.error ?? `Reset failed: ${res.status}`)
+  }
+}
+
 export async function saveJobRole(uid: string, jobRole: string, salesDivision?: string | null, building?: string | null): Promise<void> {
   await setDoc(doc(db, 'userProfiles', uid), { jobRole, salesDivision: salesDivision ?? null, building: building ?? null }, { merge: true })
 }

@@ -38,6 +38,35 @@ export default async function handler(req, res) {
       return res.status(429).json({ error: 'Too many requests — try again shortly' })
     }
 
+    // ── Admin resets another user's password ─────────────────────────────────
+    // Caller has already been confirmed as an admin above. The admin's own
+    // password is re-verified client-side before this is ever called. Sets a new
+    // temporary password and forces a change on the user's next sign-in.
+    if (req.body?.action === 'resetPassword') {
+      const targetUid = req.body.uid
+      const newPw = req.body.password
+      if (!targetUid || typeof targetUid !== 'string') return res.status(400).json({ error: 'uid must be a string' })
+      if (typeof newPw !== 'string' || newPw.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' })
+
+      const updRes = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${sa.project_id}/accounts:update`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ localId: targetUid, password: newPw }),
+      })
+      const updData = await updRes.json().catch(() => ({}))
+      if (!updRes.ok) throw new Error(updData.error?.message ?? `Reset failed: ${updRes.status}`)
+
+      // Force the user to set their own password on next sign-in.
+      await fetch(`${fsBase}/userProfiles/${targetUid}?updateMask.fieldPaths=mustChangePassword`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { mustChangePassword: { booleanValue: true } } }),
+      }).catch(() => {})
+
+      console.log(`[create-user] admin ${callerUid} reset password for ${targetUid}`)
+      return res.status(200).json({ ok: true })
+    }
+
     const { email, password, displayName: rawDisplayName, jobRole, salesDivision, building, firstNameEnc, lastNameEnc } = req.body ?? {}
 
     // Capitalise the first letter of every word so names are consistent

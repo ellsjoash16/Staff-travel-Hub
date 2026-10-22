@@ -15,7 +15,7 @@ import {
   uploadImage, DEFAULT_SETTINGS,
   fetchPendingPosts, approvePost, submitPendingPost,
   fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, purgeExpiredRegistrations, deleteUserProfile, purgeOrphanLogins,
-  fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile, adminCreateUser, clearMustChangePassword,
+  fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile, adminCreateUser, adminResetUserPassword, clearMustChangePassword,
   fetchStaffDirectory, saveVisitedCountries,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
@@ -215,6 +215,7 @@ interface AppContextValue {
   banUser: (uid: string, banned: boolean, banUntil?: string | null) => Promise<void>
   editUserProfile: (uid: string, fields: { firstName: string; lastName: string; passportFirstName: string; passportLastName: string; medicalInfo: string | null; jobRole: string | null; building: string | null; salesDivision: string | null }) => Promise<void>
   createUser: (fields: { email: string; password: string; firstName: string; lastName: string; jobRole: string; salesDivision?: string | null; building?: string | null }) => Promise<void>
+  resetUserPassword: (uid: string, newPassword: string) => Promise<void>
   completePasswordChange: () => Promise<void>
 }
 
@@ -380,6 +381,11 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
 
   async function createUser(fields: { email: string; password: string; firstName: string; lastName: string; jobRole: string; salesDivision?: string | null; building?: string | null }): Promise<void> {
     await adminCreateUser(fields)
+    await loadUserProfiles()
+  }
+
+  async function resetUserPassword(uid: string, newPassword: string): Promise<void> {
+    await adminResetUserPassword(uid, newPassword)
     await loadUserProfiles()
   }
 
@@ -700,7 +706,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
       addLocation, editLocation, deleteLocation, searchPhotos,
       saveSettings, savePageImages,
       loadPosts,
-      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins: purgeOrphanLoginsFn, loadUserProfiles, loadDirectory, saveMyGlobe, createUser, completePasswordChange, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins: purgeOrphanLoginsFn, loadUserProfiles, loadDirectory, saveMyGlobe, createUser, resetUserPassword, completePasswordChange, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
     }}>
       {children}
     </AppContext.Provider>

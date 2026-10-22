@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { COUNTRIES } from '@/lib/countries'
 import { toast } from 'sonner'
-import { Trash, PencilSimple, CircleNotch, CheckCircle, Check, X, PushPin, PushPinSlash, MapPin, Airplane, Globe, MagnifyingGlass, FolderOpen, FileArrowUp, CaretRight, CaretDown, CalendarDots, Plus, Users, ArrowsClockwise, ShieldCheck } from '@phosphor-icons/react'
+import { Trash, PencilSimple, CircleNotch, CheckCircle, Check, X, PushPin, PushPinSlash, MapPin, Airplane, Globe, MagnifyingGlass, FolderOpen, FileArrowUp, CaretRight, CaretDown, CalendarDots, Plus, Users, ArrowsClockwise, ShieldCheck, Key } from '@phosphor-icons/react'
+import { auth } from '@/lib/firebase'
+import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'
 import { AppSelect } from '@/components/ui/app-select'
 import { ReviewExtras } from './ReviewExtras'
 import { BlogEditor } from './BlogEditor'
@@ -68,7 +70,7 @@ const emptyLocationForm = (): LocationForm => ({ name: '', country: '', imageUrl
 interface Props { open?: boolean; onOpenChange?: (open: boolean) => void; initialPost?: Post; inline?: boolean }
 
 export function AdminPanel({ open = false, onOpenChange, initialPost, inline = false }: Props) {
-  const { state, dispatch, togglePin, movePostsToFolder, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins, loadUserProfiles, toggleAdminUid, banUser, editUserProfile, createUser } = useApp()
+  const { state, dispatch, togglePin, movePostsToFolder, addPost, editPost, deletePost, addTrip, editTrip, deleteTrip, addLocation, editLocation, deleteLocation, searchPhotos, saveSettings, completeTrip, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins, loadUserProfiles, toggleAdminUid, banUser, editUserProfile, createUser, resetUserPassword } = useApp()
   const { posts, courses, trips, locations, settings, registrations, userProfiles } = state
 
   // Only count/show registrations for trips that are still upcoming — passed
@@ -149,6 +151,10 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
   const [togglingAdminUid, setTogglingAdminUid] = useState<string | null>(null)
   const [banningUser, setBanningUser] = useState<{ uid: string; name: string } | null>(null)
   const [banSaving, setBanSaving] = useState(false)
+  const [resettingUser, setResettingUser] = useState<{ uid: string; name: string } | null>(null)
+  const [resetNewPw, setResetNewPw] = useState('')
+  const [resetAdminPw, setResetAdminPw] = useState('')
+  const [resetSaving, setResetSaving] = useState(false)
   const [deletingProfileUid, setDeletingProfileUid] = useState<string | null>(null)
   const [editingProfileUid, setEditingProfileUid] = useState<string | null>(null)
   const [profileEditForm, setProfileEditForm] = useState({ firstName: '', lastName: '', passportFirstName: '', passportLastName: '', medicalInfo: '', jobRole: '', building: '', salesDivision: '' })
@@ -2315,6 +2321,20 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
                                         {isBanned ? 'Unban User' : 'Prohibit from Registering'}
                                       </Button>
                                       <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          setResetNewPw(''); setResetAdminPw('')
+                                          setResettingUser({ uid: u.uid, name: `${u.firstName || u.authDisplayName || u.authEmail}` })
+                                        }}
+                                        className="gap-1.5"
+                                      >
+                                        <Key className="h-3.5 w-3.5" /> Reset Password
+                                      </Button>
+                                      <Button
                                         size="sm" variant="destructive"
                                         disabled={deletingProfileUid === u.uid}
                                         onClick={async () => {
@@ -2479,7 +2499,61 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
     </Dialog>
   )
 
-  if (inline) return <>{tabsContent}{banDialog}</>
+  async function submitPasswordReset() {
+    if (!resettingUser) return
+    if (resetNewPw.length < 6) { toast.error('New password must be at least 6 characters'); return }
+    const adminEmail = auth.currentUser?.email
+    if (!auth.currentUser || !adminEmail) { toast.error('You must be signed in'); return }
+    setResetSaving(true)
+    try {
+      // Confirm the admin's identity with their own password before resetting.
+      await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(adminEmail, resetAdminPw))
+      await resetUserPassword(resettingUser.uid, resetNewPw)
+      toast.success(`Password reset for ${resettingUser.name}. They'll be asked to set a new one at next sign-in.`)
+      setResettingUser(null)
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code
+      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+        toast.error('Your password is incorrect')
+      } else {
+        toast.error((err as Error)?.message ?? 'Failed to reset password')
+      }
+    } finally {
+      setResetSaving(false)
+    }
+  }
+
+  const resetDialog = (
+    <Dialog open={!!resettingUser} onOpenChange={(o) => { if (!o && !resetSaving) setResettingUser(null) }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reset password — {resettingUser?.name}</DialogTitle>
+        </DialogHeader>
+        <DialogBody className="space-y-4 pt-2">
+          <p className="text-sm text-muted-foreground">
+            Set a new temporary password for this user. They'll be prompted to choose their own password the next time they sign in.
+          </p>
+          <div className="space-y-1.5">
+            <Label>New temporary password</Label>
+            <Input type="text" value={resetNewPw} onChange={e => setResetNewPw(e.target.value)} placeholder="At least 6 characters" disabled={resetSaving} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Confirm with your own password</Label>
+            <Input type="password" value={resetAdminPw} onChange={e => setResetAdminPw(e.target.value)} placeholder="Your admin password" disabled={resetSaving}
+              onKeyDown={e => { if (e.key === 'Enter') submitPasswordReset() }} />
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="secondary" onClick={() => setResettingUser(null)} disabled={resetSaving}>Cancel</Button>
+            <Button onClick={submitPasswordReset} disabled={resetSaving || resetNewPw.length < 6 || !resetAdminPw} className="gap-1.5">
+              {resetSaving ? <CircleNotch className="h-3.5 w-3.5 animate-spin" /> : <Key className="h-3.5 w-3.5" />} Reset Password
+            </Button>
+          </div>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
+  )
+
+  if (inline) return <>{tabsContent}{banDialog}{resetDialog}</>
 
   return (
     <>
@@ -2494,6 +2568,7 @@ export function AdminPanel({ open = false, onOpenChange, initialPost, inline = f
         </DialogContent>
       </Dialog>
       {banDialog}
+      {resetDialog}
     </>
   )
 }

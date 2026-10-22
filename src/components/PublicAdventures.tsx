@@ -58,7 +58,7 @@ export function PublicAdventures() {
                   onClick={() => setView('globe')}
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${view === 'globe' ? 'bg-primary text-white' : 'text-white/80 hover:text-white'}`}
                 >
-                  <GlobeHemisphereWest className="h-4 w-4" /> Globe
+                  <GlobeHemisphereWest className="h-4 w-4" /> Reviews
                 </button>
                 <button
                   onClick={() => setView('adventures')}
@@ -67,6 +67,9 @@ export function PublicAdventures() {
                   <CalendarDots className="h-4 w-4" /> Adventures
                 </button>
               </div>
+              {view === 'globe' && (
+                <p className="mt-2 text-center text-xs text-white/80 drop-shadow">Tap a country to see its reviews</p>
+              )}
             </div>
 
             {view === 'globe'

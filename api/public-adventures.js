@@ -1,4 +1,4 @@
-import { parseServiceAccount, getAccessToken } from './_lib.js'
+import { parseServiceAccount, getAccessToken, checkRateLimit } from './_lib.js'
 
 // Public, read-only feed for the standalone DAF Adventures page (?view=adventures).
 // Returns ONLY completed, non-event trips and the locations they reference — no
@@ -45,6 +45,14 @@ export default async function handler(req, res) {
     const sa = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
     const accessToken = await getAccessToken(sa)
     const fsBase = `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents`
+
+    // This endpoint is public, so throttle per client IP to prevent scraping/abuse.
+    const ip = (req.headers['x-forwarded-for'] ?? '').split(',')[0].trim() || 'unknown'
+    const rl = await checkRateLimit(fsBase, accessToken, `pub-adventures:${ip}`, { limit: 60, windowSeconds: 60 })
+    if (!rl.allowed) {
+      res.setHeader('Retry-After', String(rl.retryAfter))
+      return res.status(429).json({ error: 'Too many requests' })
+    }
 
     const [tripDocs, locDocs] = await Promise.all([
       listAll(fsBase, accessToken, 'trips'),

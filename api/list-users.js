@@ -12,6 +12,17 @@ export default async function handler(req, res) {
 
     const fsBase = `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents`
 
+    // ── Encryption key for ANY authenticated user ────────────────────────────
+    // The AES key for passport/medical fields is server-only (never in the
+    // client bundle). Signed-in staff fetch it here at runtime to encrypt/decrypt
+    // their own data. uid is already verified above, so anonymous callers can't
+    // reach this.
+    if (req.query.mode === 'enckey') {
+      const key = process.env.ENCRYPTION_KEY_B64
+      if (!key) return res.status(500).json({ error: 'Encryption key not configured' })
+      return res.status(200).json({ key })
+    }
+
     // ── Safe staff directory for ANY authenticated user ──────────────────────
     // Returns only non-sensitive fields (name / role / building / division /
     // visited countries / favourite). Never exposes passport, medical, consent,

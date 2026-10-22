@@ -1,4 +1,4 @@
-import { parseServiceAccount, getAccessToken, verifyIdToken } from './_lib.js'
+import { parseServiceAccount, getAccessToken, verifyIdToken, checkRateLimit } from './_lib.js'
 
 // Minimal Firestore REST field encoder for the string/null values we store.
 function toFields(data) {
@@ -30,6 +30,13 @@ export default async function handler(req, res) {
     const adminUids = settingsDoc.fields?.adminUids?.arrayValue?.values
       ?.map(v => v.stringValue).filter(Boolean) ?? []
     if (!adminUids.includes(callerUid)) return res.status(403).json({ error: 'Forbidden' })
+
+    // Throttle account creation per admin to prevent runaway/abuse.
+    const rl = await checkRateLimit(fsBase, accessToken, `create-user:${callerUid}`, { limit: 30, windowSeconds: 60 })
+    if (!rl.allowed) {
+      res.setHeader('Retry-After', String(rl.retryAfter))
+      return res.status(429).json({ error: 'Too many requests — try again shortly' })
+    }
 
     const { email, password, displayName: rawDisplayName, jobRole, salesDivision, building, firstNameEnc, lastNameEnc } = req.body ?? {}
 

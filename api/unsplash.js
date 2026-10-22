@@ -1,4 +1,4 @@
-import { parseServiceAccount, verifyIdToken } from './_lib.js'
+import { parseServiceAccount, getAccessToken, verifyIdToken, checkRateLimit } from './_lib.js'
 
 // Searches Unsplash for photos matching a location. The access key stays
 // server-side; only authenticated app users can call this.
@@ -16,7 +16,16 @@ export default async function handler(req, res) {
 
   try {
     const sa = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
-    await verifyIdToken(token, sa.project_id) // reject unauthenticated callers
+    const { uid } = await verifyIdToken(token, sa.project_id) // reject unauthenticated callers
+
+    // Throttle per user to protect the external Unsplash quota.
+    const accessToken = await getAccessToken(sa)
+    const fsBase = `https://firestore.googleapis.com/v1/projects/${sa.project_id}/databases/(default)/documents`
+    const rl = await checkRateLimit(fsBase, accessToken, `unsplash:${uid}`, { limit: 60, windowSeconds: 60 })
+    if (!rl.allowed) {
+      res.setHeader('Retry-After', String(rl.retryAfter))
+      return res.status(429).json({ error: 'Too many searches — try again shortly' })
+    }
 
     // Bias toward scenic travel photos and rank by relevance.
     const q = `${query} travel`

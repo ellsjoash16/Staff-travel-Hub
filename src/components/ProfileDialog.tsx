@@ -40,17 +40,6 @@ const WALLPAPERS: { id: string; label: string; css: string }[] = [
   { id: 'carbon',   label: 'Carbon',   css: 'repeating-linear-gradient(135deg,rgba(255,255,255,0.05) 0 2px,transparent 2px 9px),#0f172a' },
   { id: 'charcoal', label: 'Charcoal', css: '#111827' },
 ]
-// A stored wallpaper is either a preset id or a photo URL (from the same
-// Unsplash endpoint used for location photos). Photos get a baked-in dark scrim
-// so the (forced-dark) profile text stays readable over any image.
-const wallpaperCss = (val: string | null): string | null => {
-  if (!val) return null
-  const preset = WALLPAPERS.find(w => w.id === val)
-  if (preset) return preset.css
-  if (/^https?:\/\//i.test(val)) return `linear-gradient(rgba(15,23,42,0.55),rgba(15,23,42,0.7)),url("${val}") center/cover no-repeat`
-  return null
-}
-
 // Reusable self-service picker for a background or banner. Photos come from the
 // same Unsplash endpoint as location photos; designs are the CSS presets above.
 // onPick receives the chosen value (preset id or photo URL), or null to clear.
@@ -156,7 +145,7 @@ function AppearancePicker({ title, value, onPick, searchPhotos }: {
 }
 
 export function ProfileDialog({ profile, onOpenChange }: Props) {
-  const { state, dispatch, saveMyGlobe, saveMyWallpaper, saveMyBanner, searchPhotos } = useApp()
+  const { state, dispatch, saveMyGlobe, saveMyBanner, searchPhotos } = useApp()
   const { posts, directory, locations, trips } = state
 
   const isSelf = !!profile?.uid && profile.uid === state.uid
@@ -166,7 +155,6 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
   // for others it's read-only from the directory entry.
   const [visited, setVisited] = useState<string[]>([])
   const [favourite, setFavourite] = useState<string | null>(null)
-  const [wallpaper, setWallpaper] = useState<string | null>(null)
   const [banner, setBanner] = useState<string | null>(null)
 
   const member = useMemo(() => {
@@ -182,21 +170,13 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
     if (isSelf) {
       setVisited(state.currentUserProfile?.visitedCountries ?? member?.visitedCountries ?? [])
       setFavourite(state.currentUserProfile?.favouriteCountry ?? member?.favouriteCountry ?? null)
-      setWallpaper(state.currentUserProfile?.profileWallpaper ?? member?.profileWallpaper ?? null)
       setBanner(state.currentUserProfile?.profileBanner ?? member?.profileBanner ?? null)
     } else {
       setVisited(member?.visitedCountries ?? [])
       setFavourite(member?.favouriteCountry ?? null)
-      setWallpaper(member?.profileWallpaper ?? null)
       setBanner(member?.profileBanner ?? null)
     }
   }, [isSelf, member, state.currentUserProfile])
-
-  function applyWallpaper(v: string | null) {
-    const next = v === null ? null : (wallpaper === v ? null : v)
-    setWallpaper(next)
-    saveMyWallpaper(next).catch(() => toast.error('Could not save your background'))
-  }
 
   function applyBanner(v: string | null) {
     const next = v === null ? null : (banner === v ? null : v)
@@ -266,7 +246,6 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
   const name = titleCase(member?.displayName ?? profile.name)
   const avatarSrc = reviews.find(r => r.staffImage)?.staffImage ?? null
   const bannerSrc = reviews.find(r => r.images.length > 0)?.images[0] ?? null
-  const wp = wallpaperCss(wallpaper)
   const heroColor = state.settings.color || '#05979a'
   // Banner precedence: a chosen design, else a chosen/review photo, else gradient.
   const bannerPreset = WALLPAPERS.find(w => w.id === banner)
@@ -294,31 +273,29 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
           <span className="sr-only">Close</span>
         </DialogClose>
 
-        <div
-          className={`overflow-y-auto max-h-[85dvh] sm:max-h-[92dvh] ${wp ? 'dark text-foreground' : ''}`}
-          style={wp ? { background: wp } : undefined}
-        >
+        <div className="overflow-y-auto max-h-[85dvh] sm:max-h-[92dvh]">
           {/* Hero wrapper — un-clipped so the avatar can overhang and sit in front */}
           <div className="relative">
             {/* Banner (clipped so the zoomed image stays inside) */}
-            <div className="relative h-36 sm:h-48 overflow-hidden">
+            <div className="relative h-44 sm:h-56 overflow-hidden">
               {bannerPreset ? (
-                <>
-                  <div className="absolute inset-0" style={{ background: bannerPreset.css }} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
-                </>
+                <div className="absolute inset-0" style={{ background: bannerPreset.css }} />
               ) : heroPhoto ? (
                 <>
                   <img src={heroPhoto} alt="" className="absolute inset-0 w-full h-full object-cover scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/10" />
-                  <div className="absolute inset-0 mix-blend-soft-light opacity-60" style={{ background: `linear-gradient(135deg, ${heroColor}, transparent 70%)` }} />
+                  <div className="absolute inset-0 mix-blend-soft-light opacity-50" style={{ background: `linear-gradient(135deg, ${heroColor}, transparent 70%)` }} />
                 </>
               ) : (
                 <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${heroColor}, color-mix(in srgb, ${heroColor} 30%, transparent))` }} />
               )}
 
+              {/* Darken the lower half for text legibility */}
+              <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/60 via-black/15 to-transparent pointer-events-none" />
+              {/* Seamless fade into the content background below */}
+              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-card pointer-events-none" />
+
               {/* Name + role sit on the hero for a bolder header */}
-              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7 pl-28 sm:pl-40">
+              <div className="absolute inset-x-0 bottom-0 px-5 sm:px-7 pb-6 sm:pb-9 pl-28 sm:pl-40">
                 <h1 className="text-2xl sm:text-3xl font-semibold leading-tight truncate text-white drop-shadow-lg">{name}</h1>
                 {roleBits.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 mt-2">
@@ -362,12 +339,9 @@ export function ProfileDialog({ profile, onOpenChange }: Props) {
             </div>
           </div>
 
-          {/* Self-service appearance — banner (hero strip) and background. */}
+          {/* Self-service appearance — banner (hero strip) only. */}
           {isSelf && (
-            <>
-              <AppearancePicker title="Banner" value={banner} onPick={applyBanner} searchPhotos={searchPhotos} />
-              <AppearancePicker title="Background" value={wallpaper} onPick={applyWallpaper} searchPhotos={searchPhotos} />
-            </>
+            <AppearancePicker title="Banner" value={banner} onPick={applyBanner} searchPhotos={searchPhotos} />
           )}
 
           {/* Travel map — countries visited with the company (favourite shaded gold).

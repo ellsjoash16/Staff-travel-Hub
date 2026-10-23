@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { CircleNotch, ShieldCheck } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth'
+import { updatePassword } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { useApp } from '@/context/AppContext'
 import { Button } from '@/components/ui/button'
@@ -10,31 +10,28 @@ import { Label } from '@/components/ui/label'
 
 // Shown to admin-created accounts on first sign-in: they must replace the
 // temporary password with one of their own before using the app. Non-dismissable.
+// The user just signed in with the temporary password, so the session is fresh
+// and we can set the new password directly — no need to re-enter the temp one.
 export function ForcePasswordChange() {
   const { completePasswordChange } = useApp()
-  const [temp, setTemp]       = useState('')
   const [next, setNext]       = useState('')
   const [confirm, setConfirm] = useState('')
   const [busy, setBusy]       = useState(false)
 
   async function handleSubmit() {
-    if (!temp) { toast.error('Enter the temporary password you were given'); return }
     if (next.length < 6) { toast.error('New password must be at least 6 characters'); return }
     if (next !== confirm) { toast.error('Passwords do not match'); return }
-    if (next === temp) { toast.error('Choose a password different from the temporary one'); return }
     const user = auth.currentUser
     if (!user?.email) { toast.error('Not signed in'); return }
     setBusy(true)
     try {
-      const credential = EmailAuthProvider.credential(user.email, temp)
-      await reauthenticateWithCredential(user, credential)
       await updatePassword(user, next)
       await completePasswordChange()
       toast.success('Password set — welcome to DAFAGRAM!')
     } catch (err: unknown) {
       const code = (err as { code?: string }).code
-      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
-        toast.error('Temporary password is incorrect')
+      if (code === 'auth/requires-recent-login') {
+        toast.error('Please sign out and sign back in, then set your password')
       } else {
         toast.error('Failed to set password — please try again')
       }
@@ -55,12 +52,8 @@ export function ForcePasswordChange() {
         </div>
         <div className="px-6 py-4 space-y-3">
           <div className="space-y-1.5">
-            <Label>Temporary password</Label>
-            <Input type="password" placeholder="The password you were given" value={temp} onChange={e => setTemp(e.target.value)} autoFocus />
-          </div>
-          <div className="space-y-1.5">
             <Label>New password</Label>
-            <Input type="password" placeholder="Min. 6 characters" value={next} onChange={e => setNext(e.target.value)} />
+            <Input type="password" placeholder="Min. 6 characters" value={next} onChange={e => setNext(e.target.value)} autoFocus />
           </div>
           <div className="space-y-1.5">
             <Label>Confirm new password</Label>

@@ -721,6 +721,8 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     mustChangePassword: data.mustChangePassword ?? false,
     visitedCountries: data.visitedCountries ?? [],
     favouriteCountry: data.favouriteCountry ?? null,
+    profileWallpaper: data.profileWallpaper ?? null,
+    profileBanner: data.profileBanner ?? null,
   }
 }
 
@@ -729,6 +731,16 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
 // their own profile doc (no isAdmin/banned fields touched here).
 export async function saveVisitedCountries(uid: string, visitedCountries: string[], favouriteCountry: string | null): Promise<void> {
   await setDoc(doc(db, 'userProfiles', uid), { visitedCountries, favouriteCountry }, { merge: true })
+}
+
+// Self-service: a user sets a preset background/wallpaper id for their profile.
+export async function saveProfileWallpaper(uid: string, profileWallpaper: string | null): Promise<void> {
+  await setDoc(doc(db, 'userProfiles', uid), { profileWallpaper }, { merge: true })
+}
+
+// Self-service: a user sets a banner (photo URL or preset id) for their profile.
+export async function saveProfileBanner(uid: string, profileBanner: string | null): Promise<void> {
+  await setDoc(doc(db, 'userProfiles', uid), { profileBanner }, { merge: true })
 }
 
 export async function clearMustChangePassword(uid: string): Promise<void> {

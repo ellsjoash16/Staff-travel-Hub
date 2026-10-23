@@ -16,7 +16,7 @@ import {
   fetchPendingPosts, approvePost, submitPendingPost,
   fetchRegistrations, fetchMyRegistrations, updateRegistrationStatus, addTripParticipant, removeTripParticipant, deleteRegistration, purgeExpiredRegistrations, deleteUserProfile, purgeOrphanLogins,
   fetchAllUserProfiles, setUserBanned, fetchUserProfile, adminUpdateUserProfile, adminCreateUser, adminResetUserPassword, clearMustChangePassword,
-  fetchStaffDirectory, saveVisitedCountries,
+  fetchStaffDirectory, saveVisitedCountries, saveProfileWallpaper, saveProfileBanner,
 } from '@/lib/db'
 import { hexToHsl, extractStoragePath } from '@/lib/utils'
 import { auth, appCheck, getAppCheckToken } from '@/lib/firebase'
@@ -63,7 +63,7 @@ interface AppState {
   registrations: Registration[]
   userProfiles: (UserProfile & { updatedAt: string | null })[]
   myRegistrations: Registration[]
-  currentUserProfile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean; visitedCountries?: string[]; favouriteCountry?: string | null } | null
+  currentUserProfile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean; visitedCountries?: string[]; favouriteCountry?: string | null; profileWallpaper?: string | null; profileBanner?: string | null } | null
   uid: string | null              // current signed-in user's uid (for own-profile editing)
 }
 
@@ -91,7 +91,7 @@ type Action =
   | { type: 'SET_USER_BANNED'; uid: string; banned: boolean; banUntil: string | null }
   | { type: 'SET_MY_REGISTRATIONS'; registrations: Registration[] }
   | { type: 'ADD_MY_REGISTRATION'; registration: Registration }
-  | { type: 'SET_CURRENT_USER_PROFILE'; profile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean; visitedCountries?: string[]; favouriteCountry?: string | null } | null }
+  | { type: 'SET_CURRENT_USER_PROFILE'; profile: { jobRole: string | null; salesDivision: string | null; mustChangePassword?: boolean; visitedCountries?: string[]; favouriteCountry?: string | null; profileWallpaper?: string | null; profileBanner?: string | null } | null }
   | { type: 'UPDATE_USER_PROFILE'; uid: string; fields: Partial<UserProfile> }
   | { type: 'UPDATE_TRIP_PARTICIPANTS'; tripId: string; name: string; action: 'add' | 'remove' }
   | { type: 'SET_POSTS_LOADED' }
@@ -209,6 +209,8 @@ interface AppContextValue {
   loadUserProfiles: () => Promise<void>
   loadDirectory: () => Promise<void>
   saveMyGlobe: (visitedCountries: string[], favouriteCountry: string | null) => Promise<void>
+  saveMyWallpaper: (profileWallpaper: string | null) => Promise<void>
+  saveMyBanner: (profileBanner: string | null) => Promise<void>
   loadPosts: () => Promise<void>
   loadMyRegistrations: () => Promise<void>
   toggleAdminUid: (uid: string, isCurrentlyAdmin?: boolean) => Promise<void>
@@ -307,7 +309,7 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
       }
 
       if (profile) {
-        dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision, mustChangePassword: profile.mustChangePassword, visitedCountries: profile.visitedCountries ?? [], favouriteCountry: profile.favouriteCountry ?? null } })
+        dispatch({ type: 'SET_CURRENT_USER_PROFILE', profile: { jobRole: profile.jobRole, salesDivision: profile.salesDivision, mustChangePassword: profile.mustChangePassword, visitedCountries: profile.visitedCountries ?? [], favouriteCountry: profile.favouriteCountry ?? null, profileWallpaper: profile.profileWallpaper ?? null, profileBanner: profile.profileBanner ?? null } })
       }
     }
     init()
@@ -376,6 +378,40 @@ export function AppProvider({ children, authUid }: { children: ReactNode; authUi
     dispatch({
       type: 'SET_DIRECTORY',
       directory: state.directory.map(d => d.uid === uid ? { ...d, visitedCountries, favouriteCountry } : d),
+    })
+  }
+
+  // Self-service: current user picks a preset background for their profile.
+  async function saveMyWallpaper(profileWallpaper: string | null): Promise<void> {
+    const uid = state.uid
+    if (!uid) return
+    await saveProfileWallpaper(uid, profileWallpaper)
+    dispatch({
+      type: 'SET_CURRENT_USER_PROFILE',
+      profile: state.currentUserProfile
+        ? { ...state.currentUserProfile, profileWallpaper }
+        : { jobRole: null, salesDivision: null, profileWallpaper },
+    })
+    dispatch({
+      type: 'SET_DIRECTORY',
+      directory: state.directory.map(d => d.uid === uid ? { ...d, profileWallpaper } : d),
+    })
+  }
+
+  // Self-service: current user picks a banner (photo URL or preset id).
+  async function saveMyBanner(profileBanner: string | null): Promise<void> {
+    const uid = state.uid
+    if (!uid) return
+    await saveProfileBanner(uid, profileBanner)
+    dispatch({
+      type: 'SET_CURRENT_USER_PROFILE',
+      profile: state.currentUserProfile
+        ? { ...state.currentUserProfile, profileBanner }
+        : { jobRole: null, salesDivision: null, profileBanner },
+    })
+    dispatch({
+      type: 'SET_DIRECTORY',
+      directory: state.directory.map(d => d.uid === uid ? { ...d, profileBanner } : d),
     })
   }
 
@@ -706,7 +742,7 @@ async function togglePin(id: string, pinned: boolean): Promise<void> {
       addLocation, editLocation, deleteLocation, searchPhotos,
       saveSettings, savePageImages,
       loadPosts,
-      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins: purgeOrphanLoginsFn, loadUserProfiles, loadDirectory, saveMyGlobe, createUser, resetUserPassword, completePasswordChange, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
+      approvePostFn, fetchPending, loadRegistrations, setRegistrationStatus, removeRegistration, removeUserProfile, purgeOrphanLogins: purgeOrphanLoginsFn, loadUserProfiles, loadDirectory, saveMyGlobe, saveMyWallpaper, saveMyBanner, createUser, resetUserPassword, completePasswordChange, loadMyRegistrations, toggleAdminUid, banUser, editUserProfile,
     }}>
       {children}
     </AppContext.Provider>

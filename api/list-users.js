@@ -55,6 +55,8 @@ export default async function handler(req, res) {
             salesDivision: str(f.salesDivision),
             visitedCountries: arr(f.visitedCountries),
             favouriteCountry: str(f.favouriteCountry),
+            profileWallpaper: str(f.profileWallpaper),
+            profileBanner: str(f.profileBanner),
           })
         }
         fsPageToken = fsData.nextPageToken
@@ -94,6 +96,8 @@ export default async function handler(req, res) {
           salesDivision: p?.salesDivision ?? null,
           visitedCountries: p?.visitedCountries ?? [],
           favouriteCountry: p?.favouriteCountry ?? null,
+          profileWallpaper: p?.profileWallpaper ?? null,
+          profileBanner: p?.profileBanner ?? null,
         }
       })
 

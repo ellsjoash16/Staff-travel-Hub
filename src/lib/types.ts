@@ -136,6 +136,8 @@ export interface UserProfile {
   mustChangePassword?: boolean
   visitedCountries?: string[]
   favouriteCountry?: string | null
+  profileWallpaper?: string | null
+  profileBanner?: string | null
 }
 
 export interface StaffMember {
@@ -146,6 +148,8 @@ export interface StaffMember {
   salesDivision: string | null
   visitedCountries: string[]
   favouriteCountry: string | null
+  profileWallpaper: string | null
+  profileBanner: string | null
 }
 
 export interface NominatedPerson {
